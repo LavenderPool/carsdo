@@ -42,6 +42,17 @@ const normalizeSelectValue = (value: unknown): string | number => {
     return '';
 };
 
+const normalizeTextInputValue = (value: FormFieldValue): string | number | null => {
+    if (typeof value === 'string' || typeof value === 'number' || value === null) {
+        return value;
+    }
+    return '';
+};
+
+const onTextInputChange = (field: Field, value: string | number | null) => {
+    form[field.name] = value;
+};
+
 const onSelectChange = (field: Field, event: Event) => {
     const target = event.target as HTMLSelectElement;
     const matchedOption = (field.options ?? []).find((option) => String(option.value) === target.value);
@@ -74,10 +85,11 @@ const onSelectChange = (field: Field, event: Event) => {
                             <TextInput
                                 v-if="field.type === 'text' || field.type === 'number'"
                                 :id="field.name"
-                                v-model="form[field.name]"
+                                :model-value="normalizeTextInputValue(form[field.name])"
                                 :type="field.type"
                                 class="mt-1 block w-full"
                                 :required="field.required"
+                                @update:model-value="onTextInputChange(field, $event)"
                             />
 
                             <textarea
