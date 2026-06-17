@@ -1,0 +1,250 @@
+{
+  "_AdminLayout-QHipA3zX.js": {
+    "file": "assets/AdminLayout-QHipA3zX.js",
+    "name": "AdminLayout",
+    "imports": [
+      "resources/js/app.ts",
+      "_ResponsiveNavLink-Dr0vdl2e.js"
+    ]
+  },
+  "_ApplicationLogo-Cx7ApGZ5.js": {
+    "file": "assets/ApplicationLogo-Cx7ApGZ5.js",
+    "name": "ApplicationLogo",
+    "imports": [
+      "__plugin-vue_export-helper-BDNMzG2s.js",
+      "resources/js/app.ts"
+    ]
+  },
+  "_AuthenticatedLayout-Blmu4Srj.js": {
+    "file": "assets/AuthenticatedLayout-Blmu4Srj.js",
+    "name": "AuthenticatedLayout",
+    "imports": [
+      "resources/js/app.ts",
+      "_ApplicationLogo-Cx7ApGZ5.js",
+      "_ResponsiveNavLink-Dr0vdl2e.js"
+    ]
+  },
+  "_CarMarkController-CwX78jwp.js": {
+    "file": "assets/CarMarkController-CwX78jwp.js",
+    "name": "CarMarkController"
+  },
+  "_CarMarkForm-Bu39cbW8.js": {
+    "file": "assets/CarMarkForm-Bu39cbW8.js",
+    "name": "CarMarkForm",
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js"
+    ]
+  },
+  "_DeleteUserForm-CTed_xBw.js": {
+    "file": "assets/DeleteUserForm-CTed_xBw.js",
+    "name": "DeleteUserForm",
+    "imports": [
+      "__plugin-vue_export-helper-BDNMzG2s.js",
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js"
+    ]
+  },
+  "_GuestLayout-Mf3BWmxy.js": {
+    "file": "assets/GuestLayout-Mf3BWmxy.js",
+    "name": "GuestLayout",
+    "imports": [
+      "resources/js/app.ts",
+      "_ApplicationLogo-Cx7ApGZ5.js"
+    ]
+  },
+  "_PrimaryButton-DRIyveVD.js": {
+    "file": "assets/PrimaryButton-DRIyveVD.js",
+    "name": "PrimaryButton",
+    "imports": [
+      "__plugin-vue_export-helper-BDNMzG2s.js",
+      "resources/js/app.ts"
+    ]
+  },
+  "_ResponsiveNavLink-Dr0vdl2e.js": {
+    "file": "assets/ResponsiveNavLink-Dr0vdl2e.js",
+    "name": "ResponsiveNavLink",
+    "imports": [
+      "resources/js/app.ts"
+    ]
+  },
+  "_TextInput-CECeU-H-.js": {
+    "file": "assets/TextInput-CECeU-H-.js",
+    "name": "TextInput",
+    "imports": [
+      "resources/js/app.ts"
+    ]
+  },
+  "_UpdatePasswordForm-DqiqruuD.js": {
+    "file": "assets/UpdatePasswordForm-DqiqruuD.js",
+    "name": "UpdatePasswordForm",
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js"
+    ]
+  },
+  "_UpdateProfileInformationForm--fbyXsJ8.js": {
+    "file": "assets/UpdateProfileInformationForm--fbyXsJ8.js",
+    "name": "UpdateProfileInformationForm",
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js"
+    ]
+  },
+  "__plugin-vue_export-helper-BDNMzG2s.js": {
+    "file": "assets/_plugin-vue_export-helper-BDNMzG2s.js",
+    "name": "_plugin-vue_export-helper"
+  },
+  "resources/js/Pages/Admin/CarMarks/Create.vue": {
+    "file": "assets/Create-DpOzcDhw.js",
+    "name": "Create",
+    "src": "resources/js/Pages/Admin/CarMarks/Create.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_CarMarkForm-Bu39cbW8.js",
+      "_AdminLayout-QHipA3zX.js",
+      "_CarMarkController-CwX78jwp.js"
+    ]
+  },
+  "resources/js/Pages/Admin/CarMarks/Edit.vue": {
+    "file": "assets/Edit-DfZjBTTR.js",
+    "name": "Edit",
+    "src": "resources/js/Pages/Admin/CarMarks/Edit.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_CarMarkForm-Bu39cbW8.js",
+      "_AdminLayout-QHipA3zX.js",
+      "_CarMarkController-CwX78jwp.js"
+    ]
+  },
+  "resources/js/Pages/Admin/CarMarks/Index.vue": {
+    "file": "assets/Index-Cw8szEbw.js",
+    "name": "Index",
+    "src": "resources/js/Pages/Admin/CarMarks/Index.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_AdminLayout-QHipA3zX.js",
+      "_CarMarkController-CwX78jwp.js"
+    ]
+  },
+  "resources/js/Pages/Admin/Dashboard.vue": {
+    "file": "assets/Dashboard-p1OYxKRM.js",
+    "name": "Dashboard",
+    "src": "resources/js/Pages/Admin/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_AdminLayout-QHipA3zX.js"
+    ]
+  },
+  "resources/js/Pages/Auth/ConfirmPassword.vue": {
+    "file": "assets/ConfirmPassword-BoBLPz2J.js",
+    "name": "ConfirmPassword",
+    "src": "resources/js/Pages/Auth/ConfirmPassword.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js",
+      "_GuestLayout-Mf3BWmxy.js"
+    ]
+  },
+  "resources/js/Pages/Auth/Login.vue": {
+    "file": "assets/Login-wMrweZDT.js",
+    "name": "Login",
+    "src": "resources/js/Pages/Auth/Login.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js",
+      "_GuestLayout-Mf3BWmxy.js"
+    ]
+  },
+  "resources/js/Pages/Auth/Register.vue": {
+    "file": "assets/Register-Bx6yJuvL.js",
+    "name": "Register",
+    "src": "resources/js/Pages/Auth/Register.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_TextInput-CECeU-H-.js",
+      "_PrimaryButton-DRIyveVD.js",
+      "_GuestLayout-Mf3BWmxy.js"
+    ]
+  },
+  "resources/js/Pages/Auth/VerifyEmail.vue": {
+    "file": "assets/VerifyEmail-Bwqd73Au.js",
+    "name": "VerifyEmail",
+    "src": "resources/js/Pages/Auth/VerifyEmail.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_PrimaryButton-DRIyveVD.js",
+      "_GuestLayout-Mf3BWmxy.js"
+    ]
+  },
+  "resources/js/Pages/Dashboard.vue": {
+    "file": "assets/Dashboard-CcB0QxKr.js",
+    "name": "Dashboard",
+    "src": "resources/js/Pages/Dashboard.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_AuthenticatedLayout-Blmu4Srj.js"
+    ]
+  },
+  "resources/js/Pages/Profile/Edit.vue": {
+    "file": "assets/Edit-Q9fzWaz-.js",
+    "name": "Edit",
+    "src": "resources/js/Pages/Profile/Edit.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts",
+      "_DeleteUserForm-CTed_xBw.js",
+      "_AuthenticatedLayout-Blmu4Srj.js",
+      "_UpdatePasswordForm-DqiqruuD.js",
+      "_UpdateProfileInformationForm--fbyXsJ8.js"
+    ]
+  },
+  "resources/js/Pages/Welcome.vue": {
+    "file": "assets/Welcome-Di5feZca.js",
+    "name": "Welcome",
+    "src": "resources/js/Pages/Welcome.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.ts"
+    ]
+  },
+  "resources/js/app.ts": {
+    "file": "assets/app-Dshqz_-8.js",
+    "name": "app",
+    "src": "resources/js/app.ts",
+    "isEntry": true,
+    "dynamicImports": [
+      "resources/js/Pages/Admin/CarMarks/Create.vue",
+      "resources/js/Pages/Admin/CarMarks/Edit.vue",
+      "resources/js/Pages/Admin/CarMarks/Index.vue",
+      "resources/js/Pages/Admin/Dashboard.vue",
+      "resources/js/Pages/Auth/ConfirmPassword.vue",
+      "resources/js/Pages/Auth/Login.vue",
+      "resources/js/Pages/Auth/Register.vue",
+      "resources/js/Pages/Auth/VerifyEmail.vue",
+      "resources/js/Pages/Dashboard.vue",
+      "resources/js/Pages/Profile/Edit.vue",
+      "_DeleteUserForm-CTed_xBw.js",
+      "_UpdatePasswordForm-DqiqruuD.js",
+      "_UpdateProfileInformationForm--fbyXsJ8.js",
+      "resources/js/Pages/Welcome.vue"
+    ],
+    "css": [
+      "assets/app-BbupZNuo.css"
+    ]
+  }
+}

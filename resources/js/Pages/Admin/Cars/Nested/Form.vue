@@ -14,6 +14,9 @@ type Field = {
     options?: Array<{ value: string | number; label: string }>;
 };
 
+type FormFieldValue = string | number | boolean | null;
+type NestedCarFormData = Record<string, FormFieldValue>;
+
 const props = defineProps<{
     title: string;
     car: { id: number; name: string };
@@ -23,7 +26,7 @@ const props = defineProps<{
     fields: Field[];
 }>();
 
-const form = useForm({ ...props.item });
+const form = useForm<NestedCarFormData>({ ...(props.item as NestedCarFormData) });
 
 const submitForm = () => {
     form.submit(props.submit.method, props.submit.url);
@@ -42,7 +45,7 @@ const normalizeSelectValue = (value: unknown): string | number => {
 const onSelectChange = (field: Field, event: Event) => {
     const target = event.target as HTMLSelectElement;
     const matchedOption = (field.options ?? []).find((option) => String(option.value) === target.value);
-    const value = target.value === '' ? null : (matchedOption?.value ?? target.value);
+    const value: FormFieldValue = target.value === '' ? null : (matchedOption?.value ?? target.value);
     form[field.name] = value;
 };
 </script>

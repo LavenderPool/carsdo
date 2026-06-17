@@ -2,6 +2,7 @@
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import type { PageProps } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { computed, defineComponent, h, onMounted, ref, watch, type Component } from 'vue';
 
@@ -142,11 +143,11 @@ type NavigationItem = {
 
 const showingNavigationDropdown = ref(false);
 const sidebarCollapsed = ref(false);
-const page = usePage<{
+const page = usePage<PageProps<{
     settings?: {
         brand_name?: string | null;
     };
-}>();
+}>>();
 
 const navigationItems: NavigationItem[] = [
     {
@@ -246,7 +247,7 @@ watch(sidebarCollapsed, (value) => {
                     class="inline-flex rounded-lg border border-gray-200 p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-900"
                     v-tooltip="sidebarCollapsed ? 'Развернуть сайдбар' : 'Свернуть сайдбар'"
                     :aria-label="sidebarCollapsed ? 'Развернуть сайдбар' : 'Свернуть сайдбар'"
-                    :aria-expanded="String(!sidebarCollapsed)"
+                    :aria-expanded="!sidebarCollapsed"
                     @click="toggleSidebar"
                 >
                     <component :is="sidebarCollapsed ? ChevronDoubleRightIcon : ChevronDoubleLeftIcon" />
