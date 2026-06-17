@@ -1,0 +1,60 @@
+<?php
+
+namespace Tests\Feature\Admin;
+
+use App\Models\Brand;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class BrandCrudTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_guest_is_redirected_to_login_from_admin(): void
+    {
+        $response = $this->get(route('admin.brands.index'));
+
+        $response->assertRedirect(route('login'));
+    }
+
+    public function test_authenticated_user_can_manage_brands(): void
+    {
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('admin.brands.store'), [
+                'name' => 'BMW',
+                'slug' => '',
+                'leave_from_russian' => true,
+            ])
+            ->assertRedirect(route('admin.brands.index'));
+
+        $brand = Brand::query()->firstOrFail();
+
+        $this->assertSame('BMW', $brand->name);
+        $this->assertSame('bmw', $brand->slug);
+        $this->assertTrue($brand->leave_from_russian);
+
+        $this->actingAs($user)
+            ->put(route('admin.brands.update', $brand), [
+                'name' => 'Audi',
+                'slug' => 'audi-brand',
+                'leave_from_russian' => false,
+            ])
+            ->assertRedirect(route('admin.brands.index'));
+
+        $brand->refresh();
+
+        $this->assertSame('Audi', $brand->name);
+        $this->assertSame('audi-brand', $brand->slug);
+        $this->assertFalse($brand->leave_from_russian);
+
+        $this->actingAs($user)
+            ->delete(route('admin.brands.destroy', $brand))
+            ->assertRedirect(route('admin.brands.index'));
+
+        $this->assertSoftDeleted($brand);
+    }
+}
