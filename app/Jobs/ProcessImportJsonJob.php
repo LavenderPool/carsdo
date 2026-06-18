@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Jobs\ProcessImportCarsChunkJob;
 use App\Models\ImportRun;
 use App\Services\Import\CarImportService;
 use App\Support\Import\ImportPayloadRules;
@@ -48,9 +49,13 @@ class ProcessImportJsonJob implements ShouldQueue
         $importRun->update([
             'status' => 'running',
             'message' => 'Чтение JSON-файла...',
+            'current_stage' => 'reading_file',
             'error_message' => null,
             'started_at' => now(),
             'finished_at' => null,
+            'chunks_total' => 0,
+            'chunks_processed' => 0,
+            'current_chunk_index' => null,
         ]);
 
         $this->logInfo($importRun, 'import.started', [
@@ -63,8 +68,11 @@ class ProcessImportJsonJob implements ShouldQueue
         try {
             $payload = $this->parsePayload($importRun, $jobStartedAt);
             $totalCars = $payload['total_cars'];
+            $chunksTotal = $payload['chunks_total'];
+            $importRun = $importRun->fresh() ?? $importRun;
 
             if ($this->isStopRequested($importRun)) {
+                $this->cleanupChunkFiles($importRun);
                 $this->markCancelled($importRun, 'Импорт остановлен после чтения входных данных.', $jobStartedAt);
 
                 return;
@@ -72,10 +80,14 @@ class ProcessImportJsonJob implements ShouldQueue
 
             $importRun->update([
                 'message' => $totalCars > 0
-                    ? "Импортировано 0 из {$totalCars} машин."
+                    ? "Подготовлено {$chunksTotal} чанков. Импортировано 0 из {$totalCars} машин."
                     : 'Файл прочитан, машин для импорта нет.',
+                'current_stage' => 'persisting_references',
                 'total_cars' => $totalCars,
                 'processed_cars' => 0,
+                'chunks_total' => $chunksTotal,
+                'chunks_processed' => 0,
+                'current_chunk_index' => null,
                 'stats_new' => 0,
                 'stats_updated' => 0,
                 'stats_unchanged' => 0,
@@ -86,6 +98,7 @@ class ProcessImportJsonJob implements ShouldQueue
                 'stage' => 'persist_started',
                 'elapsed_ms' => $this->elapsedMs($jobStartedAt),
                 'total_cars' => $totalCars,
+                'chunks_total' => $chunksTotal,
             ]);
 
             $failureStage = 'persist_data';
@@ -110,73 +123,17 @@ class ProcessImportJsonJob implements ShouldQueue
                 'stats' => $this->compactStats($stats),
             ]);
 
-            $carsChunk = [];
-            $carsChunkOffset = 0;
-            $chunkZeroBasedIndex = 0;
-
-            foreach ($this->iterateCars($payload['file_path']) as $carPayload) {
-                if ($this->isStopRequested($importRun)) {
-                    $this->markCancelled(
-                        $importRun,
-                        "Импорт остановлен пользователем. Обработано {$stats['processed_cars']} из {$totalCars} машин.",
-                        $jobStartedAt,
-                        [
-                            'processed_cars' => $stats['processed_cars'],
-                            'total_cars' => $totalCars,
-                            'stats_new' => $stats['new'],
-                            'stats_updated' => $stats['updated'],
-                            'stats_unchanged' => $stats['unchanged'],
-                            'stats_processed' => $stats['processed'],
-                        ],
-                    );
-
-                    return;
-                }
-
-                $carsChunk[] = $carPayload;
-
-                if (count($carsChunk) < self::CAR_VALIDATION_CHUNK_SIZE) {
-                    continue;
-                }
-
-                $stats = $this->processCarsChunk(
-                    $importRun,
-                    $importService,
-                    $carsChunk,
-                    $carsChunkOffset,
-                    $chunkZeroBasedIndex,
-                    $stats,
-                    $totalCars,
-                    $jobStartedAt,
-                );
-
-                $carsChunkOffset += count($carsChunk);
-                $carsChunk = [];
-                $chunkZeroBasedIndex++;
-            }
-
-            if ($carsChunk !== []) {
-                $stats = $this->processCarsChunk(
-                    $importRun,
-                    $importService,
-                    $carsChunk,
-                    $carsChunkOffset,
-                    $chunkZeroBasedIndex,
-                    $stats,
-                    $totalCars,
-                    $jobStartedAt,
-                );
-            }
-
-            $this->logInfo($importRun, 'import.stage.cars_completed', [
-                'stage' => 'persist_cars',
-                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                'processed_cars' => $stats['processed_cars'],
-                'total_cars' => $totalCars,
-                'stats' => $this->compactStats($stats),
+            $importRun->update([
+                'stats_new' => $stats['new'],
+                'stats_updated' => $stats['updated'],
+                'stats_unchanged' => $stats['unchanged'],
+                'stats_processed' => $stats['processed'],
             ]);
 
+            $importRun = $importRun->fresh() ?? $importRun;
+
             if ($this->isStopRequested($importRun)) {
+                $this->cleanupChunkFiles($importRun);
                 $this->markCancelled(
                     $importRun,
                     "Импорт остановлен пользователем. Обработано {$stats['processed_cars']} из {$totalCars} машин.",
@@ -194,30 +151,47 @@ class ProcessImportJsonJob implements ShouldQueue
                 return;
             }
 
+            if ($chunksTotal === 0) {
+                $this->cleanupChunkFiles($importRun);
+                $importRun->update([
+                    'status' => 'succeeded',
+                    'message' => 'Импорт завершен успешно.',
+                    'current_stage' => 'completed',
+                    'processed_cars' => $stats['processed_cars'],
+                    'chunks_processed' => 0,
+                    'current_chunk_index' => null,
+                    'stats_new' => $stats['new'],
+                    'stats_updated' => $stats['updated'],
+                    'stats_unchanged' => $stats['unchanged'],
+                    'stats_processed' => $stats['processed'],
+                    'finished_at' => now(),
+                ]);
+
+                $this->logInfo($importRun, 'import.succeeded', [
+                    'stage' => 'finished',
+                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                    'processed_cars' => $stats['processed_cars'],
+                    'total_cars' => $totalCars,
+                    'stats' => $this->compactStats($stats),
+                ]);
+
+                return;
+            }
+
             $importRun->update([
-                'status' => 'succeeded',
-                'message' => 'Импорт завершен успешно.',
-                'processed_cars' => $stats['processed_cars'],
-                'stats_new' => $stats['new'],
-                'stats_updated' => $stats['updated'],
-                'stats_unchanged' => $stats['unchanged'],
-                'stats_processed' => $stats['processed'],
-                'finished_at' => now(),
+                'message' => "Подготовка завершена. Запускаем обработку чанка 1 из {$chunksTotal}.",
+                'current_stage' => 'queued_chunks',
             ]);
 
-            $this->logInfo($importRun, 'import.succeeded', [
-                'stage' => 'finished',
-                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                'processed_cars' => $stats['processed_cars'],
-                'total_cars' => $totalCars,
-                'stats' => $this->compactStats($stats),
-            ]);
+            $this->dispatchNextChunk($importRun, 1, $importService);
         } catch (Throwable $exception) {
             report($exception);
 
+            $this->cleanupChunkFiles($importRun);
             $importRun->update([
                 'status' => 'failed',
                 'message' => 'Импорт завершился с ошибкой.',
+                'current_stage' => 'failed',
                 'error_message' => $exception instanceof RuntimeException
                     ? $exception->getMessage()
                     : 'Во время импорта произошла непредвиденная ошибка.',
@@ -244,6 +218,7 @@ class ProcessImportJsonJob implements ShouldQueue
         $importRun->update([
             'status' => 'failed',
             'message' => 'Импорт завершился с ошибкой.',
+            'current_stage' => 'failed',
             'error_message' => $exception->getMessage(),
             'finished_at' => now(),
         ]);
@@ -260,7 +235,7 @@ class ProcessImportJsonJob implements ShouldQueue
      *     cities: array<int, array<string, mixed>>,
      *     brands: array<int, array<string, mixed>>,
      *     total_cars: int,
-     *     file_path: string
+     *     chunks_total: int
      * }
      */
     private function parsePayload(ImportRun $importRun, float $jobStartedAt): array
@@ -290,7 +265,9 @@ class ProcessImportJsonJob implements ShouldQueue
                 '/brands',
                 fn (array $brands): array => $this->validateBrands($brands),
             );
-            $totalCars = $this->countCars($filePath);
+            $chunkManifest = $this->splitCarsIntoChunkFiles($importRun, $filePath, $jobStartedAt);
+            $totalCars = $chunkManifest['total_cars'];
+            $chunksTotal = $chunkManifest['chunks_total'];
         } catch (RuntimeException $exception) {
             $this->logWarning($importRun, 'import.stage.root_validation_failed', [
                 'stage' => 'root_validation',
@@ -309,6 +286,7 @@ class ProcessImportJsonJob implements ShouldQueue
             'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
             'cars_count' => $totalCars,
+            'chunks_total' => $chunksTotal,
         ]);
 
         $this->logInfo($importRun, 'import.stage.root_validation_ok', [
@@ -318,6 +296,7 @@ class ProcessImportJsonJob implements ShouldQueue
             'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
             'cars_count' => $totalCars,
+            'chunks_total' => $chunksTotal,
         ]);
 
         $this->logInfo($importRun, 'import.stage.validation_ok', [
@@ -327,13 +306,59 @@ class ProcessImportJsonJob implements ShouldQueue
             'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
             'cars_count' => $totalCars,
+            'chunks_total' => $chunksTotal,
         ]);
 
         return [
             'cities' => $validatedCities,
             'brands' => $validatedBrands,
             'total_cars' => $totalCars,
-            'file_path' => $filePath,
+            'chunks_total' => $chunksTotal,
+        ];
+    }
+
+    /**
+     * @return array{total_cars: int, chunks_total: int}
+     */
+    private function splitCarsIntoChunkFiles(ImportRun $importRun, string $filePath, float $jobStartedAt): array
+    {
+        $disk = Storage::disk('local');
+        $disk->deleteDirectory($this->chunksDirectory($importRun));
+        $disk->makeDirectory($this->chunksDirectory($importRun));
+
+        $carsChunk = [];
+        $carsCount = 0;
+        $chunksTotal = 0;
+
+        foreach ($this->iterateCars($filePath) as $carPayload) {
+            $carsChunk[] = $carPayload;
+            $carsCount++;
+
+            if (count($carsChunk) < self::CAR_VALIDATION_CHUNK_SIZE) {
+                continue;
+            }
+
+            $chunksTotal++;
+            $this->writeChunkFile($importRun, $chunksTotal, $carsChunk);
+            $carsChunk = [];
+        }
+
+        if ($carsChunk !== []) {
+            $chunksTotal++;
+            $this->writeChunkFile($importRun, $chunksTotal, $carsChunk);
+        }
+
+        $this->logInfo($importRun, 'import.stage.chunks_prepared', [
+            'stage' => 'prepare_chunks',
+            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'cars_count' => $carsCount,
+            'chunks_total' => $chunksTotal,
+            'chunk_size' => self::CAR_VALIDATION_CHUNK_SIZE,
+        ]);
+
+        return [
+            'total_cars' => $carsCount,
+            'chunks_total' => $chunksTotal,
         ];
     }
 
@@ -509,6 +534,45 @@ class ProcessImportJsonJob implements ShouldQueue
         return Storage::disk('local')->path($importRun->file_path);
     }
 
+    private function chunksDirectory(ImportRun $importRun): string
+    {
+        return "imports/chunks/{$importRun->id}";
+    }
+
+    private function chunkFilePath(ImportRun $importRun, int $chunkIndex): string
+    {
+        return sprintf('%s/chunk-%05d.json', $this->chunksDirectory($importRun), $chunkIndex);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $carsChunk
+     */
+    private function writeChunkFile(ImportRun $importRun, int $chunkIndex, array $carsChunk): void
+    {
+        Storage::disk('local')->put(
+            $this->chunkFilePath($importRun, $chunkIndex),
+            json_encode($carsChunk, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+        );
+    }
+
+    private function cleanupChunkFiles(ImportRun $importRun): void
+    {
+        Storage::disk('local')->deleteDirectory($this->chunksDirectory($importRun));
+    }
+
+    private function dispatchNextChunk(ImportRun $importRun, int $chunkIndex, CarImportService $importService): void
+    {
+        $job = new ProcessImportCarsChunkJob($importRun, $chunkIndex);
+
+        if (config('queue.default') === 'sync') {
+            $job->handle($importService);
+
+            return;
+        }
+
+        dispatch($job);
+    }
+
     private function streamDecoder(): ExtJsonDecoder
     {
         return new ExtJsonDecoder(true);
@@ -667,6 +731,7 @@ class ProcessImportJsonJob implements ShouldQueue
         $importRun->update([
             'status' => 'cancelled',
             'message' => $message,
+            'current_stage' => 'cancelled',
             'finished_at' => now(),
             ...$extraFields,
         ]);

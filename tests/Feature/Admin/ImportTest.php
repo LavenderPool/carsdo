@@ -170,6 +170,7 @@ class ImportTest extends TestCase
     public function test_job_imports_brands_before_cities_and_cars(): void
     {
         Storage::fake('local');
+        config(['queue.default' => 'sync']);
 
         /** @var User $user */
         $user = User::factory()->create();
@@ -452,8 +453,12 @@ class ImportTest extends TestCase
             'file_path' => 'imports/active.json',
             'file_size' => 1024,
             'message' => 'Импортировано 10 из 100 машин.',
+            'current_stage' => 'processing_chunk',
             'total_cars' => 100,
             'processed_cars' => 10,
+            'chunks_total' => 4,
+            'chunks_processed' => 1,
+            'current_chunk_index' => 2,
             'stats_new' => 3,
             'stats_updated' => 4,
             'stats_unchanged' => 5,
@@ -467,7 +472,10 @@ class ImportTest extends TestCase
             ->assertViewHas('page', function (array $page) use ($activeRun): bool {
                 return data_get($page, 'props.activeRun.id') === $activeRun->id
                     && data_get($page, 'props.activeRun.status') === 'running'
-                    && data_get($page, 'props.activeRun.original_file_name') === 'active.json';
+                    && data_get($page, 'props.activeRun.original_file_name') === 'active.json'
+                    && data_get($page, 'props.activeRun.current_stage') === 'processing_chunk'
+                    && data_get($page, 'props.activeRun.chunks_total') === 4
+                    && data_get($page, 'props.activeRun.current_chunk_index') === 2;
             });
     }
 
@@ -631,7 +639,10 @@ class ImportTest extends TestCase
         $response
             ->assertAccepted()
             ->assertJsonPath('run.status', 'succeeded')
-            ->assertJsonPath('run.processed_cars', 120);
+            ->assertJsonPath('run.processed_cars', 120)
+            ->assertJsonPath('run.chunks_total', 2)
+            ->assertJsonPath('run.chunks_processed', 2)
+            ->assertJsonPath('run.current_stage', 'completed');
 
         $importRunId = (int) $response->json('run.id');
 
@@ -681,6 +692,7 @@ class ImportTest extends TestCase
     public function test_job_can_stop_between_chunks(): void
     {
         Storage::fake('local');
+        config(['queue.default' => 'sync']);
 
         /** @var User $user */
         $user = User::factory()->create();

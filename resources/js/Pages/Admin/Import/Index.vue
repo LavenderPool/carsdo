@@ -23,8 +23,12 @@ interface ImportRun {
     original_file_name: string;
     file_size: number;
     message: string | null;
+    current_stage: string | null;
     total_cars: number | null;
     processed_cars: number;
+    chunks_total: number | null;
+    chunks_processed: number;
+    current_chunk_index: number | null;
     stats: ImportStats;
     error_message: string | null;
     started_at: string | null;
@@ -108,6 +112,27 @@ const statusLabel = computed(() => {
             return 'Остановлен';
         default:
             return 'Не запущен';
+    }
+});
+
+const stageLabel = computed(() => {
+    switch (activeRun.value?.current_stage) {
+        case 'reading_file':
+            return 'Чтение файла';
+        case 'persisting_references':
+            return 'Импорт справочников';
+        case 'queued_chunks':
+            return 'Ожидает следующий чанк';
+        case 'processing_chunk':
+            return 'Обработка чанка';
+        case 'completed':
+            return 'Завершено';
+        case 'cancelled':
+            return 'Остановлено';
+        case 'failed':
+            return 'Ошибка';
+        default:
+            return 'Подготовка';
     }
 });
 
@@ -421,6 +446,28 @@ onMounted(() => {
                                 </dt>
                                 <dd class="mt-1 text-sm font-medium text-gray-900">
                                     {{ formatBytes(activeRun.file_size) }}
+                                </dd>
+                            </div>
+                            <div class="rounded-lg bg-gray-50 px-4 py-3">
+                                <dt class="text-xs uppercase tracking-wide text-gray-500">
+                                    Этап
+                                </dt>
+                                <dd class="mt-1 text-sm font-medium text-gray-900">
+                                    {{ stageLabel }}
+                                </dd>
+                            </div>
+                            <div
+                                v-if="activeRun.chunks_total !== null && activeRun.chunks_total > 0"
+                                class="rounded-lg bg-gray-50 px-4 py-3"
+                            >
+                                <dt class="text-xs uppercase tracking-wide text-gray-500">
+                                    Чанки
+                                </dt>
+                                <dd class="mt-1 text-sm font-medium text-gray-900">
+                                    {{ activeRun.chunks_processed }}/{{ activeRun.chunks_total }}
+                                    <span v-if="activeRun.current_chunk_index">
+                                        (текущий: {{ activeRun.current_chunk_index }})
+                                    </span>
                                 </dd>
                             </div>
                         </dl>

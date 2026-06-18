@@ -109,8 +109,12 @@ class ImportController extends Controller
             'original_file_name' => $importRun->original_file_name,
             'file_size' => $importRun->file_size,
             'message' => $importRun->message,
+            'current_stage' => $importRun->current_stage,
             'total_cars' => $importRun->total_cars,
             'processed_cars' => $importRun->processed_cars,
+            'chunks_total' => $importRun->chunks_total,
+            'chunks_processed' => $importRun->chunks_processed,
+            'current_chunk_index' => $importRun->current_chunk_index,
             'stats' => [
                 'new' => $importRun->stats_new,
                 'updated' => $importRun->stats_updated,
