@@ -167,6 +167,79 @@ class ImportTest extends TestCase
         $this->assertDatabaseCount('car_configuration_equipment', 1);
     }
 
+    public function test_job_imports_brands_before_cities_and_cars(): void
+    {
+        Storage::fake('local');
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $path = 'imports/ordered-import.json';
+        Storage::disk('local')->put(
+            $path,
+            json_encode($this->payload(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+        );
+
+        /** @var ImportRun $importRun */
+        $importRun = ImportRun::query()->create([
+            'user_id' => $user->id,
+            'status' => 'queued',
+            'original_file_name' => 'ordered-import.json',
+            'file_path' => $path,
+            'file_size' => Storage::disk('local')->size($path),
+            'message' => 'Файл загружен. Импорт поставлен в очередь.',
+        ]);
+
+        $service = new class() extends \App\Services\Import\CarImportService
+        {
+            /** @var array<int, string> */
+            public array $stages = [];
+
+            public function importBrands(array $brandsPayload, ?array $stats = null): array
+            {
+                $this->stages[] = 'brands';
+
+                return parent::importBrands($brandsPayload, $stats);
+            }
+
+            public function importCities(array $citiesPayload, ?array $stats = null): array
+            {
+                $this->stages[] = 'cities';
+
+                if (! Brand::query()->where('slug', 'tesla')->exists()) {
+                    throw new \RuntimeException('Бренд должен быть импортирован до городов.');
+                }
+
+                return parent::importCities($citiesPayload, $stats);
+            }
+
+            public function importCarsChunk(
+                array $carsPayload,
+                array $stats,
+                ?callable $afterCarProcessed = null,
+                ?callable $shouldStop = null,
+            ): array {
+                $this->stages[] = 'cars';
+
+                if (! Brand::query()->where('slug', 'tesla')->exists()) {
+                    throw new \RuntimeException('Бренд должен быть импортирован до машин.');
+                }
+
+                if (! City::query()->where('slug', 'moscow')->exists()) {
+                    throw new \RuntimeException('Город должен быть импортирован до машин.');
+                }
+
+                return parent::importCarsChunk($carsPayload, $stats, $afterCarProcessed, $shouldStop);
+            }
+        };
+
+        (new ProcessImportJsonJob($importRun))->handle($service);
+
+        $importRun->refresh();
+
+        $this->assertSame('succeeded', $importRun->status);
+        $this->assertSame(['brands', 'cities', 'cars'], $service->stages);
+    }
+
     public function test_import_marks_records_as_unchanged_when_payload_matches(): void
     {
         Storage::fake('local');

@@ -90,22 +90,22 @@ class ProcessImportJsonJob implements ShouldQueue
 
             $failureStage = 'persist_data';
 
-            $citiesStageStartedAt = microtime(true);
-            $stats = $importService->importCities($payload['cities']);
-
-            $this->logInfo($importRun, 'import.stage.cities_completed', [
-                'stage' => 'persist_cities',
-                'duration_ms' => $this->durationMs($citiesStageStartedAt),
-                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                'stats' => $this->compactStats($stats),
-            ]);
-
             $brandsStageStartedAt = microtime(true);
-            $stats = $importService->importBrands($payload['brands'], $stats);
+            $stats = $importService->importBrands($payload['brands']);
 
             $this->logInfo($importRun, 'import.stage.brands_completed', [
                 'stage' => 'persist_brands',
                 'duration_ms' => $this->durationMs($brandsStageStartedAt),
+                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                'stats' => $this->compactStats($stats),
+            ]);
+
+            $citiesStageStartedAt = microtime(true);
+            $stats = $importService->importCities($payload['cities'], $stats);
+
+            $this->logInfo($importRun, 'import.stage.cities_completed', [
+                'stage' => 'persist_cities',
+                'duration_ms' => $this->durationMs($citiesStageStartedAt),
                 'elapsed_ms' => $this->elapsedMs($jobStartedAt),
                 'stats' => $this->compactStats($stats),
             ]);
