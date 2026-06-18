@@ -28,20 +28,28 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
-        $hasSettingsTable = Schema::hasTable('settings');
-        $hasBrandsTable = Schema::hasTable('brands');
-        $setting = $hasSettingsTable
-            ? Setting::query()->firstOrCreate(
-                ['id' => 1],
-                ['brand_name' => 'carsDo'],
-            )
-            : new Setting(['brand_name' => 'carsDo']);
-        $brands = $hasBrandsTable
-            ? Brand::query()
-                ->select(['name', 'slug', 'leave_from_russian'])
-                ->orderBy('name')
-                ->get()
-            : collect();
+        $setting = new Setting(['brand_name' => 'carsDo']);
+        $brands = collect();
+
+        try {
+            $hasSettingsTable = Schema::hasTable('settings');
+            $hasBrandsTable = Schema::hasTable('brands');
+
+            $setting = $hasSettingsTable
+                ? Setting::query()->firstOrCreate(
+                    ['id' => 1],
+                    ['brand_name' => 'carsDo'],
+                )
+                : $setting;
+            $brands = $hasBrandsTable
+                ? Brand::query()
+                    ->select(['name', 'slug', 'leave_from_russian'])
+                    ->orderBy('name')
+                    ->get()
+                : $brands;
+        } catch (\Throwable) {
+            // CLI build steps (e.g. Wayfinder generation) may run without DB access.
+        }
 
         $siteBrandName = $setting->brand_name ?: 'carsDo';
         $siteFaviconPath = filled($setting->favicon_path)

@@ -82,7 +82,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 * @see app/Http/Controllers/Admin/ImportController.php:68
 * @route '/admin/import/{importRun}'
 */
-export const status = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const status = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: status.url(args, options),
     method: 'get',
 })
@@ -97,7 +97,7 @@ status.definition = {
 * @see app/Http/Controllers/Admin/ImportController.php:68
 * @route '/admin/import/{importRun}'
 */
-status.url = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+status.url = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { importRun: args }
     }
@@ -130,7 +130,7 @@ status.url = (args: { importRun: number | { id: number } } | [importRun: number 
 * @see app/Http/Controllers/Admin/ImportController.php:68
 * @route '/admin/import/{importRun}'
 */
-status.get = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+status.get = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: status.url(args, options),
     method: 'get',
 })
@@ -140,7 +140,7 @@ status.get = (args: { importRun: number | { id: number } } | [importRun: number 
 * @see app/Http/Controllers/Admin/ImportController.php:68
 * @route '/admin/import/{importRun}'
 */
-status.head = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+status.head = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: status.url(args, options),
     method: 'head',
 })
@@ -150,7 +150,7 @@ status.head = (args: { importRun: number | { id: number } } | [importRun: number
 * @see app/Http/Controllers/Admin/ImportController.php:77
 * @route '/admin/import/{importRun}/stop'
 */
-export const stop = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const stop = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: stop.url(args, options),
     method: 'post',
 })
@@ -165,7 +165,7 @@ stop.definition = {
 * @see app/Http/Controllers/Admin/ImportController.php:77
 * @route '/admin/import/{importRun}/stop'
 */
-stop.url = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+stop.url = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { importRun: args }
     }
@@ -198,7 +198,7 @@ stop.url = (args: { importRun: number | { id: number } } | [importRun: number | 
 * @see app/Http/Controllers/Admin/ImportController.php:77
 * @route '/admin/import/{importRun}/stop'
 */
-stop.post = (args: { importRun: number | { id: number } } | [importRun: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+stop.post = (args: { importRun: string | number | { id: string | number } } | [importRun: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: stop.url(args, options),
     method: 'post',
 })

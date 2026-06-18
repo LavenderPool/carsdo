@@ -64,9 +64,21 @@ const normalizedPaginationLinks = computed(() =>
     })),
 );
 
-const updateNumberRef = (target: typeof selectedCarId, event: Event) => {
+const getNumberFromSelectEvent = (event: Event): number | null => {
     const value = (event.target as HTMLSelectElement).value;
-    target.value = value === '' ? null : Number(value);
+    return value === '' ? null : Number(value);
+};
+
+const updateSelectedCarId = (event: Event) => {
+    selectedCarId.value = getNumberFromSelectEvent(event);
+};
+
+const updateSelectedDealerId = (event: Event) => {
+    selectedDealerId.value = getNumberFromSelectEvent(event);
+};
+
+const updateSelectedCityId = (event: Event) => {
+    selectedCityId.value = getNumberFromSelectEvent(event);
 };
 
 const applyFilters = () => {
@@ -143,7 +155,7 @@ const remove = (item: CarDealerItem) => {
                                 <select
                                     :value="selectedCarId ?? ''"
                                     class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    @change="updateNumberRef(selectedCarId, $event)"
+                                    @change="updateSelectedCarId"
                                 >
                                     <option value="">Все автомобили</option>
                                     <option v-for="car in options.cars" :key="car.id" :value="car.id">
@@ -154,7 +166,7 @@ const remove = (item: CarDealerItem) => {
                                 <select
                                     :value="selectedDealerId ?? ''"
                                     class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    @change="updateNumberRef(selectedDealerId, $event)"
+                                    @change="updateSelectedDealerId"
                                 >
                                     <option value="">Все дилеры</option>
                                     <option v-for="dealer in options.dealers" :key="dealer.id" :value="dealer.id">
@@ -165,7 +177,7 @@ const remove = (item: CarDealerItem) => {
                                 <select
                                     :value="selectedCityId ?? ''"
                                     class="rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    @change="updateNumberRef(selectedCityId, $event)"
+                                    @change="updateSelectedCityId"
                                 >
                                     <option value="">Все города</option>
                                     <option v-for="city in options.cities" :key="city.id" :value="city.id">

@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:16
 * @route '/admin/cars/{car}/crash-tests'
 */
-export const index = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const index = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(args, options),
     method: 'get',
 })
@@ -19,7 +19,7 @@ index.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:16
 * @route '/admin/cars/{car}/crash-tests'
 */
-index.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+index.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -52,7 +52,7 @@ index.url = (args: { car: number | { id: number } } | [car: number | { id: numbe
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:16
 * @route '/admin/cars/{car}/crash-tests'
 */
-index.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+index.get = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(args, options),
     method: 'get',
 })
@@ -62,7 +62,7 @@ index.get = (args: { car: number | { id: number } } | [car: number | { id: numbe
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:16
 * @route '/admin/cars/{car}/crash-tests'
 */
-index.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+index.head = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: index.url(args, options),
     method: 'head',
 })
@@ -72,7 +72,7 @@ index.head = (args: { car: number | { id: number } } | [car: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:46
 * @route '/admin/cars/{car}/crash-tests/create'
 */
-export const create = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const create = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: create.url(args, options),
     method: 'get',
 })
@@ -87,7 +87,7 @@ create.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:46
 * @route '/admin/cars/{car}/crash-tests/create'
 */
-create.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+create.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -120,7 +120,7 @@ create.url = (args: { car: number | { id: number } } | [car: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:46
 * @route '/admin/cars/{car}/crash-tests/create'
 */
-create.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+create.get = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: create.url(args, options),
     method: 'get',
 })
@@ -130,7 +130,7 @@ create.get = (args: { car: number | { id: number } } | [car: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:46
 * @route '/admin/cars/{car}/crash-tests/create'
 */
-create.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+create.head = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: create.url(args, options),
     method: 'head',
 })
@@ -140,7 +140,7 @@ create.head = (args: { car: number | { id: number } } | [car: number | { id: num
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:78
 * @route '/admin/cars/{car}/crash-tests'
 */
-export const store = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const store = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
     method: 'post',
 })
@@ -155,7 +155,7 @@ store.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:78
 * @route '/admin/cars/{car}/crash-tests'
 */
-store.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
+store.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -188,7 +188,7 @@ store.url = (args: { car: number | { id: number } } | [car: number | { id: numbe
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:78
 * @route '/admin/cars/{car}/crash-tests'
 */
-store.post = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+store.post = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
     method: 'post',
 })
@@ -198,7 +198,7 @@ store.post = (args: { car: number | { id: number } } | [car: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:93
 * @route '/admin/cars/{car}/crash-tests/{crashTest}/edit'
 */
-export const edit = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -213,7 +213,7 @@ edit.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:93
 * @route '/admin/cars/{car}/crash-tests/{crashTest}/edit'
 */
-edit.url = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions) => {
+edit.url = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -243,7 +243,7 @@ edit.url = (args: { car: number | { id: number }, crashTest: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:93
 * @route '/admin/cars/{car}/crash-tests/{crashTest}/edit'
 */
-edit.get = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -253,7 +253,7 @@ edit.get = (args: { car: number | { id: number }, crashTest: number | { id: numb
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:93
 * @route '/admin/cars/{car}/crash-tests/{crashTest}/edit'
 */
-edit.head = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -263,7 +263,7 @@ edit.head = (args: { car: number | { id: number }, crashTest: number | { id: num
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:119
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-export const update = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -278,7 +278,7 @@ update.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:119
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-update.url = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions) => {
+update.url = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -308,7 +308,7 @@ update.url = (args: { car: number | { id: number }, crashTest: number | { id: nu
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:119
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-update.put = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -318,7 +318,7 @@ update.put = (args: { car: number | { id: number }, crashTest: number | { id: nu
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:119
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-update.patch = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update.patch = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -328,7 +328,7 @@ update.patch = (args: { car: number | { id: number }, crashTest: number | { id: 
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:129
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-export const destroy = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -343,7 +343,7 @@ destroy.definition = {
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:129
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-destroy.url = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions) => {
+destroy.url = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -373,7 +373,7 @@ destroy.url = (args: { car: number | { id: number }, crashTest: number | { id: n
 * @see app/Http/Controllers/Admin/CarCrashTestController.php:129
 * @route '/admin/cars/{car}/crash-tests/{crashTest}'
 */
-destroy.delete = (args: { car: number | { id: number }, crashTest: number | { id: number } } | [car: number | { id: number }, crashTest: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } } | [car: string | number | { id: string | number }, crashTest: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
