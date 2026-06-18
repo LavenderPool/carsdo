@@ -10,6 +10,10 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use JsonMachine\Exception\PathNotFoundException;
+use JsonMachine\Exception\SyntaxErrorException;
+use JsonMachine\Items;
+use JsonMachine\JsonDecoder\ExtJsonDecoder;
 use RuntimeException;
 use Throwable;
 
@@ -58,7 +62,7 @@ class ProcessImportJsonJob implements ShouldQueue
 
         try {
             $payload = $this->parsePayload($importRun, $jobStartedAt);
-            $totalCars = count($payload['cars']);
+            $totalCars = $payload['total_cars'];
 
             if ($this->isStopRequested($importRun)) {
                 $this->markCancelled($importRun, 'Импорт остановлен после чтения входных данных.', $jobStartedAt);
@@ -106,9 +110,11 @@ class ProcessImportJsonJob implements ShouldQueue
                 'stats' => $this->compactStats($stats),
             ]);
 
-            $carsChunks = array_chunk($payload['cars'], self::CAR_VALIDATION_CHUNK_SIZE);
+            $carsChunk = [];
+            $carsChunkOffset = 0;
+            $chunkZeroBasedIndex = 0;
 
-            foreach ($carsChunks as $chunkZeroBasedIndex => $carsChunk) {
+            foreach ($this->iterateCars($payload['file_path']) as $carPayload) {
                 if ($this->isStopRequested($importRun)) {
                     $this->markCancelled(
                         $importRun,
@@ -127,65 +133,39 @@ class ProcessImportJsonJob implements ShouldQueue
                     return;
                 }
 
-                $chunkIndex = $chunkZeroBasedIndex + 1;
-                $chunkValidationStartedAt = microtime(true);
+                $carsChunk[] = $carPayload;
 
-                $this->logInfo($importRun, 'import.stage.chunk_validation_started', [
-                    'stage' => 'chunk_validation',
-                    'chunk_index' => $chunkIndex,
-                    'chunk_size' => count($carsChunk),
-                    'cars_total' => $totalCars,
-                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                ]);
+                if (count($carsChunk) < self::CAR_VALIDATION_CHUNK_SIZE) {
+                    continue;
+                }
 
-                $validatedCarsChunk = $this->validateCarsChunk(
+                $stats = $this->processCarsChunk(
                     $importRun,
+                    $importService,
                     $carsChunk,
-                    $chunkZeroBasedIndex * self::CAR_VALIDATION_CHUNK_SIZE,
-                    $jobStartedAt,
-                    $chunkIndex,
-                );
-
-                $this->logInfo($importRun, 'import.stage.chunk_validation_completed', [
-                    'stage' => 'chunk_validation',
-                    'chunk_index' => $chunkIndex,
-                    'chunk_size' => count($carsChunk),
-                    'valid_cars_count' => count($validatedCarsChunk),
-                    'duration_ms' => $this->durationMs($chunkValidationStartedAt),
-                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                ]);
-
-                $chunkPersistStartedAt = microtime(true);
-
-                $stats = $importService->importCarsChunk(
-                    $validatedCarsChunk,
+                    $carsChunkOffset,
+                    $chunkZeroBasedIndex,
                     $stats,
-                    null,
-                    function () use (&$importRun): bool {
-                        $freshImportRun = $importRun->fresh();
-
-                        if ($freshImportRun === null) {
-                            return true;
-                        }
-
-                        $importRun = $freshImportRun;
-
-                        return $this->isStopRequested($freshImportRun);
-                    },
+                    $totalCars,
+                    $jobStartedAt,
                 );
 
-                $this->logInfo($importRun, 'import.stage.chunk_persist_completed', [
-                    'stage' => 'chunk_persist',
-                    'chunk_index' => $chunkIndex,
-                    'chunk_size' => count($validatedCarsChunk),
-                    'duration_ms' => $this->durationMs($chunkPersistStartedAt),
-                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                    'processed_cars' => $stats['processed_cars'],
-                    'total_cars' => $totalCars,
-                    'stats' => $this->compactStats($stats),
-                ]);
+                $carsChunkOffset += count($carsChunk);
+                $carsChunk = [];
+                $chunkZeroBasedIndex++;
+            }
 
-                $this->persistProgress($importRun, $stats, $totalCars, $jobStartedAt);
+            if ($carsChunk !== []) {
+                $stats = $this->processCarsChunk(
+                    $importRun,
+                    $importService,
+                    $carsChunk,
+                    $carsChunkOffset,
+                    $chunkZeroBasedIndex,
+                    $stats,
+                    $totalCars,
+                    $jobStartedAt,
+                );
             }
 
             $this->logInfo($importRun, 'import.stage.cars_completed', [
@@ -276,79 +256,60 @@ class ProcessImportJsonJob implements ShouldQueue
     }
 
     /**
-     * @return array{cities: array<int, array<string, mixed>>, brands: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>}
+     * @return array{
+     *     cities: array<int, array<string, mixed>>,
+     *     brands: array<int, array<string, mixed>>,
+     *     total_cars: int,
+     *     file_path: string
+     * }
      */
     private function parsePayload(ImportRun $importRun, float $jobStartedAt): array
     {
         $readStageStartedAt = microtime(true);
-        $rawJson = Storage::disk('local')->get($importRun->file_path);
+        $filePath = $this->resolveImportFilePath($importRun);
 
         $this->logInfo($importRun, 'import.stage.file_read', [
             'stage' => 'file_read',
             'duration_ms' => $this->durationMs($readStageStartedAt),
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-            'bytes' => strlen($rawJson),
+            'bytes' => $importRun->file_size,
             'file_size' => $importRun->file_size,
+            'mode' => 'streaming',
         ]);
 
-        $decodeStageStartedAt = microtime(true);
+        $validationStageStartedAt = microtime(true);
 
         try {
-            $payload = json_decode($rawJson, true, 512, JSON_THROW_ON_ERROR);
-        } catch (Throwable $exception) {
-            throw new RuntimeException('Файл не является валидным JSON.', previous: $exception);
-        }
+            $validatedCities = $this->readValidatedCollection(
+                $filePath,
+                '/cities',
+                fn (array $cities): array => $this->validateCities($cities),
+            );
+            $validatedBrands = $this->readValidatedCollection(
+                $filePath,
+                '/brands',
+                fn (array $brands): array => $this->validateBrands($brands),
+            );
+            $totalCars = $this->countCars($filePath);
+        } catch (RuntimeException $exception) {
+            $this->logWarning($importRun, 'import.stage.root_validation_failed', [
+                'stage' => 'root_validation',
+                'duration_ms' => $this->durationMs($validationStageStartedAt),
+                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                'error_count' => 1,
+                'first_error' => $exception->getMessage(),
+            ]);
 
-        $this->logInfo($importRun, 'import.stage.json_decoded', [
-            'stage' => 'json_decoded',
-            'duration_ms' => $this->durationMs($decodeStageStartedAt),
-            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-        ]);
-
-        if (!is_array($payload)) {
-            throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
-        }
-
-        $cities = $payload['cities'] ?? [];
-        $brands = $payload['brands'] ?? [];
-        $cars = $payload['cars'] ?? null;
-
-        if (!is_array($cities) || !is_array($brands) || !is_array($cars)) {
-            throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
+            throw $exception;
         }
 
         $this->logInfo($importRun, 'import.stage.structure_ok', [
             'stage' => 'structure_check',
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-            'cities_count' => count($cities),
-            'brands_count' => count($brands),
-            'cars_count' => count($cars),
+            'cities_count' => count($validatedCities),
+            'brands_count' => count($validatedBrands),
+            'cars_count' => $totalCars,
         ]);
-
-        $validationStageStartedAt = microtime(true);
-
-        $validator = Validator::make([
-            'cities' => $cities,
-            'brands' => $brands,
-            'cars' => $cars,
-        ], ImportPayloadRules::rootRules(), ImportPayloadRules::messages());
-
-        if ($validator->fails()) {
-            $this->logWarning($importRun, 'import.stage.root_validation_failed', [
-                'stage' => 'root_validation',
-                'duration_ms' => $this->durationMs($validationStageStartedAt),
-                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                'error_count' => $validator->errors()->count(),
-                'first_error' => (string) $validator->errors()->first(),
-            ]);
-
-            throw new RuntimeException((string) $validator->errors()->first());
-        }
-
-        /** @var array{cities?: array<int, array<string, mixed>>, brands?: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>} $validated */
-        $validated = $validator->validated();
-        $validatedCities = $this->validateCities($validated['cities'] ?? []);
-        $validatedBrands = $this->validateBrands($validated['brands'] ?? []);
 
         $this->logInfo($importRun, 'import.stage.root_validation_ok', [
             'stage' => 'root_validation',
@@ -356,7 +317,7 @@ class ProcessImportJsonJob implements ShouldQueue
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
             'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
-            'cars_count' => count($validated['cars']),
+            'cars_count' => $totalCars,
         ]);
 
         $this->logInfo($importRun, 'import.stage.validation_ok', [
@@ -365,14 +326,192 @@ class ProcessImportJsonJob implements ShouldQueue
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
             'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
-            'cars_count' => count($validated['cars']),
+            'cars_count' => $totalCars,
         ]);
 
         return [
             'cities' => $validatedCities,
             'brands' => $validatedBrands,
-            'cars' => $validated['cars'],
+            'total_cars' => $totalCars,
+            'file_path' => $filePath,
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $carsChunk
+     * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
+     * @return array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}
+     */
+    private function processCarsChunk(
+        ImportRun &$importRun,
+        CarImportService $importService,
+        array $carsChunk,
+        int $chunkOffset,
+        int $chunkZeroBasedIndex,
+        array $stats,
+        int $totalCars,
+        float $jobStartedAt,
+    ): array {
+        $chunkIndex = $chunkZeroBasedIndex + 1;
+        $chunkValidationStartedAt = microtime(true);
+
+        $this->logInfo($importRun, 'import.stage.chunk_validation_started', [
+            'stage' => 'chunk_validation',
+            'chunk_index' => $chunkIndex,
+            'chunk_size' => count($carsChunk),
+            'cars_total' => $totalCars,
+            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+        ]);
+
+        $validatedCarsChunk = $this->validateCarsChunk(
+            $importRun,
+            $carsChunk,
+            $chunkOffset,
+            $jobStartedAt,
+            $chunkIndex,
+        );
+
+        $this->logInfo($importRun, 'import.stage.chunk_validation_completed', [
+            'stage' => 'chunk_validation',
+            'chunk_index' => $chunkIndex,
+            'chunk_size' => count($carsChunk),
+            'valid_cars_count' => count($validatedCarsChunk),
+            'duration_ms' => $this->durationMs($chunkValidationStartedAt),
+            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+        ]);
+
+        $chunkPersistStartedAt = microtime(true);
+
+        $stats = $importService->importCarsChunk(
+            $validatedCarsChunk,
+            $stats,
+            null,
+            function () use (&$importRun): bool {
+                $freshImportRun = $importRun->fresh();
+
+                if ($freshImportRun === null) {
+                    return true;
+                }
+
+                $importRun = $freshImportRun;
+
+                return $this->isStopRequested($freshImportRun);
+            },
+        );
+
+        $this->logInfo($importRun, 'import.stage.chunk_persist_completed', [
+            'stage' => 'chunk_persist',
+            'chunk_index' => $chunkIndex,
+            'chunk_size' => count($validatedCarsChunk),
+            'duration_ms' => $this->durationMs($chunkPersistStartedAt),
+            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'processed_cars' => $stats['processed_cars'],
+            'total_cars' => $totalCars,
+            'stats' => $this->compactStats($stats),
+        ]);
+
+        $this->persistProgress($importRun, $stats, $totalCars, $jobStartedAt);
+
+        return $stats;
+    }
+
+    /**
+     * @param  callable(array<int, array<string, mixed>>): array<int, array<string, mixed>>  $validator
+     * @return array<int, array<string, mixed>>
+     */
+    private function readValidatedCollection(string $filePath, string $pointer, callable $validator): array
+    {
+        $items = [];
+
+        try {
+            foreach (Items::fromFile($filePath, [
+                'pointer' => $pointer,
+                'decoder' => $this->streamDecoder(),
+            ]) as $itemKey => $itemPayload) {
+                if (!is_int($itemKey) || !is_array($itemPayload)) {
+                    throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
+                }
+
+                $items[] = $itemPayload;
+            }
+        } catch (PathNotFoundException) {
+            return [];
+        } catch (SyntaxErrorException $exception) {
+            throw new RuntimeException('Файл не является валидным JSON.', previous: $exception);
+        }
+
+        return $validator($items);
+    }
+
+    private function countCars(string $filePath): int
+    {
+        $carsCount = 0;
+
+        try {
+            foreach (Items::fromFile($filePath, [
+                'pointer' => '/cars',
+                'decoder' => $this->streamDecoder(),
+            ]) as $itemKey => $itemPayload) {
+                if (!is_int($itemKey)) {
+                    throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
+                }
+
+                if (!is_array($itemPayload)) {
+                    $humanIndex = $carsCount + 1;
+                    throw new RuntimeException("Ошибка валидации машины #{$humanIndex}: Структура машины должна быть объектом JSON.");
+                }
+
+                $carsCount++;
+            }
+        } catch (PathNotFoundException $exception) {
+            throw new RuntimeException(ImportPayloadRules::messages()['cars.required'], previous: $exception);
+        } catch (SyntaxErrorException $exception) {
+            throw new RuntimeException('Файл не является валидным JSON.', previous: $exception);
+        }
+
+        return $carsCount;
+    }
+
+    /**
+     * @return \Generator<int, array<string, mixed>>
+     */
+    private function iterateCars(string $filePath): \Generator
+    {
+        try {
+            foreach (Items::fromFile($filePath, [
+                'pointer' => '/cars',
+                'decoder' => $this->streamDecoder(),
+            ]) as $itemKey => $itemPayload) {
+                if (!is_int($itemKey)) {
+                    throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
+                }
+
+                if (!is_array($itemPayload)) {
+                    $humanIndex = $itemKey + 1;
+                    throw new RuntimeException("Ошибка валидации машины #{$humanIndex}: Структура машины должна быть объектом JSON.");
+                }
+
+                yield $itemPayload;
+            }
+        } catch (PathNotFoundException $exception) {
+            throw new RuntimeException(ImportPayloadRules::messages()['cars.required'], previous: $exception);
+        } catch (SyntaxErrorException $exception) {
+            throw new RuntimeException('Файл не является валидным JSON.', previous: $exception);
+        }
+    }
+
+    private function resolveImportFilePath(ImportRun $importRun): string
+    {
+        if (!Storage::disk('local')->exists($importRun->file_path)) {
+            throw new RuntimeException('Файл импорта не найден.');
+        }
+
+        return Storage::disk('local')->path($importRun->file_path);
+    }
+
+    private function streamDecoder(): ExtJsonDecoder
+    {
+        return new ExtJsonDecoder(true);
     }
 
     /**
@@ -445,6 +584,19 @@ class ProcessImportJsonJob implements ShouldQueue
         $validatedCars = [];
 
         foreach ($carsChunk as $localIndex => $carPayload) {
+            if (!is_array($carPayload)) {
+                $globalCarIndex = $chunkOffset + $localIndex + 1;
+                $this->logWarning($importRun, 'import.stage.chunk_validation_failed', [
+                    'stage' => 'chunk_validation',
+                    'chunk_index' => $chunkIndex,
+                    'car_index' => $globalCarIndex,
+                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                    'first_error' => 'Структура машины должна быть объектом JSON.',
+                ]);
+
+                throw new RuntimeException("Ошибка валидации машины #{$globalCarIndex}: Структура машины должна быть объектом JSON.");
+            }
+
             $validator = Validator::make(
                 $carPayload,
                 ImportPayloadRules::carRules(),

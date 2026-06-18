@@ -66,6 +66,44 @@ class ImportTest extends TestCase
         $this->assertTrue($validator->passes(), json_encode($validator->errors()->all(), JSON_UNESCAPED_UNICODE));
     }
 
+    public function test_import_fails_for_malformed_json_payload_with_streaming_parser(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => UploadedFile::fake()->createWithContent('broken-import.json', '{"cars":['),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'failed')
+            ->assertJsonPath('run.error_message', 'Файл не является валидным JSON.');
+    }
+
+    public function test_import_fails_when_cars_key_is_missing_in_streaming_payload(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        $payload = $this->payload();
+        unset($payload['cars']);
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'missing-cars.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'failed')
+            ->assertJsonPath('run.error_message', 'Передайте массив машин для импорта.');
+    }
+
     public function test_authenticated_user_can_process_import_file_when_queue_runs_sync(): void
     {
         Storage::fake('local');
