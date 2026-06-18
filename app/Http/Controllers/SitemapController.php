@@ -1,0 +1,211 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Brand;
+use App\Models\Car;
+use App\Models\CarCrashTest;
+use App\Models\CarPhoto;
+use App\Models\CarTestDrive;
+use Carbon\CarbonInterface;
+use Illuminate\Http\Response;
+use Illuminate\Support\Collection;
+
+class SitemapController extends Controller
+{
+    public function __invoke(): Response
+    {
+        $urls = collect();
+
+        $urls->push($this->entry(url('/'), Car::query()->max('updated_at')));
+        $urls->push($this->entry(url('/electric-cars/'), Car::query()->where('is_electric_car', true)->max('updated_at')));
+        $urls->push($this->entry(url('/crash-test/'), CarCrashTest::query()->max('updated_at')));
+        $urls->push($this->entry(url('/crash-test/electric-cars/'), CarCrashTest::query()
+            ->whereHas('car', static fn ($query) => $query->where('is_electric_car', true))
+            ->max('updated_at')));
+        $urls->push($this->entry(url('/test-drive/'), CarTestDrive::query()->max('updated_at')));
+        $urls->push($this->entry(url('/test-drive/electric-cars/'), CarTestDrive::query()
+            ->whereHas('car', static fn ($query) => $query->where('is_electric_car', true))
+            ->max('updated_at')));
+        $urls->push($this->entry(url('/cars-photo/'), CarPhoto::query()->max('updated_at')));
+
+        $this->newCarYears()
+            ->each(function (string $year) use ($urls): void {
+                $lastmod = Car::query()
+                    ->where('year', $year)
+                    ->where('is_soon', false)
+                    ->max('updated_at');
+
+                $urls->push($this->entry(url("/new-cars-{$year}/"), $lastmod));
+            });
+
+        Brand::query()
+            ->select(['id', 'name', 'slug', 'updated_at'])
+            ->whereHas('cars')
+            ->with([
+                'cars' => fn ($query) => $query
+                    ->select([
+                        'id',
+                        'brand_id',
+                        'slug',
+                        'updated_at',
+                    ])
+                    ->withCount(['reviews', 'testDrives', 'photos'])
+                    ->with([
+                        'crashTest:id,car_id,updated_at',
+                        'configurationGroups:id,car_id,order,import_index,updated_at',
+                    ]),
+            ])
+            ->orderBy('name')
+            ->get()
+            ->each(function (Brand $brand) use ($urls): void {
+                $urls->push($this->entry(url("/{$brand->slug}/"), $this->latestUpdatedAt([$brand, $brand->cars])));
+
+                if ($brand->cars->contains(fn (Car $car): bool => $car->test_drives_count > 0)) {
+                    $urls->push($this->entry(
+                        url("/test-drive/{$brand->slug}/"),
+                        $this->latestUpdatedAt(
+                            $brand->cars->filter(fn (Car $car): bool => $car->test_drives_count > 0)
+                        ),
+                    ));
+                }
+
+                if ($brand->cars->contains(fn (Car $car): bool => $car->crashTest !== null)) {
+                    $urls->push($this->entry(
+                        url("/crash-test/{$brand->slug}/"),
+                        $this->latestUpdatedAt(
+                            $brand->cars->filter(fn (Car $car): bool => $car->crashTest !== null)
+                        ),
+                    ));
+                }
+
+                if ($brand->cars->contains(fn (Car $car): bool => $car->photos_count > 0)) {
+                    $urls->push($this->entry(
+                        url("/cars-photo/{$brand->slug}/"),
+                        $this->latestUpdatedAt(
+                            $brand->cars->filter(fn (Car $car): bool => $car->photos_count > 0)
+                        ),
+                    ));
+                }
+
+                $brand->cars->each(function (Car $car) use ($brand, $urls): void {
+                    $urls->push($this->entry(
+                        url("/{$brand->slug}/{$car->slug}/"),
+                        $this->latestUpdatedAt([$car, $car->crashTest, $car->configurationGroups]),
+                    ));
+
+                    if ($car->reviews_count > 0) {
+                        $urls->push($this->entry(
+                            url("/{$brand->slug}/{$car->slug}/reviews/"),
+                            $this->latestUpdatedAt($car),
+                        ));
+                    }
+
+                    if ($car->crashTest !== null) {
+                        $urls->push($this->entry(
+                            url("/{$brand->slug}/{$car->slug}/crash-test/"),
+                            $this->latestUpdatedAt([$car, $car->crashTest]),
+                        ));
+                    }
+
+                    if ($car->test_drives_count > 0) {
+                        $urls->push($this->entry(
+                            url("/{$brand->slug}/{$car->slug}/test-drive/"),
+                            $this->latestUpdatedAt($car),
+                        ));
+                    }
+
+                    $car->configurationGroups
+                        ->sortBy([
+                            ['order', 'asc'],
+                            ['import_index', 'asc'],
+                            ['id', 'asc'],
+                        ])
+                        ->values()
+                        ->each(function ($group, int $index) use ($brand, $car, $urls): void {
+                            $urls->push($this->entry(
+                                url("/{$brand->slug}/{$car->slug}/equipment-".($index + 1).'/'),
+                                $this->latestUpdatedAt([$car, $group]),
+                            ));
+                        });
+                });
+            });
+
+        $xml = $this->renderXml(
+            $urls
+                ->filter()
+                ->unique('loc')
+                ->values(),
+        );
+
+        return response($xml, 200, ['Content-Type' => 'application/xml; charset=UTF-8']);
+    }
+
+    private function renderXml(Collection $urls): string
+    {
+        $xml = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'];
+
+        foreach ($urls as $url) {
+            $xml[] = '  <url>';
+            $xml[] = '    <loc>'.e($url['loc']).'</loc>';
+
+            if (($url['lastmod'] ?? null) instanceof CarbonInterface) {
+                $xml[] = '    <lastmod>'.$url['lastmod']->toAtomString().'</lastmod>';
+            }
+
+            $xml[] = '  </url>';
+        }
+
+        $xml[] = '</urlset>';
+
+        return implode("\n", $xml);
+    }
+
+    private function entry(string $loc, mixed $lastmod): array
+    {
+        return [
+            'loc' => $loc,
+            'lastmod' => $this->latestUpdatedAt($lastmod),
+        ];
+    }
+
+    private function latestUpdatedAt(mixed $value): ?CarbonInterface
+    {
+        if ($value instanceof CarbonInterface) {
+            return $value;
+        }
+
+        if ($value instanceof Collection) {
+            return $value
+                ->map(fn ($item) => $this->latestUpdatedAt($item))
+                ->filter()
+                ->sortByDesc(fn (CarbonInterface $date) => $date->getTimestamp())
+                ->first();
+        }
+
+        if (is_array($value)) {
+            return collect($value)
+                ->map(fn ($item) => $this->latestUpdatedAt($item))
+                ->filter()
+                ->sortByDesc(fn (CarbonInterface $date) => $date->getTimestamp())
+                ->first();
+        }
+
+        return data_get($value, 'updated_at') instanceof CarbonInterface
+            ? data_get($value, 'updated_at')
+            : null;
+    }
+
+    private function newCarYears(): Collection
+    {
+        return Car::query()
+            ->whereHas('brand')
+            ->where('is_soon', false)
+            ->whereNotNull('year')
+            ->pluck('year')
+            ->filter(fn ($year): bool => is_string($year) && preg_match('/^20\d{2}$/', $year) === 1)
+            ->unique()
+            ->sortDesc()
+            ->values();
+    }
+}
