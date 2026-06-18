@@ -169,7 +169,9 @@
 
 <script src="/job/CarsDo/js/fancybox_setup.js"></script>
 
+@if ($car->reviews->isNotEmpty())
 <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+@endif
 
 @include('site.car.partials.specs-and-models', [
     'brand' => $brand,

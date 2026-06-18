@@ -198,7 +198,9 @@
         @endforelse
     </div>
 
+    @if ($car->reviews->isNotEmpty())
     <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+    @endif
     <div style="width: 100%; margin:10px 0 15px;"></div>
 
     <div id="block_price3">

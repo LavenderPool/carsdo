@@ -132,8 +132,9 @@
     'dealerCitiesToggleId' => 'dealer-cities-city-page',
 ])
 
+@if ($car->reviews->isNotEmpty())
 <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
-
+@endif
 <div id="car-gallery">
     <div class="photo_title">Новый {{ $brand->name }} {{ $car->name }}. Сейчас в продаже</div>
 </div>
