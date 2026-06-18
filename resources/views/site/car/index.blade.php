@@ -203,6 +203,7 @@
     @endif
     <div style="width: 100%; margin:10px 0 15px;"></div>
 
+    @if ($configurations->isNotEmpty())
     <div id="block_price3">
         <div class="tito-new"><h2>Модификации <br>{{ $car->name }}</h2></div>
         <p><span style="font-weight:bold;" class="complete_text">Выберите комплектацию, далее модификацию (двигатель и коробка передач)</span>, чтобы посмотреть: безопасность и системы автомобиля + дизайн (внешнее оборудование) + интерьер (оборудование салона) + дополнительные платные опции (при наличии) к комплектации от завода изготовителя.</p>
@@ -235,9 +236,10 @@
                     <span class="clt2">Комплектации и модификации пока не добавлены</span>
                     <span class="clt3">-</span>
                 </li>
-            @endforelse
-        </ul>
-    </div>
+                @endforelse
+            </ul>
+        </div>
+    @endif
 
     @include('site.car.partials.dealer-cities', [
         'brand' => $brand,
