@@ -126,7 +126,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 * @see app/Http/Controllers/Admin/CarDealerController.php:88
 * @route '/admin/car-dealers/{car_dealer}/edit'
 */
-export const edit = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -141,7 +141,7 @@ edit.definition = {
 * @see app/Http/Controllers/Admin/CarDealerController.php:88
 * @route '/admin/car-dealers/{car_dealer}/edit'
 */
-edit.url = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+edit.url = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car_dealer: args }
     }
@@ -174,7 +174,7 @@ edit.url = (args: { car_dealer: string | number | { id: string | number } } | [c
 * @see app/Http/Controllers/Admin/CarDealerController.php:88
 * @route '/admin/car-dealers/{car_dealer}/edit'
 */
-edit.get = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -184,7 +184,7 @@ edit.get = (args: { car_dealer: string | number | { id: string | number } } | [c
 * @see app/Http/Controllers/Admin/CarDealerController.php:88
 * @route '/admin/car-dealers/{car_dealer}/edit'
 */
-edit.head = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -194,7 +194,7 @@ edit.head = (args: { car_dealer: string | number | { id: string | number } } | [
 * @see app/Http/Controllers/Admin/CarDealerController.php:107
 * @route '/admin/car-dealers/{car_dealer}'
 */
-export const update = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -209,7 +209,7 @@ update.definition = {
 * @see app/Http/Controllers/Admin/CarDealerController.php:107
 * @route '/admin/car-dealers/{car_dealer}'
 */
-update.url = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+update.url = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car_dealer: args }
     }
@@ -242,7 +242,7 @@ update.url = (args: { car_dealer: string | number | { id: string | number } } | 
 * @see app/Http/Controllers/Admin/CarDealerController.php:107
 * @route '/admin/car-dealers/{car_dealer}'
 */
-update.put = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -252,7 +252,7 @@ update.put = (args: { car_dealer: string | number | { id: string | number } } | 
 * @see app/Http/Controllers/Admin/CarDealerController.php:107
 * @route '/admin/car-dealers/{car_dealer}'
 */
-update.patch = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update.patch = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -262,7 +262,7 @@ update.patch = (args: { car_dealer: string | number | { id: string | number } } 
 * @see app/Http/Controllers/Admin/CarDealerController.php:116
 * @route '/admin/car-dealers/{car_dealer}'
 */
-export const destroy = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -277,7 +277,7 @@ destroy.definition = {
 * @see app/Http/Controllers/Admin/CarDealerController.php:116
 * @route '/admin/car-dealers/{car_dealer}'
 */
-destroy.url = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+destroy.url = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car_dealer: args }
     }
@@ -310,7 +310,7 @@ destroy.url = (args: { car_dealer: string | number | { id: string | number } } |
 * @see app/Http/Controllers/Admin/CarDealerController.php:116
 * @route '/admin/car-dealers/{car_dealer}'
 */
-destroy.delete = (args: { car_dealer: string | number | { id: string | number } } | [car_dealer: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { car_dealer: number | { id: number } } | [car_dealer: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })

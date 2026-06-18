@@ -4,7 +4,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 * @see app/Http/Controllers/Admin/CarReviewController.php:16
 * @route '/admin/cars/{car}/reviews'
 */
-export const index = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const index = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(args, options),
     method: 'get',
 })
@@ -19,7 +19,7 @@ index.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:16
 * @route '/admin/cars/{car}/reviews'
 */
-index.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+index.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -52,7 +52,7 @@ index.url = (args: { car: string | number | { id: string | number } } | [car: st
 * @see app/Http/Controllers/Admin/CarReviewController.php:16
 * @route '/admin/cars/{car}/reviews'
 */
-index.get = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+index.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: index.url(args, options),
     method: 'get',
 })
@@ -62,7 +62,7 @@ index.get = (args: { car: string | number | { id: string | number } } | [car: st
 * @see app/Http/Controllers/Admin/CarReviewController.php:16
 * @route '/admin/cars/{car}/reviews'
 */
-index.head = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+index.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: index.url(args, options),
     method: 'head',
 })
@@ -72,7 +72,7 @@ index.head = (args: { car: string | number | { id: string | number } } | [car: s
 * @see app/Http/Controllers/Admin/CarReviewController.php:47
 * @route '/admin/cars/{car}/reviews/create'
 */
-export const create = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const create = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: create.url(args, options),
     method: 'get',
 })
@@ -87,7 +87,7 @@ create.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:47
 * @route '/admin/cars/{car}/reviews/create'
 */
-create.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+create.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -120,7 +120,7 @@ create.url = (args: { car: string | number | { id: string | number } } | [car: s
 * @see app/Http/Controllers/Admin/CarReviewController.php:47
 * @route '/admin/cars/{car}/reviews/create'
 */
-create.get = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+create.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: create.url(args, options),
     method: 'get',
 })
@@ -130,7 +130,7 @@ create.get = (args: { car: string | number | { id: string | number } } | [car: s
 * @see app/Http/Controllers/Admin/CarReviewController.php:47
 * @route '/admin/cars/{car}/reviews/create'
 */
-create.head = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+create.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: create.url(args, options),
     method: 'head',
 })
@@ -140,7 +140,7 @@ create.head = (args: { car: string | number | { id: string | number } } | [car: 
 * @see app/Http/Controllers/Admin/CarReviewController.php:71
 * @route '/admin/cars/{car}/reviews'
 */
-export const store = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+export const store = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
     method: 'post',
 })
@@ -155,7 +155,7 @@ store.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:71
 * @route '/admin/cars/{car}/reviews'
 */
-store.url = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions) => {
+store.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
         args = { car: args }
     }
@@ -188,7 +188,7 @@ store.url = (args: { car: string | number | { id: string | number } } | [car: st
 * @see app/Http/Controllers/Admin/CarReviewController.php:71
 * @route '/admin/cars/{car}/reviews'
 */
-store.post = (args: { car: string | number | { id: string | number } } | [car: string | number | { id: string | number } ] | string | number | { id: string | number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
+store.post = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
     method: 'post',
 })
@@ -198,7 +198,7 @@ store.post = (args: { car: string | number | { id: string | number } } | [car: s
 * @see app/Http/Controllers/Admin/CarReviewController.php:80
 * @route '/admin/cars/{car}/reviews/{review}/edit'
 */
-export const edit = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const edit = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -213,7 +213,7 @@ edit.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:80
 * @route '/admin/cars/{car}/reviews/{review}/edit'
 */
-edit.url = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
+edit.url = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -243,7 +243,7 @@ edit.url = (args: { car: string | number | { id: string | number }, review: stri
 * @see app/Http/Controllers/Admin/CarReviewController.php:80
 * @route '/admin/cars/{car}/reviews/{review}/edit'
 */
-edit.get = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+edit.get = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: edit.url(args, options),
     method: 'get',
 })
@@ -253,7 +253,7 @@ edit.get = (args: { car: string | number | { id: string | number }, review: stri
 * @see app/Http/Controllers/Admin/CarReviewController.php:80
 * @route '/admin/cars/{car}/reviews/{review}/edit'
 */
-edit.head = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+edit.head = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: edit.url(args, options),
     method: 'head',
 })
@@ -263,7 +263,7 @@ edit.head = (args: { car: string | number | { id: string | number }, review: str
 * @see app/Http/Controllers/Admin/CarReviewController.php:106
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-export const update = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+export const update = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -278,7 +278,7 @@ update.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:106
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-update.url = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
+update.url = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -308,7 +308,7 @@ update.url = (args: { car: string | number | { id: string | number }, review: st
 * @see app/Http/Controllers/Admin/CarReviewController.php:106
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-update.put = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
+update.put = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
 })
@@ -318,7 +318,7 @@ update.put = (args: { car: string | number | { id: string | number }, review: st
 * @see app/Http/Controllers/Admin/CarReviewController.php:106
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-update.patch = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+update.patch = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
     url: update.url(args, options),
     method: 'patch',
 })
@@ -328,7 +328,7 @@ update.patch = (args: { car: string | number | { id: string | number }, review: 
 * @see app/Http/Controllers/Admin/CarReviewController.php:116
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-export const destroy = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+export const destroy = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
@@ -343,7 +343,7 @@ destroy.definition = {
 * @see app/Http/Controllers/Admin/CarReviewController.php:116
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-destroy.url = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions) => {
+destroy.url = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             car: args[0],
@@ -373,7 +373,7 @@ destroy.url = (args: { car: string | number | { id: string | number }, review: s
 * @see app/Http/Controllers/Admin/CarReviewController.php:116
 * @route '/admin/cars/{car}/reviews/{review}'
 */
-destroy.delete = (args: { car: string | number | { id: string | number }, review: string | number | { id: string | number } } | [car: string | number | { id: string | number }, review: string | number | { id: string | number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { car: number | { id: number }, review: number | { id: number } } | [car: number | { id: number }, review: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })

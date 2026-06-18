@@ -26,6 +26,13 @@ use RuntimeException;
 class CarImportService
 {
     /**
+     * Сколько машин коммитим в рамках одной транзакции.
+     * Снижает накладные расходы на BEGIN/COMMIT, сохраняя частичный прогресс
+     * на границе пакета и реакцию на остановку перед каждой машиной.
+     */
+    private const CAR_PERSIST_BATCH_SIZE = 25;
+
+    /**
      * @param  array{
      *     cities?: array<int, array<string, mixed>>,
      *     brands?: array<int, array<string, mixed>>,
@@ -106,19 +113,40 @@ class CarImportService
     ): array {
         $chunkContext = $this->buildChunkContext($carsPayload);
 
-        foreach ($carsPayload as $carPayload) {
-            if ($shouldStop !== null && $shouldStop()) {
-                break;
-            }
+        $totalCars = count($carsPayload);
+        $offset = 0;
 
-            DB::transaction(function () use ($carPayload, &$stats, &$chunkContext): void {
-                $this->upsertCar($carPayload, $stats, $chunkContext);
+        while ($offset < $totalCars) {
+            $batch = array_slice($carsPayload, $offset, self::CAR_PERSIST_BATCH_SIZE);
+            $offset += count($batch);
+            $stopped = false;
+
+            DB::transaction(function () use (
+                $batch,
+                &$stats,
+                &$chunkContext,
+                &$stopped,
+                $afterCarProcessed,
+                $shouldStop,
+            ): void {
+                foreach ($batch as $carPayload) {
+                    if ($shouldStop !== null && $shouldStop()) {
+                        $stopped = true;
+
+                        return;
+                    }
+
+                    $this->upsertCar($carPayload, $stats, $chunkContext);
+                    $stats['processed_cars']++;
+
+                    if ($afterCarProcessed !== null) {
+                        $afterCarProcessed($stats);
+                    }
+                }
             });
 
-            $stats['processed_cars']++;
-
-            if ($afterCarProcessed !== null) {
-                $afterCarProcessed($stats);
+            if ($stopped) {
+                break;
             }
         }
 

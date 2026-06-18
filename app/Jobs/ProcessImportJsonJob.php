@@ -280,25 +280,6 @@ class ProcessImportJsonJob implements ShouldQueue
             throw $exception;
         }
 
-        $this->logInfo($importRun, 'import.stage.structure_ok', [
-            'stage' => 'structure_check',
-            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-            'cities_count' => count($validatedCities),
-            'brands_count' => count($validatedBrands),
-            'cars_count' => $totalCars,
-            'chunks_total' => $chunksTotal,
-        ]);
-
-        $this->logInfo($importRun, 'import.stage.root_validation_ok', [
-            'stage' => 'root_validation',
-            'duration_ms' => $this->durationMs($validationStageStartedAt),
-            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-            'cities_count' => count($validatedCities),
-            'brands_count' => count($validatedBrands),
-            'cars_count' => $totalCars,
-            'chunks_total' => $chunksTotal,
-        ]);
-
         $this->logInfo($importRun, 'import.stage.validation_ok', [
             'stage' => 'validation',
             'duration_ms' => $this->durationMs($validationStageStartedAt),

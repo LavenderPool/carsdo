@@ -19,6 +19,20 @@ class ProcessImportCarsChunkJob implements ShouldQueue
 
     private const CAR_VALIDATION_CHUNK_SIZE = 100;
 
+    /**
+     * Прогресс в import_runs пишем не на каждую машину, а не чаще чем
+     * раз в столько обработанных машин или раз в столько миллисекунд.
+     */
+    private const PROGRESS_PERSIST_INTERVAL = 25;
+
+    private const PROGRESS_PERSIST_INTERVAL_MS = 1000;
+
+    /**
+     * Флаг остановки проверяем не на каждой машине, а раз в столько машин,
+     * лёгким запросом одного поля вместо гидрации всей модели.
+     */
+    private const STOP_CHECK_INTERVAL = 25;
+
     public int $timeout = 0;
 
     public function __construct(
@@ -94,11 +108,31 @@ class ProcessImportCarsChunkJob implements ShouldQueue
             $failureStage = 'chunk_persist';
             $initialStats = $this->statsFromImportRun($importRun);
 
+            $progressState = [
+                'cars_since_persist' => 0,
+                'last_persist_at' => microtime(true),
+            ];
+            $stopState = [
+                'cars_until_check' => 0,
+                'stop_requested' => false,
+            ];
+
             $stats = $importService->importCarsChunk(
                 $validatedCarsChunk,
                 $initialStats,
-                function (array $updatedStats) use (&$importRun, $totalCars, $chunksTotal, $jobStartedAt): void {
-                    $importRun = $importRun->fresh() ?? $importRun;
+                function (array $updatedStats) use (&$importRun, &$progressState, $totalCars, $chunksTotal, $jobStartedAt): void {
+                    $progressState['cars_since_persist']++;
+                    $now = microtime(true);
+
+                    $intervalReached = $progressState['cars_since_persist'] >= self::PROGRESS_PERSIST_INTERVAL
+                        || ($now - $progressState['last_persist_at']) * 1000 >= self::PROGRESS_PERSIST_INTERVAL_MS;
+
+                    if (! $intervalReached) {
+                        return;
+                    }
+
+                    $progressState['cars_since_persist'] = 0;
+                    $progressState['last_persist_at'] = $now;
 
                     $this->persistProgress(
                         $importRun,
@@ -106,22 +140,30 @@ class ProcessImportCarsChunkJob implements ShouldQueue
                         $totalCars,
                         $chunksTotal,
                         $this->chunkIndex,
-                        max((int) $importRun->chunks_processed, $this->chunkIndex - 1),
+                        $this->chunkIndex - 1,
                         false,
                         "Обрабатывается чанк {$this->chunkIndex} из {$chunksTotal}. Импортировано {$updatedStats['processed_cars']} из {$totalCars} машин.",
                         $jobStartedAt,
                     );
                 },
-                function () use (&$importRun): bool {
-                    $freshImportRun = $importRun->fresh();
-
-                    if ($freshImportRun === null) {
+                function () use (&$stopState): bool {
+                    if ($stopState['stop_requested']) {
                         return true;
                     }
 
-                    $importRun = $freshImportRun;
+                    if ($stopState['cars_until_check'] > 0) {
+                        $stopState['cars_until_check']--;
 
-                    return $this->isStopRequested($freshImportRun);
+                        return false;
+                    }
+
+                    $stopState['cars_until_check'] = self::STOP_CHECK_INTERVAL - 1;
+                    $stopRequestedAt = ImportRun::query()
+                        ->whereKey($this->importRun->id)
+                        ->value('stop_requested_at');
+                    $stopState['stop_requested'] = $stopRequestedAt !== null;
+
+                    return $stopState['stop_requested'];
                 },
             );
 
