@@ -35,9 +35,21 @@
         <div class="dop_photo"><a href="{{ $carPath }}/photo/">ВСЕ ФОТО</a></div>
         <div>
             <script type="text/javascript">
-                $('.{{ $galleryThumbsClass }}').delegate('img', 'click', function () {
-                    $('.{{ $galleryImageClass }}').attr('src', $(this).attr('src').replace('thumb', 'large'));
-                });
+                (function () {
+                    const galleryRoot = document.getElementById('{{ $galleryBlockId }}');
+                    if (!galleryRoot) return;
+
+                    const thumbsContainer = galleryRoot.querySelector('.{{ $galleryThumbsClass }}');
+                    const mainImage = galleryRoot.querySelector('.{{ $galleryImageClass }}');
+                    if (!thumbsContainer || !mainImage) return;
+
+                    thumbsContainer.addEventListener('click', function (event) {
+                        const thumb = event.target.closest('img');
+                        if (!thumb || !thumbsContainer.contains(thumb)) return;
+
+                        mainImage.src = thumb.src;
+                    });
+                })();
             </script>
         </div>
     </div>

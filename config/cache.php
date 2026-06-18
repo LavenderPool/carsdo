@@ -131,6 +131,24 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    'serializable_classes' => [
+        Illuminate\Database\Eloquent\Collection::class,
+        Illuminate\Pagination\LengthAwarePaginator::class,
+        Illuminate\Support\Collection::class,
+        App\Models\Brand::class,
+        App\Models\Car::class,
+        App\Models\CarConfiguration::class,
+        App\Models\CarConfigurationEquipment::class,
+        App\Models\CarConfigurationEquipmentCategory::class,
+        App\Models\CarConfigurationGroup::class,
+        App\Models\CarCrashTest::class,
+        App\Models\CarDealer::class,
+        App\Models\CarPhoto::class,
+        App\Models\CarPhotoGroup::class,
+        App\Models\CarReview::class,
+        App\Models\CarTestDrive::class,
+        App\Models\City::class,
+        App\Models\Dealer::class,
+    ],
 
 ];

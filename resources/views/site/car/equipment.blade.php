@@ -137,7 +137,9 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">{{ $pageH1 ?? ($car->name . ' › ' . $selectedGroup->name) }}</h1>
+    <h1 style="padding-left:20px;">
+        <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
+    </h1>
 
     @if ($selectedConfiguration)
         <div class="characteristics_eq">

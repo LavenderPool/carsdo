@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\Brand;
 use App\Models\Setting;
+use App\Support\Cache\SiteCache;
 use App\Support\Seo\AdminSeoFields;
 use App\Support\Seo\PageSeoFactory;
 use Illuminate\Support\Facades\Schema;
@@ -42,10 +43,10 @@ class AppServiceProvider extends ServiceProvider
                 )
                 : $setting;
             $brands = $hasBrandsTable
-                ? Brand::query()
+                ? SiteCache::remember('footer:brands', static fn () => Brand::query()
                     ->select(['name', 'slug', 'leave_from_russian'])
                     ->orderBy('name')
-                    ->get()
+                    ->get())
                 : $brands;
         } catch (\Throwable) {
             // CLI build steps (e.g. Wayfinder generation) may run without DB access.

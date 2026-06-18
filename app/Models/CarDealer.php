@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Observers\PublicContentObserver;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[ObservedBy([PublicContentObserver::class])]
 #[Fillable([
     'car_id',
     'city_id',

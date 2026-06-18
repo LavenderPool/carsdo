@@ -24,7 +24,7 @@
 @if ($dealerCities->isNotEmpty())
     <div id="block_city">
         <div class="title_city"><h3>Дилеры</h3></div>
-        <p style="color:#fff;">Где купить {{ $brand->name }} {{ $car->name }} в России.</p>
+        <p style="color:#fff;">Где купить {{ $car->name }} в России.</p>
 
         <div class="kupmos">
             @foreach ($primaryDealerCities as $dealerCity)

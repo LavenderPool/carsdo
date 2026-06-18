@@ -163,6 +163,34 @@ class CarDealerPageTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_city_page_uses_prepositional_case_for_city_name(): void
+    {
+        [$brand, $car] = $this->createBrandAndCar();
+
+        $city = City::query()->create([
+            'name' => 'Новосибирск',
+            'slug' => 'novosibirsk',
+        ]);
+        $dealer = Dealer::query()->create([
+            'name' => 'Tesla Novosibirsk',
+        ]);
+
+        CarDealer::query()->create([
+            'car_id' => $car->id,
+            'city_id' => $city->id,
+            'dealer_id' => $dealer->id,
+            'address' => 'Красный проспект, 1',
+            'phone' => '+7 383 111 11 11',
+            'website' => 'https://example.com/tesla-novosibirsk',
+            'is_official' => true,
+        ]);
+
+        $this->get('/tesla/model-y/novosibirsk')
+            ->assertOk()
+            ->assertSee('в Новосибирске')
+            ->assertSee('Где купить Tesla Model Y в Новосибирске');
+    }
+
     /**
      * @return array{0: Brand, 1: Car}
      */

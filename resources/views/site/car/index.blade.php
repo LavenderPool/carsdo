@@ -91,7 +91,7 @@
         : $car->coverUrl();
 @endphp
 
-@section('title', 'Модельный ряд ' . $brand->name . ' ' . $car->name)
+@section('title', 'Модельный ряд ' . $car->name)
 
 @section('content')
 <div class="block_price">
@@ -138,10 +138,10 @@
         </div>
     </div>
 
-    <div class="price_H2"><h2>{{ $brand->name }} {{ $car->name }} › Цены и комплектации</h2></div>
+    <div class="price_H2"><h2>{{ $car->name }} › Цены и комплектации</h2></div>
 
     <div class="price_new_text">
-        В России цена {{ $brand->name }} {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} рублей,
+        В России цена {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} рублей,
         автомобиль продается в {{ $configurationGroups->count() }} комплектациях
         (официальный сайт
         @if (filled($car->official_site))
@@ -204,7 +204,7 @@
     <div style="width: 100%; margin:10px 0 15px;"></div>
 
     <div id="block_price3">
-        <div class="tito-new"><h2>Модификации <br>{{ $brand->name }} {{ $car->name }}</h2></div>
+        <div class="tito-new"><h2>Модификации <br>{{ $car->name }}</h2></div>
         <p><span style="font-weight:bold;" class="complete_text">Выберите комплектацию, далее модификацию (двигатель и коробка передач)</span>, чтобы посмотреть: безопасность и системы автомобиля + дизайн (внешнее оборудование) + интерьер (оборудование салона) + дополнительные платные опции (при наличии) к комплектации от завода изготовителя.</p>
         <ul id="complete">
             @forelse ($configurationGroups as $groupIndex => $group)

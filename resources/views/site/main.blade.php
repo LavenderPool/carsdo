@@ -15,7 +15,7 @@
         <li>
             <a href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
                 <span class="home-top-card">
-                    <img alt="{{ $car->brand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
                     <span class="home-top-card__overlay"></span>
                     <span class="home-top-card__title">{{ $car->name }}</span>
                 </span>
@@ -35,7 +35,7 @@
         <li>
             <a href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
                 <span class="home-top-card">
-                    <img alt="{{ $car->brand->name }} {{ $car->name }} Новый кузов" src="{{ $car->coverUrl() }}">
+                    <img alt="{{ $car->name }} Новый кузов" src="{{ $car->coverUrl() }}">
                     <span class="home-top-card__overlay"></span>
                     <span class="home-top-card__title">{{ $car->name }}</span>
                 </span>
@@ -63,7 +63,7 @@
         <li>
             <a href="/{{ $cardBrand->slug }}/{{ $car->slug }}/crash-test/">
                 <span class="crash-test-card">
-                    <img alt="Краш-тест {{ $cardBrand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}">
                     <span class="crash-test-card__overlay"></span>
                     <span class="crash-test-card__content">
                         <span class="crash-test-card__title">{{ $car->name }}</span>
@@ -102,7 +102,7 @@
         <li>
             <a href="/{{ $cardBrand->slug }}/{{ $car->slug }}/test-drive/">
                 <span class="test-drive-card">
-                    <img alt="Тест-драйв {{ $cardBrand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="Тест-драйв {{ $car->name }}" src="{{ $car->coverUrl() }}">
                     <span class="test-drive-card__overlay"></span>
                     <span class="test-drive-card__title">{{ $car->name }}</span>
                 </span>

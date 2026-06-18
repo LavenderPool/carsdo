@@ -17,6 +17,8 @@
         ->values();
     $minPrice = $configurations->whereNotNull('price')->min('price') ?? $car->start_price;
     $maxPrice = $configurations->whereNotNull('price')->max('price') ?? $car->end_price ?? $car->start_price;
+    $currentYear = now()->year;
+    $cityInPrepositional = $city->nameInPrepositionalCase();
     $formatPrice = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : 'не объявлена';
     $priceRangeText = filled($minPrice) && filled($maxPrice)
         ? ($minPrice === $maxPrice ? $formatPrice((int) $minPrice) : $formatPrice((int) $minPrice).' - '.$formatPrice((int) $maxPrice))
@@ -79,22 +81,22 @@
         : $car->coverUrl();
 @endphp
 
-@section('title', $brand->name.' '.$car->name.' в '.$city->name.' - дилеры')
+@section('title', ''.$car->name.'- Официальные дилеры')
 
 @section('content')
 <div class="block1">
     <div class="block_moscow">
-        <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $brand->name }} {{ $car->name }}</a> › Дилеры ({{ $city->name }})</h1>
+        <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Официальные дилеры ({{ $city->name }})</h1>
 
         <p>
-            Где купить новый {{ $brand->name }} {{ $car->name }} в {{ $city->name }}. Ознакомиться с актуальными ценами,
-            скидками и другими специальными предложениями можно по ссылке "Смотреть цены" на сайте автосалона.
+            Где купить новый {{ $car->name }} у оффициального диллера в {{ $cityInPrepositional }}. Ознакомиться с актуальными ценами,
+            скидками и другими специальными предложениями на {{ $currentYear }} год можно по ссылке "Смотреть цены" на оффициальном сайте автосалона.
             Также вы можете посмотреть <a style="text-decoration:underline;" href="{{ $carPath }}/">комплектации и цены</a>
-            новой модели. Базовый диапазон цен по модели: {{ $priceRangeText }} руб.
+            Также вы можете посмотреть <a style="text-decoration:underline;" href="{{ $carPath }}/">официальные комплектации и цены</a> и <a style="text-decoration:underline;" href="{{ $carPath }}/photo/">фото {{ $car->name }}</a> новой модели.
         </p>
     </div>
 
-    <h2 style="margin:70px 15px 20px 20px;">Где купить {{ $brand->name }} {{ $car->name }} в {{ $city->name }}</h2>
+    <h2 style="margin:70px 15px 20px 20px;">Где купить {{ $car->name }} в {{ $cityInPrepositional }}</h2>
     <div class="start_salon">
         <ul class="salon_new">
             @foreach ($cityDealers as $cityDealer)
@@ -136,7 +138,7 @@
 <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
 @endif
 <div id="car-gallery">
-    <div class="photo_title">Новый {{ $brand->name }} {{ $car->name }}. Сейчас в продаже</div>
+    <div class="photo_title">Новый {{ $car->name }}. Сейчас в продаже</div>
 </div>
 <div><img class="preview_photo" src="{{ $mainPhoto }}"></div>
 <div class="preview_photo_mini">

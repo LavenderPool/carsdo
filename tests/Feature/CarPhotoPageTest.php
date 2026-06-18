@@ -51,9 +51,13 @@ class CarPhotoPageTest extends TestCase
         ]);
 
         $response = $this->get('/tesla/model-y/photo/');
+        $canonicalUrl = rtrim((string) config('app.url'), '/').'/tesla/model-y/photo/';
 
         $response
             ->assertOk()
+            ->assertSee('<title>Model Y - фото салона, новый кузов</title>', false)
+            ->assertSee('content="Model Y - фото нового кузова, фото внутри салона автомобиля (экстерьер и интерьер) новой модели."', false)
+            ->assertSee('rel="canonical" href="'.$canonicalUrl.'"', false)
             ->assertSee('EXTERIOR')
             ->assertSee('INTERIOR')
             ->assertSee('DETAILS')

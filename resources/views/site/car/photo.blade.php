@@ -102,20 +102,20 @@
         : $car->coverUrl();
 @endphp
 
-@section('title', 'Фото ' . $brand->name . ' ' . $car->name)
+@section('title', $car->name . ' - фото салона, новый кузов')
 
 @section('content')
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $brand->name }} {{ $car->name }}</a> › Фото</h1>
+    <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Фото</h1>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
 
     <div class="photo_gallery_bg">
-        <div><div class="photo_text"><a href="{{ $carPath }}/">Новые комплектации и цены {{ $brand->name }} {{ $car->name }}</a></div></div>
+        <div><div class="photo_text"><a href="{{ $carPath }}/">Новые комплектации и цены {{ $car->name }}</a></div></div>
 
         @forelse ($photoSections as $sectionIndex => $photoSection)
             <h2 style="text-align:center; padding:5px 0 10px;">{{ mb_strtoupper($photoSection->name) }}</h2>

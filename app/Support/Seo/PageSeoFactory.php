@@ -8,6 +8,7 @@ use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
 use App\Models\CarTestDrive;
+use App\Models\City;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -69,6 +70,9 @@ class PageSeoFactory
             'site.car.equipment' => isset($data['brand'], $data['car'], $data['selectedGroup'])
                 ? $this->forCarEquipment($data['brand'], $data['car'], $data['selectedGroup'])
                 : null,
+            'site.car.dealer' => isset($data['brand'], $data['car'], $data['city'])
+                ? $this->forCarDealer($data['brand'], $data['car'], $data['city'])
+                : null,
             'site.car.reviews' => isset($data['brand'], $data['car'])
                 ? $this->forCarReviews($data['brand'], $data['car'])
                 : null,
@@ -77,6 +81,9 @@ class PageSeoFactory
                 : null,
             'site.car.test-drive' => isset($data['brand'], $data['car'])
                 ? $this->forCarTestDrive($data['brand'], $data['car'])
+                : null,
+            'site.car.photo' => isset($data['brand'], $data['car'])
+                ? $this->forCarPhoto($data['brand'], $data['car'])
                 : null,
             default => null,
         };
@@ -576,6 +583,42 @@ class PageSeoFactory
         );
     }
 
+    private function forCarDealer(Brand $brand, Car $car, City $city): ResolvedPageSeo
+    {
+        $defaultTitle = "{$car->name}- Официальные дилеры";
+        $cityInPrepositional = $city->nameInPrepositionalCase();
+        $currentYear = now()->year;
+        $defaultDescription = $this->limitDescription(
+            "Новый список официальных дилеров {$car->name} в {$cityInPrepositional} {$currentYear}. "
+            ."Официальные комплектации и цены (от производителя автомобиля) в автосалонах, фото новой модели."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $car->coverUrl(),
+                'h1' => "{$car->name} › Официальные дилеры ({$city->name})",
+            ],
+            overrides: [],
+            context: array_merge($this->carContext($brand, $car), [
+                'city' => $city->name,
+            ]),
+            modifiedTime: $this->latestUpdatedAt([$brand, $car, $city]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => $brand->name, 'url' => $this->brandUrl($brand)],
+                    ['name' => "{$brand->name} {$car->name}", 'url' => $this->carUrl($brand, $car)],
+                    ['name' => "Официальные дилеры ({$city->name})", 'url' => $this->canonicalUrl()],
+                ],
+                array_filter([
+                    $this->carProductSchema($brand, $car, $this->toCollection($car->configurations)),
+                ]),
+            ),
+        );
+    }
+
     private function forCarCrashTest(Brand $brand, Car $car): ResolvedPageSeo
     {
         $crashTest = $car->crashTest;
@@ -663,6 +706,37 @@ class PageSeoFactory
                         image: $car->coverUrl(),
                         modifiedTime: $this->coerceDate($firstVideo?->updated_at) ?? $this->coerceDate($car->updated_at),
                     ),
+                ]),
+            ),
+        );
+    }
+
+    private function forCarPhoto(Brand $brand, Car $car): ResolvedPageSeo
+    {
+        $defaultTitle = "{$car->name} - фото салона, новый кузов";
+        $defaultDescription = $this->limitDescription(
+            "{$car->name} - фото нового кузова, фото внутри салона автомобиля (экстерьер и интерьер) новой модели."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $car->coverUrl(),
+                'h1' => "{$car->name} › Фото",
+            ],
+            overrides: [],
+            context: $this->carContext($brand, $car),
+            modifiedTime: $this->latestUpdatedAt([$brand, $car, $this->toCollection($car->photos), $this->toCollection($car->photoGroups)]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => $brand->name, 'url' => $this->brandUrl($brand)],
+                    ['name' => "{$brand->name} {$car->name}", 'url' => $this->carUrl($brand, $car)],
+                    ['name' => 'Фото', 'url' => $this->canonicalUrl()],
+                ],
+                array_filter([
+                    $this->carProductSchema($brand, $car, $this->toCollection($car->configurations)),
                 ]),
             ),
         );

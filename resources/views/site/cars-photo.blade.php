@@ -41,11 +41,11 @@
                     @endphp
                     @continue(!$cardBrand)
                     <li>
-                        <a class="model_auto_a" href="/{{ $cardBrand->slug }}/{{ $car->slug }}/">
+                        <a class="model_auto_a" href="/{{ $cardBrand->slug }}/{{ $car->slug }}/photo">
                             <span class="model_auto_photo">
-                                <img alt="{{ $cardBrand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                                <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
                             </span>
-                            <h3 class="model_auto_name">{{ $cardBrand->name }} {{ $car->name }}</h3>
+                            <h3 class="model_auto_name">{{ $car->name }}</h3>
                             <div class="model_auto_price"></div>
                         </a>
                     </li>

@@ -87,9 +87,9 @@
                         <li>
                             <a class="model_auto_a" href="/{{ $brand->slug }}/{{ $car->slug }}/">
                                 <span class="model_auto_photo">
-                                    <img alt="{{ $brand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
                                 </span>
-                                <h3 class="model_auto_name">{{ $brand->name }} {{ $car->name }}</h3>
+                                <h3 class="model_auto_name">{{ $car->name }}</h3>
                                 <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
                             </a>
                         </li>

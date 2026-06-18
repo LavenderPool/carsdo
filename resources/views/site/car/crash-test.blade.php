@@ -85,7 +85,7 @@
                 <div class="play"></div>
             </div>
         @else
-            <img alt="Краш-тест {{ $brand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
+            <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}">
         @endif
     </div>
 </div>
