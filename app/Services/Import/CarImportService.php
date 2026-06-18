@@ -18,6 +18,7 @@ use App\Models\City;
 use App\Models\Dealer;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;
@@ -546,14 +547,7 @@ class CarImportService
                 throw new RuntimeException("Город со slug \"{$citySlug}\" не найден для дилера \"{$dealerName}\".");
             }
 
-            /** @var Dealer|null $dealer */
-            $dealer = $chunkContext['dealersByName'][$dealerName] ?? null;
-
-            /** @var Dealer $dealer */
-            $dealer = $this->syncModel($dealer, Dealer::class, [
-                'name' => $dealerName,
-            ], $stats);
-            $chunkContext['dealersByName'][$dealerName] = $dealer;
+            $dealer = $this->resolveDealer($dealerName, $chunkContext, $stats);
 
             /** @var CarDealer|null $carDealer */
             $carDealer = $carDealers->first(function (CarDealer $candidate) use ($dealer, $city): bool {
@@ -792,6 +786,103 @@ class CarImportService
         $this->bump($stats, 'unchanged');
 
         return $model;
+    }
+
+    /**
+     * @param  array{
+     *     brandsBySlug: array<string, Brand>,
+     *     citiesBySlug: array<string, City>,
+     *     dealersByName: array<string, Dealer>,
+     *     carsBySlug: array<string, Car>
+     * }  $chunkContext
+     * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
+     */
+    private function resolveDealer(string $dealerName, array &$chunkContext, array &$stats): Dealer
+    {
+        $cachedDealer = $chunkContext['dealersByName'][$dealerName] ?? null;
+
+        if ($cachedDealer instanceof Dealer) {
+            $this->bump($stats, 'unchanged');
+
+            return $cachedDealer;
+        }
+
+        $existingDealer = $this->findDealerByName($dealerName);
+
+        if ($existingDealer instanceof Dealer) {
+            $this->cacheDealer($chunkContext, $dealerName, $existingDealer);
+            $this->bump($stats, 'unchanged');
+
+            return $existingDealer;
+        }
+
+        try {
+            /** @var Dealer $createdDealer */
+            $createdDealer = Dealer::query()->create([
+                'name' => $dealerName,
+            ]);
+        } catch (QueryException $exception) {
+            if (! $this->isUniqueConstraintViolation($exception)) {
+                throw $exception;
+            }
+
+            $existingDealer = $this->findDealerByName($dealerName);
+
+            if (! $existingDealer instanceof Dealer) {
+                throw $exception;
+            }
+
+            $this->cacheDealer($chunkContext, $dealerName, $existingDealer);
+            $this->bump($stats, 'unchanged');
+
+            return $existingDealer;
+        }
+
+        $this->cacheDealer($chunkContext, $dealerName, $createdDealer);
+        $this->bump($stats, 'new');
+
+        return $createdDealer;
+    }
+
+    /**
+     * @param  array{
+     *     brandsBySlug: array<string, Brand>,
+     *     citiesBySlug: array<string, City>,
+     *     dealersByName: array<string, Dealer>,
+     *     carsBySlug: array<string, Car>
+     * }  $chunkContext
+     */
+    private function cacheDealer(array &$chunkContext, string $lookupName, Dealer $dealer): void
+    {
+        $chunkContext['dealersByName'][$lookupName] = $dealer;
+        $chunkContext['dealersByName'][$dealer->name] = $dealer;
+    }
+
+    private function findDealerByName(string $dealerName): ?Dealer
+    {
+        $exactDealer = Dealer::query()
+            ->where('name', $dealerName)
+            ->first();
+
+        if ($exactDealer instanceof Dealer) {
+            return $exactDealer;
+        }
+
+        return Dealer::query()
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($dealerName)], 'and')
+            ->first();
+    }
+
+    private function isUniqueConstraintViolation(QueryException $exception): bool
+    {
+        $sqlState = $exception->errorInfo[0] ?? null;
+        $driverCode = $exception->errorInfo[1] ?? null;
+
+        if ($sqlState === '23000' && in_array($driverCode, [19, 1062], true)) {
+            return true;
+        }
+
+        return $sqlState === '23505';
     }
 
     /**

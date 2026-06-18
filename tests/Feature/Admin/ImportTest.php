@@ -265,6 +265,43 @@ class ImportTest extends TestCase
             ->assertJsonPath('run.stats.processed', 15);
     }
 
+    public function test_import_reuses_existing_dealer_when_payload_name_differs_by_case(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Dealer $existingDealer */
+        $existingDealer = Dealer::query()->create([
+            'name' => 'Tesla Store',
+        ]);
+
+        $payload = $this->payload();
+        $payload['cars'][0]['dealers'][0]['name'] = 'TESLA STORE';
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'case-mismatch-import.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'succeeded')
+            ->assertJsonPath('run.stats.new', 14)
+            ->assertJsonPath('run.stats.updated', 0)
+            ->assertJsonPath('run.stats.unchanged', 1)
+            ->assertJsonPath('run.stats.processed', 15);
+
+        $carDealer = CarDealer::query()->firstOrFail();
+
+        $this->assertSame($existingDealer->id, $carDealer->dealer_id);
+        $this->assertDatabaseCount('dealers', 1);
+        $this->assertDatabaseHas('dealers', [
+            'id' => $existingDealer->id,
+            'name' => 'Tesla Store',
+        ]);
+    }
+
     public function test_import_updates_changed_records_without_deleting_missing_nested_entries(): void
     {
         Storage::fake('local');
