@@ -2,6 +2,7 @@
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SeoFieldsSection from '@/Components/Admin/SeoFieldsSection.vue';
 import TextInput from '@/Components/TextInput.vue';
 import type { useForm } from '@inertiajs/vue3';
 
@@ -9,6 +10,12 @@ type BrandForm = ReturnType<typeof useForm<{
     name: string;
     slug: string;
     leave_from_russian: boolean;
+    seo_title: string;
+    seo_description: string;
+    seo_h1: string;
+    seo_og_image: string;
+    seo_canonical_url: string;
+    seo_robots: string;
 }>>;
 
 defineProps<{
@@ -64,6 +71,14 @@ const emit = defineEmits<{
             </label>
             <InputError class="mt-2" :message="form.errors.leave_from_russian" />
         </div>
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="seo"
+            title="SEO бренда"
+            description="Если поле пустое, сайт использует текущую автогенерацию SEO."
+            placeholders-hint="Доступные плейсхолдеры: {brand}, {current_year}, {site_name}, {current_cars_count}, {soon_cars_count}, {other_cars_count}."
+        />
 
         <div class="flex items-center gap-4">
             <PrimaryButton :disabled="form.processing">

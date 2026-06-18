@@ -48,6 +48,32 @@ const TagIcon = createOutlineIcon([
     },
 ]);
 
+const BuildingStorefrontIcon = createOutlineIcon([
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M3.75 9.776c0-.656.527-1.188 1.183-1.193 1.26-.01 2.22-.861 2.562-1.964.178-.574.7-.952 1.302-.952h6.407c.601 0 1.123.378 1.301.952.343 1.103 1.303 1.954 2.563 1.964.656.005 1.183.537 1.183 1.193V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18V9.776Z',
+    },
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M9 14.25h6',
+    },
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M12 5.25V3.75',
+    },
+]);
+
+const LinkIcon = createOutlineIcon([
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M13.19 8.688a4.5 4.5 0 0 1 0 6.364l-1.757 1.757a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757a4.5 4.5 0 0 1 6.364 0m-2.122 6.364a4.5 4.5 0 0 1 0-6.364l1.757-1.757a4.5 4.5 0 1 1 6.364 6.364l-1.757 1.757a4.5 4.5 0 0 1-6.364 0',
+    },
+]);
+
 const CarIcon = defineComponent({
     name: 'CarIcon',
     render() {
@@ -161,6 +187,18 @@ const navigationItems: NavigationItem[] = [
         routeName: 'admin.brands.index',
         activePattern: 'admin.brands.*',
         icon: TagIcon,
+    },
+    {
+        label: 'Дилеры',
+        routeName: 'admin.dealers.index',
+        activePattern: 'admin.dealers.*',
+        icon: BuildingStorefrontIcon,
+    },
+    {
+        label: 'Связки дилеров',
+        routeName: 'admin.car-dealers.index',
+        activePattern: 'admin.car-dealers.*',
+        icon: LinkIcon,
     },
     {
         label: 'Автомобили',

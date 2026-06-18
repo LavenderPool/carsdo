@@ -10,6 +10,12 @@ const props = defineProps<{
         name: string;
         slug: string;
         leave_from_russian: boolean;
+        seo_title: string | null;
+        seo_description: string | null;
+        seo_h1: string | null;
+        seo_og_image: string | null;
+        seo_canonical_url: string | null;
+        seo_robots: string | null;
     };
 }>();
 
@@ -17,6 +23,12 @@ const form = useForm({
     name: props.brand.name,
     slug: props.brand.slug,
     leave_from_russian: props.brand.leave_from_russian,
+    seo_title: props.brand.seo_title ?? '',
+    seo_description: props.brand.seo_description ?? '',
+    seo_h1: props.brand.seo_h1 ?? '',
+    seo_og_image: props.brand.seo_og_image ?? '',
+    seo_canonical_url: props.brand.seo_canonical_url ?? '',
+    seo_robots: props.brand.seo_robots ?? '',
 });
 
 const submit = () => {

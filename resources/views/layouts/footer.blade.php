@@ -1,7 +1,6 @@
 <section>
     <div id="minsk">
-        <div class="menu-bottom-text">Новые <a href="/new-cars-2026/">автомобили 2026</a> и будущие <a
-                href="/soon/">новинки автопрома</a> в России</div>
+        <div class="menu-bottom-text">Новые <a href="/new-cars-{{ $catalogYear }}/">автомобили {{ $catalogYear }}</a> и будущие новинки автопрома в России</div>
 
         <div class="menu-bottom">
             <ul>
@@ -32,8 +31,7 @@
                                     России</a></td>
                         </tr>
                         <tr>
-                            <td><a href="/map/">Карта сайта</a> <a style="margin-left:2em;"
-                                    href="/contacts/">Контакты</a></td>
+                            <td><a href="/sitemap.xml">Sitemap XML</a></td>
                         </tr>
 
                         <tr>

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBrandRequest;
 use App\Http\Requests\Admin\UpdateBrandRequest;
 use App\Models\Brand;
+use App\Support\Seo\AdminSeoFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -72,12 +73,12 @@ class BrandController extends Controller
     public function edit(Brand $brand): Response
     {
         return Inertia::render('Admin/Brands/Edit', [
-            'brand' => [
+            'brand' => array_merge([
                 'id' => $brand->id,
                 'name' => $brand->name,
                 'slug' => $brand->slug,
                 'leave_from_russian' => $brand->leave_from_russian,
-            ],
+            ], $brand->only(AdminSeoFields::brandFields())),
         ]);
     }
 

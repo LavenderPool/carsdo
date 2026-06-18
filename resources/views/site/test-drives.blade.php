@@ -9,7 +9,7 @@
 <div class="block_modeli">
     <div style="margin:20px 0 0 0;">
         <h1 style="padding-left:20px;">
-            {{ $selectedTestDriveBrand ? 'Тест-драйвы ' . $selectedTestDriveBrand->name : 'Тест-драйвы' }}
+            {{ $pageH1 ?? ($selectedTestDriveBrand ? 'Тест-драйвы ' . $selectedTestDriveBrand->name : 'Тест-драйвы') }}
         </h1>
         <div class="homepage_p">Тест-драйвы новых автомобилей 2026: видео обзор.</div>
 

@@ -24,7 +24,7 @@ class StoreCarPhotoRequest extends FormRequest
     {
         return [
             'car_photo_group_id' => ['required', 'integer', 'exists:car_photo_groups,id'],
-            'photo_path' => ['required', 'string', 'max:255'],
+            'photo' => ['required', 'image', 'max:10240'],
         ];
     }
 }

@@ -9,7 +9,18 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['name', 'slug', 'leave_from_russian', 'views_count'])]
+#[Fillable([
+    'name',
+    'slug',
+    'leave_from_russian',
+    'seo_title',
+    'seo_description',
+    'seo_h1',
+    'seo_og_image',
+    'seo_canonical_url',
+    'seo_robots',
+    'views_count',
+])]
 class Brand extends Model
 {
     use HasFactory, SoftDeletes;

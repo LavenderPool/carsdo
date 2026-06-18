@@ -8,8 +8,8 @@
     <div class="menu">
         <ul class="main_menu">
             <li><a href="/">Автомобили</a></li>
-            <li style="background: linear-gradient(196deg, #8c0b0b, #fb5757);"><a href="/new-cars-2026/">2026</a></li>
-            <li><a href="/new-cars-2025/">2025</a></li>
+            <li style="background: linear-gradient(196deg, #8c0b0b, #fb5757);"><a href="/new-cars-{{ $catalogYear }}/">{{ $catalogYear }}</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevYear }}/">{{ $catalogPrevYear }}</a></li>
             <li><a href="/cars-photo/">Фото</a></li>
             <li><a href="/test-drive/">Тест-драйвы</a></li>
             <li><a href="/crash-test/">Краш-тесты</a></li>

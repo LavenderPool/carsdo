@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreCarPhotoGroupRequest;
 use App\Http\Requests\Admin\UpdateCarPhotoGroupRequest;
 use App\Models\Car;
 use App\Models\CarPhotoGroup;
+use App\Support\Media\CarMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -104,7 +105,10 @@ class CarPhotoGroupController extends Controller
     public function destroy(Car $car, CarPhotoGroup $photoGroup): RedirectResponse
     {
         abort_unless($photoGroup->car_id === $car->id, 404);
-        $photoGroup->delete();
+        $photoGroup->load('photos');
+        CarMediaStorage::deletePhotoFiles($photoGroup->photos);
+        $photoGroup->photos()->delete();
+        CarPhotoGroup::query()->whereKey($photoGroup->id)->delete();
 
         return redirect()
             ->route('admin.cars.photo-groups.index', $car)

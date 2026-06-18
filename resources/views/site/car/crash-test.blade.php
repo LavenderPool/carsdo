@@ -63,7 +63,7 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Краш-тест</h1>
+    <h1 style="padding-left:20px;">{{ $pageH1 ?? ($car->name . ' › Краш-тест') }}</h1>
 
     <div class="p_crash_test">
         Краш-тест {{ $car->name }}: видео независимой оценки безопасности нового автомобиля.
@@ -127,6 +127,13 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 </script>
+
+@include('site.car.partials.galery', [
+    'brand' => $brand,
+    'car' => $car,
+    'carPath' => $carPath,
+    'galleryBlockId' => 'crash-test-gallery',
+])
 
 @include('site.car.partials.specs-and-models', [
     'brand' => $brand,

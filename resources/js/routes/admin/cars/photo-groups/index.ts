@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::index
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:16
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:17
 * @route '/admin/cars/{car}/photo-groups'
 */
 export const index = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::index
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:16
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:17
 * @route '/admin/cars/{car}/photo-groups'
 */
 index.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ index.url = (args: { car: number | { id: number } } | [car: number | { id: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::index
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:16
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:17
 * @route '/admin/cars/{car}/photo-groups'
 */
 index.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ index.get = (args: { car: number | { id: number } } | [car: number | { id: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::index
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:16
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:17
 * @route '/admin/cars/{car}/photo-groups'
 */
 index.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -69,7 +69,7 @@ index.head = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::create
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:43
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:44
 * @route '/admin/cars/{car}/photo-groups/create'
 */
 export const create = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -84,7 +84,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::create
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:43
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:44
 * @route '/admin/cars/{car}/photo-groups/create'
 */
 create.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -117,7 +117,7 @@ create.url = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::create
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:43
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:44
 * @route '/admin/cars/{car}/photo-groups/create'
 */
 create.get = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -127,7 +127,7 @@ create.get = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::create
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:43
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:44
 * @route '/admin/cars/{car}/photo-groups/create'
 */
 create.head = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -137,7 +137,7 @@ create.head = (args: { car: number | { id: number } } | [car: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::store
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:63
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:64
 * @route '/admin/cars/{car}/photo-groups'
 */
 export const store = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -152,7 +152,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::store
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:63
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:64
 * @route '/admin/cars/{car}/photo-groups'
 */
 store.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -185,7 +185,7 @@ store.url = (args: { car: number | { id: number } } | [car: number | { id: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::store
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:63
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:64
 * @route '/admin/cars/{car}/photo-groups'
 */
 store.post = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -195,7 +195,7 @@ store.post = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::edit
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:72
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:73
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}/edit'
 */
 export const edit = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -210,7 +210,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::edit
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:72
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:73
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}/edit'
 */
 edit.url = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -240,7 +240,7 @@ edit.url = (args: { car: number | { id: number }, photoGroup: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::edit
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:72
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:73
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}/edit'
 */
 edit.get = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -250,7 +250,7 @@ edit.get = (args: { car: number | { id: number }, photoGroup: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::edit
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:72
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:73
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}/edit'
 */
 edit.head = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -260,7 +260,7 @@ edit.head = (args: { car: number | { id: number }, photoGroup: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::update
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:94
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:95
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 export const update = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -275,7 +275,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::update
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:94
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:95
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 update.url = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -305,7 +305,7 @@ update.url = (args: { car: number | { id: number }, photoGroup: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::update
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:94
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:95
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 update.put = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -315,7 +315,7 @@ update.put = (args: { car: number | { id: number }, photoGroup: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::update
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:94
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:95
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 update.patch = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -325,7 +325,7 @@ update.patch = (args: { car: number | { id: number }, photoGroup: number | { id:
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::destroy
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:104
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:105
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 export const destroy = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -340,7 +340,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::destroy
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:104
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:105
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 destroy.url = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -370,7 +370,7 @@ destroy.url = (args: { car: number | { id: number }, photoGroup: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Admin\CarPhotoGroupController::destroy
-* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:104
+* @see app/Http/Controllers/Admin/CarPhotoGroupController.php:105
 * @route '/admin/cars/{car}/photo-groups/{photoGroup}'
 */
 destroy.delete = (args: { car: number | { id: number }, photoGroup: number | { id: number } } | [car: number | { id: number }, photoGroup: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

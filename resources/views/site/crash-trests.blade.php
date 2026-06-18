@@ -9,7 +9,7 @@
 <div class="block_modeli">
     <div style="margin:20px 0 0 0;">
         <h1 style="padding-left:20px;">
-            {{ $selectedCrashTestBrand ? 'Краш-тесты ' . $selectedCrashTestBrand->name : 'Краш-тесты' }}
+            {{ $pageH1 ?? ($selectedCrashTestBrand ? 'Краш-тесты ' . $selectedCrashTestBrand->name : 'Краш-тесты') }}
         </h1>
         <div class="homepage_p">Независимая оценка безопасности вашего будущего автомобиля.</div>
 

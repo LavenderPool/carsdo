@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\DangerController::fullClear
-* @see app/Http/Controllers/Admin/DangerController.php:23
+* @see app/Http/Controllers/Admin/DangerController.php:26
 * @route '/admin/danger/full-clear'
 */
 export const fullClear = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ fullClear.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\DangerController::fullClear
-* @see app/Http/Controllers/Admin/DangerController.php:23
+* @see app/Http/Controllers/Admin/DangerController.php:26
 * @route '/admin/danger/full-clear'
 */
 fullClear.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ fullClear.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\DangerController::fullClear
-* @see app/Http/Controllers/Admin/DangerController.php:23
+* @see app/Http/Controllers/Admin/DangerController.php:26
 * @route '/admin/danger/full-clear'
 */
 fullClear.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ fullClear.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\DangerController::fullClear
-* @see app/Http/Controllers/Admin/DangerController.php:23
+* @see app/Http/Controllers/Admin/DangerController.php:26
 * @route '/admin/danger/full-clear'
 */
 fullClear.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

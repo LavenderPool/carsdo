@@ -4,13 +4,12 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
-
-        <title>@yield('title', $siteBrandName ?? config('app.name', 'carsDo'))</title>
-        <link rel="icon" href="{{ $siteFaviconUrl ?? asset('favicon.ico') }}">
+        {!! seo($SEOData ?? null) !!}
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.googleapis.com/css?family=Open+Sans|Roboto+Condensed" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('assets/global-styles.css') }}">
+        @stack('head')
     </head>
     <body>
         <div class="zero">

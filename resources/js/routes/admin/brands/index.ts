@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\BrandController::index
-* @see app/Http/Controllers/Admin/BrandController.php:19
+* @see app/Http/Controllers/Admin/BrandController.php:20
 * @route '/admin/brands'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::index
-* @see app/Http/Controllers/Admin/BrandController.php:19
+* @see app/Http/Controllers/Admin/BrandController.php:20
 * @route '/admin/brands'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::index
-* @see app/Http/Controllers/Admin/BrandController.php:19
+* @see app/Http/Controllers/Admin/BrandController.php:20
 * @route '/admin/brands'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::index
-* @see app/Http/Controllers/Admin/BrandController.php:19
+* @see app/Http/Controllers/Admin/BrandController.php:20
 * @route '/admin/brands'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::create
-* @see app/Http/Controllers/Admin/BrandController.php:52
+* @see app/Http/Controllers/Admin/BrandController.php:53
 * @route '/admin/brands/create'
 */
 export const create = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +60,7 @@ create.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::create
-* @see app/Http/Controllers/Admin/BrandController.php:52
+* @see app/Http/Controllers/Admin/BrandController.php:53
 * @route '/admin/brands/create'
 */
 create.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ create.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::create
-* @see app/Http/Controllers/Admin/BrandController.php:52
+* @see app/Http/Controllers/Admin/BrandController.php:53
 * @route '/admin/brands/create'
 */
 create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -79,7 +79,7 @@ create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::create
-* @see app/Http/Controllers/Admin/BrandController.php:52
+* @see app/Http/Controllers/Admin/BrandController.php:53
 * @route '/admin/brands/create'
 */
 create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -89,7 +89,7 @@ create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::store
-* @see app/Http/Controllers/Admin/BrandController.php:60
+* @see app/Http/Controllers/Admin/BrandController.php:61
 * @route '/admin/brands'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -104,7 +104,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::store
-* @see app/Http/Controllers/Admin/BrandController.php:60
+* @see app/Http/Controllers/Admin/BrandController.php:61
 * @route '/admin/brands'
 */
 store.url = (options?: RouteQueryOptions) => {
@@ -113,7 +113,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::store
-* @see app/Http/Controllers/Admin/BrandController.php:60
+* @see app/Http/Controllers/Admin/BrandController.php:61
 * @route '/admin/brands'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::edit
-* @see app/Http/Controllers/Admin/BrandController.php:72
+* @see app/Http/Controllers/Admin/BrandController.php:73
 * @route '/admin/brands/{brand}/edit'
 */
 export const edit = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -138,7 +138,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::edit
-* @see app/Http/Controllers/Admin/BrandController.php:72
+* @see app/Http/Controllers/Admin/BrandController.php:73
 * @route '/admin/brands/{brand}/edit'
 */
 edit.url = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -171,7 +171,7 @@ edit.url = (args: { brand: number | { id: number } } | [brand: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::edit
-* @see app/Http/Controllers/Admin/BrandController.php:72
+* @see app/Http/Controllers/Admin/BrandController.php:73
 * @route '/admin/brands/{brand}/edit'
 */
 edit.get = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -181,7 +181,7 @@ edit.get = (args: { brand: number | { id: number } } | [brand: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::edit
-* @see app/Http/Controllers/Admin/BrandController.php:72
+* @see app/Http/Controllers/Admin/BrandController.php:73
 * @route '/admin/brands/{brand}/edit'
 */
 edit.head = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -191,7 +191,7 @@ edit.head = (args: { brand: number | { id: number } } | [brand: number | { id: n
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::update
-* @see app/Http/Controllers/Admin/BrandController.php:87
+* @see app/Http/Controllers/Admin/BrandController.php:88
 * @route '/admin/brands/{brand}'
 */
 export const update = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -206,7 +206,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::update
-* @see app/Http/Controllers/Admin/BrandController.php:87
+* @see app/Http/Controllers/Admin/BrandController.php:88
 * @route '/admin/brands/{brand}'
 */
 update.url = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -239,7 +239,7 @@ update.url = (args: { brand: number | { id: number } } | [brand: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::update
-* @see app/Http/Controllers/Admin/BrandController.php:87
+* @see app/Http/Controllers/Admin/BrandController.php:88
 * @route '/admin/brands/{brand}'
 */
 update.put = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -249,7 +249,7 @@ update.put = (args: { brand: number | { id: number } } | [brand: number | { id: 
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::update
-* @see app/Http/Controllers/Admin/BrandController.php:87
+* @see app/Http/Controllers/Admin/BrandController.php:88
 * @route '/admin/brands/{brand}'
 */
 update.patch = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -259,7 +259,7 @@ update.patch = (args: { brand: number | { id: number } } | [brand: number | { id
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::destroy
-* @see app/Http/Controllers/Admin/BrandController.php:99
+* @see app/Http/Controllers/Admin/BrandController.php:100
 * @route '/admin/brands/{brand}'
 */
 export const destroy = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -274,7 +274,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::destroy
-* @see app/Http/Controllers/Admin/BrandController.php:99
+* @see app/Http/Controllers/Admin/BrandController.php:100
 * @route '/admin/brands/{brand}'
 */
 destroy.url = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -307,7 +307,7 @@ destroy.url = (args: { brand: number | { id: number } } | [brand: number | { id:
 
 /**
 * @see \App\Http\Controllers\Admin\BrandController::destroy
-* @see app/Http/Controllers/Admin/BrandController.php:99
+* @see app/Http/Controllers/Admin/BrandController.php:100
 * @route '/admin/brands/{brand}'
 */
 destroy.delete = (args: { brand: number | { id: number } } | [brand: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\BrandController;
+use App\Http\Controllers\Admin\CarDealerController;
 use App\Http\Controllers\Admin\CarConfigurationController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentController;
@@ -13,14 +14,17 @@ use App\Http\Controllers\Admin\CarReviewController;
 use App\Http\Controllers\Admin\CarTestDriveController;
 use App\Http\Controllers\Admin\DangerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DealerController;
 use App\Http\Controllers\Admin\ImportController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\Brand;
 use App\Models\Car;
 use App\Models\CarCrashTest;
 use App\Models\CarTestDrive;
+use App\Models\City;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Route;
 
@@ -112,12 +116,18 @@ Route::get('/', function () {
     ));
 });
 
+Route::get('/sitemap.xml', SitemapController::class);
+
 
 
 Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::resource('brands', BrandController::class)
+            ->except(['show']);
+        Route::resource('dealers', DealerController::class)
+            ->except(['show']);
+        Route::resource('car-dealers', CarDealerController::class)
             ->except(['show']);
         Route::resource('cars', CarController::class)
             ->except(['show']);
@@ -498,6 +508,9 @@ Route::get('/{brand:slug}/{car:slug}/test-drive/', function (Brand $brand, Car $
         'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
         'reviews:id,car_id,import_index,type,value',
         'crashTest:id,car_id,year,rating,video_path',
+        'photoGroups:id,car_id,name',
+        'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
+        'photos:id,car_id,car_photo_group_id,photo_path',
     ]);
 
     abort_unless($car->testDrives->isNotEmpty(), 404);
@@ -524,6 +537,9 @@ Route::get('/{brand:slug}/{car:slug}/crash-test/', function (Brand $brand, Car $
         'configurationGroups:id,car_id,name,order,import_index',
         'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
         'reviews:id,car_id,import_index,type,value',
+        'photoGroups:id,car_id,name',
+        'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
+        'photos:id,car_id,car_photo_group_id,photo_path',
     ]);
 
     abort_unless($car->crashTest !== null, 404);
@@ -548,6 +564,9 @@ Route::get('/{brand:slug}/{car:slug}/reviews/', function (Brand $brand, Car $car
         'reviews:id,car_id,import_index,type,value',
         'configurationGroups:id,car_id,name,order,import_index',
         'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+        'photoGroups:id,car_id,name',
+        'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
+        'photos:id,car_id,car_photo_group_id,photo_path',
     ]);
 
     abort_unless($car->reviews->isNotEmpty(), 404);
@@ -559,6 +578,38 @@ Route::get('/{brand:slug}/{car:slug}/reviews/', function (Brand $brand, Car $car
     ]);
 
     return view('site.car.reviews', [
+        'brand' => $brand,
+        'car' => $car,
+    ]);
+});
+
+Route::get('/{brand:slug}/{car:slug}/photo/', function (Brand $brand, Car $car) {
+    abort_if($car->brand_id !== $brand->id, 404);
+
+    $car->load([
+        'brand:id,name,slug',
+        'crashTest:id,car_id,year,rating,video_path',
+        'testDrives:id,car_id,import_index,author,video_path',
+        'reviews:id,car_id,import_index,type,value',
+        'configurationGroups:id,car_id,name,order,import_index',
+        'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+        'photoGroups:id,car_id,name',
+        'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
+        'photos:id,car_id,car_photo_group_id,photo_path',
+    ]);
+
+    $hasAnyPhotos = $car->photos->contains(fn ($photo) => filled($photo->photo_path))
+        || $car->photoGroups->flatMap->photos->contains(fn ($photo) => filled($photo->photo_path));
+
+    abort_unless($hasAnyPhotos, 404);
+
+    $brand->load([
+        'cars' => fn ($query) => $query
+            ->select('id', 'brand_id', 'name', 'slug', 'start_price', 'is_soon', 'is_another_models')
+            ->orderBy('name'),
+    ]);
+
+    return view('site.car.photo', [
         'brand' => $brand,
         'car' => $car,
     ]);
@@ -579,6 +630,14 @@ Route::get('/{brand:slug}/{car:slug}/equipment-{order}/', function (Brand $brand
         'photoGroups:id,car_id,name',
         'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
         'photos:id,car_id,car_photo_group_id,photo_path',
+        'carDealers' => fn ($query) => $query
+            ->select('id', 'car_id', 'city_id', 'dealer_id', 'address', 'phone', 'website', 'is_official')
+            ->with([
+                'city:id,name,slug',
+                'dealer:id,name',
+            ])
+            ->orderBy('city_id')
+            ->orderBy('dealer_id'),
     ]);
 
     $configurationGroups = $car->configurationGroups
@@ -606,6 +665,50 @@ Route::get('/{brand:slug}/{car:slug}/equipment-{order}/', function (Brand $brand
     ]);
 })->where('order', '[1-9]\d*');
 
+Route::get('/{brand:slug}/{car:slug}/{city:slug}', function (Brand $brand, Car $car, City $city) {
+    abort_if($car->brand_id !== $brand->id, 404);
+
+    $car->load([
+        'brand:id,name,slug',
+        'crashTest:id,car_id,year,rating,video_path',
+        'testDrives:id,car_id,import_index,author,video_path',
+        'reviews:id,car_id,import_index,type,value',
+        'configurationGroups:id,car_id,name,order,import_index',
+        'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+        'photoGroups:id,car_id,name',
+        'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
+        'photos:id,car_id,car_photo_group_id,photo_path',
+        'carDealers' => fn ($query) => $query
+            ->select('id', 'car_id', 'city_id', 'dealer_id', 'address', 'phone', 'website', 'is_official')
+            ->with([
+                'city:id,name,slug',
+                'dealer:id,name',
+            ])
+            ->orderBy('city_id')
+            ->orderByDesc('is_official')
+            ->orderBy('dealer_id'),
+    ]);
+
+    $cityDealers = $car->carDealers
+        ->where('city_id', $city->id)
+        ->values();
+
+    abort_unless($cityDealers->isNotEmpty(), 404);
+
+    $brand->load([
+        'cars' => fn ($query) => $query
+            ->select('id', 'brand_id', 'name', 'slug', 'start_price', 'is_soon', 'is_another_models')
+            ->orderBy('name'),
+    ]);
+
+    return view('site.car.dealer', [
+        'brand' => $brand,
+        'car' => $car,
+        'city' => $city,
+        'cityDealers' => $cityDealers,
+    ]);
+})->withoutScopedBindings();
+
 Route::get('/{brand:slug}/{car:slug}', function (Brand $brand, Car $car) use ($rememberView) {
     abort_if($car->brand_id !== $brand->id, 404);
 
@@ -623,6 +726,14 @@ Route::get('/{brand:slug}/{car:slug}', function (Brand $brand, Car $car) use ($r
         'photoGroups:id,car_id,name',
         'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
         'photos:id,car_id,car_photo_group_id,photo_path',
+        'carDealers' => fn ($query) => $query
+            ->select('id', 'car_id', 'city_id', 'dealer_id', 'address', 'phone', 'website', 'is_official')
+            ->with([
+                'city:id,name,slug',
+                'dealer:id,name',
+            ])
+            ->orderBy('city_id')
+            ->orderBy('dealer_id'),
     ]);
 
     $brand->load([

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingRequest;
 use App\Models\Setting;
+use App\Support\Seo\AdminSeoFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -17,12 +18,12 @@ class SettingController extends Controller
         $setting = $this->resolveSetting();
 
         return Inertia::render('Admin/Settings/Edit', [
-            'setting' => [
+            'setting' => array_merge([
                 'brand_name' => $setting->brand_name,
                 'favicon_url' => $setting->favicon_path
                     ? asset('storage/'.$setting->favicon_path)
                     : asset('favicon.ico'),
-            ],
+            ], $setting->only(AdminSeoFields::settingFields())),
             'flash' => [
                 'success' => session('success'),
             ],

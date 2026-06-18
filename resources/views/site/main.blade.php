@@ -7,7 +7,7 @@
 
 
     <div class="homepage_bloсk1">
-    <h1 style="padding:0 20px;">Новые автомобили в России</h1>
+    <h1 style="padding:0 20px;">{{ $pageH1 ?? 'Новые автомобили в России' }}</h1>
     <div class="homepage_p">Последние новинки 2025. Официальные комплектации и цены на новые авто в России.</div>
     <div class="newhome">
     <ul class="nch">

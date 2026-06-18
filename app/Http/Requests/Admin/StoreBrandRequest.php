@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\Seo\AdminSeoFields;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -26,11 +27,17 @@ class StoreBrandRequest extends FormRequest
         $slug = (string) $this->input('slug', '');
         $leaveFromRussian = $this->boolean('leave_from_russian');
 
-        $this->merge([
+        $data = [
             'name' => trim($name),
             'slug' => trim($slug) !== '' ? Str::slug($slug) : Str::slug($name),
             'leave_from_russian' => $leaveFromRussian,
-        ]);
+        ];
+
+        foreach (AdminSeoFields::brandFields() as $field) {
+            $data[$field] = $this->normalizeSeoField($field);
+        }
+
+        $this->merge($data);
     }
 
     /**
@@ -40,11 +47,17 @@ class StoreBrandRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['required', 'string', 'max:255', Rule::unique('brands', 'slug')],
             'leave_from_russian' => ['boolean'],
         ];
+
+        foreach (AdminSeoFields::brandFields() as $field) {
+            $rules[$field] = $this->seoFieldRules($field);
+        }
+
+        return $rules;
     }
 
     /**
@@ -54,12 +67,51 @@ class StoreBrandRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+        return array_merge([
             'name.required' => 'Укажите название бренда.',
             'name.max' => 'Название бренда не должно превышать 255 символов.',
             'slug.required' => 'Укажите идентификатор бренда.',
             'slug.max' => 'Идентификатор бренда не должен превышать 255 символов.',
             'slug.unique' => 'Бренд с таким идентификатором уже существует.',
+        ], $this->seoMessages());
+    }
+
+    /**
+     * @return array<int, ValidationRule|string>
+     */
+    private function seoFieldRules(string $field): array
+    {
+        return match (true) {
+            str_ends_with($field, '_description') => ['nullable', 'string', 'max:5000'],
+            str_ends_with($field, '_canonical_url'), str_ends_with($field, '_og_image') => ['nullable', 'string', 'max:2048'],
+            default => ['nullable', 'string', 'max:255'],
+        };
+    }
+
+    private function normalizeSeoField(string $field): ?string
+    {
+        $value = $this->input($field);
+
+        if (! is_string($value)) {
+            return null;
+        }
+
+        $value = trim($value);
+
+        return $value !== '' ? $value : null;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function seoMessages(): array
+    {
+        return [
+            'seo_title.max' => 'SEO title не должен превышать 255 символов.',
+            'seo_h1.max' => 'SEO H1 не должен превышать 255 символов.',
+            'seo_canonical_url.max' => 'SEO canonical не должен превышать 2048 символов.',
+            'seo_og_image.max' => 'SEO og:image не должен превышать 2048 символов.',
+            'seo_robots.max' => 'SEO robots не должен превышать 255 символов.',
         ];
     }
 }

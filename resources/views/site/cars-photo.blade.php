@@ -4,7 +4,9 @@
 
 @section('content')
     <section class="block_modeli">
-        <h1 style="margin:20px 0 7px; text-align:center;">Фото новых автомобилей</h1>
+        <h1 style="margin:20px 0 7px; text-align:center;">
+            {{ $pageH1 ?? ($selectedPhotoBrand ? 'Фото новых автомобилей '.$selectedPhotoBrand->name : 'Фото новых автомобилей') }}
+        </h1>
 
         <div class="test_page_div">
             <ul class="test_page">
@@ -39,7 +41,7 @@
                     @endphp
                     @continue(!$cardBrand)
                     <li>
-                        <a class="model_auto_a" href="/{{ $cardBrand->slug }}/{{ $car->slug }}/photo/">
+                        <a class="model_auto_a" href="/{{ $cardBrand->slug }}/{{ $car->slug }}/">
                             <span class="model_auto_photo">
                                 <img alt="{{ $cardBrand->name }} {{ $car->name }}" src="{{ $car->coverUrl() }}">
                             </span>

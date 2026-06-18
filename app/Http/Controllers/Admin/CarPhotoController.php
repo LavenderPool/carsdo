@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreCarPhotoRequest;
 use App\Http\Requests\Admin\UpdateCarPhotoRequest;
 use App\Models\Car;
 use App\Models\CarPhoto;
+use App\Support\Media\CarMediaStorage;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -23,6 +24,8 @@ class CarPhotoController extends Controller
                 'id' => $item->id,
                 'group' => $item->group?->name,
                 'photo_path' => $item->photo_path,
+                'photo_url' => $item->url(),
+                'preview_url' => $item->url(),
             ]);
 
         return Inertia::render('Admin/Cars/Nested/Index', [
@@ -30,7 +33,9 @@ class CarPhotoController extends Controller
             'car' => ['id' => $car->id, 'name' => $car->name],
             'items' => $items,
             'columns' => [
+                ['key' => 'preview_url', 'label' => 'Превью', 'type' => 'image'],
                 ['key' => 'group', 'label' => 'Группа'],
+                ['key' => 'photo_url', 'label' => 'Ссылка', 'type' => 'link'],
                 ['key' => 'photo_path', 'label' => 'Путь'],
             ],
             'createUrl' => route('admin.cars.photos.create', $car),
@@ -56,11 +61,11 @@ class CarPhotoController extends Controller
             ],
             'item' => [
                 'car_photo_group_id' => null,
-                'photo_path' => '',
+                'photo' => null,
             ],
             'fields' => [
                 ['name' => 'car_photo_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
-                ['name' => 'photo_path', 'label' => 'Путь к фото', 'type' => 'text', 'required' => true],
+                ['name' => 'photo', 'label' => 'Файл', 'type' => 'file', 'required' => true, 'accept' => 'image/*'],
             ],
         ]);
     }
@@ -70,7 +75,10 @@ class CarPhotoController extends Controller
         $data = $request->validated();
         abort_unless($car->photoGroups()->whereKey($data['car_photo_group_id'])->exists(), 422);
 
-        $car->photos()->create($data);
+        $car->photos()->create([
+            'car_photo_group_id' => $data['car_photo_group_id'],
+            'photo_path' => $this->storeUploadedPhoto($request, $car),
+        ]);
 
         return redirect()
             ->route('admin.cars.photos.index', $car)
@@ -92,11 +100,13 @@ class CarPhotoController extends Controller
             ],
             'item' => [
                 'car_photo_group_id' => $photo->car_photo_group_id,
+                'photo' => null,
+                'photo_url' => $photo->url(),
                 'photo_path' => $photo->photo_path,
             ],
             'fields' => [
                 ['name' => 'car_photo_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
-                ['name' => 'photo_path', 'label' => 'Путь к фото', 'type' => 'text', 'required' => true],
+                ['name' => 'photo', 'label' => 'Новый файл', 'type' => 'file', 'required' => false, 'accept' => 'image/*'],
             ],
         ]);
     }
@@ -106,7 +116,17 @@ class CarPhotoController extends Controller
         abort_unless($photo->car_id === $car->id, 404);
         $data = $request->validated();
         abort_unless($car->photoGroups()->whereKey($data['car_photo_group_id'])->exists(), 422);
-        $photo->update($data);
+
+        $attributes = [
+            'car_photo_group_id' => $data['car_photo_group_id'],
+        ];
+
+        if ($request->hasFile('photo')) {
+            CarMediaStorage::deletePhotoFile($photo);
+            $attributes['photo_path'] = $this->storeUploadedPhoto($request, $car);
+        }
+
+        $photo->update($attributes);
 
         return redirect()
             ->route('admin.cars.photos.index', $car)
@@ -116,7 +136,8 @@ class CarPhotoController extends Controller
     public function destroy(Car $car, CarPhoto $photo): RedirectResponse
     {
         abort_unless($photo->car_id === $car->id, 404);
-        $photo->delete();
+        CarMediaStorage::deletePhotoFile($photo);
+        CarPhoto::query()->whereKey($photo->id)->delete();
 
         return redirect()
             ->route('admin.cars.photos.index', $car)
@@ -133,5 +154,13 @@ class CarPhotoController extends Controller
             ->get(['id', 'name'])
             ->map(fn ($group) => ['value' => $group->id, 'label' => $group->name])
             ->all();
+    }
+
+    private function storeUploadedPhoto(StoreCarPhotoRequest|UpdateCarPhotoRequest $request, Car $car): string
+    {
+        return $request->file('photo')->store(
+            'images/'.$car->brand->slug.'/'.$car->slug,
+            'public',
+        );
     }
 }

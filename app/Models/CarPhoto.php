@@ -18,4 +18,46 @@ class CarPhoto extends Model
     {
         return $this->belongsTo(CarPhotoGroup::class, 'car_photo_group_id');
     }
+
+    public function url(): string
+    {
+        $path = (string) $this->photo_path;
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, '/storage/')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        return '/storage/'.ltrim($path, '/');
+    }
+
+    public function publicDiskPath(): ?string
+    {
+        $path = trim((string) $this->photo_path);
+
+        if ($path === '') {
+            return null;
+        }
+
+        if (str_starts_with($path, '/storage/')) {
+            return ltrim(substr($path, strlen('/storage/')), '/');
+        }
+
+        if (str_starts_with($path, 'storage/')) {
+            return ltrim(substr($path, strlen('storage/')), '/');
+        }
+
+        if (str_starts_with($path, '/')) {
+            return null;
+        }
+
+        return ltrim($path, '/');
+    }
 }

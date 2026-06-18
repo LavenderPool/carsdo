@@ -9,12 +9,13 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 type Field = {
     name: string;
     label: string;
-    type: 'text' | 'number' | 'textarea' | 'checkbox' | 'select';
+    type: 'text' | 'number' | 'textarea' | 'checkbox' | 'select' | 'file';
     required?: boolean;
     options?: Array<{ value: string | number; label: string }>;
+    accept?: string;
 };
 
-type FormFieldValue = string | number | boolean | null;
+type FormFieldValue = string | number | boolean | File | null;
 type NestedCarFormData = Record<string, FormFieldValue>;
 
 const props = defineProps<{
@@ -27,9 +28,12 @@ const props = defineProps<{
 }>();
 
 const form = useForm<NestedCarFormData>({ ...(props.item as NestedCarFormData) });
+const hasFileFields = props.fields.some((field) => field.type === 'file');
 
 const submitForm = () => {
-    form.submit(props.submit.method, props.submit.url);
+    form.submit(props.submit.method, props.submit.url, {
+        forceFormData: hasFileFields,
+    });
 };
 
 const normalizeSelectValue = (value: unknown): string | number => {
@@ -58,6 +62,11 @@ const onSelectChange = (field: Field, event: Event) => {
     const matchedOption = (field.options ?? []).find((option) => String(option.value) === target.value);
     const value: FormFieldValue = target.value === '' ? null : (matchedOption?.value ?? target.value);
     form[field.name] = value;
+};
+
+const onFileChange = (field: Field, event: Event) => {
+    const target = event.target as HTMLInputElement;
+    form[field.name] = target.files?.[0] ?? null;
 };
 </script>
 
@@ -127,6 +136,26 @@ const onSelectChange = (field: Field, event: Event) => {
                                     {{ option.label }}
                                 </option>
                             </select>
+
+                            <div v-else-if="field.type === 'file'" class="mt-1">
+                                <input
+                                    :id="field.name"
+                                    :accept="field.accept"
+                                    :required="field.required"
+                                    type="file"
+                                    class="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-gray-800 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-gray-700"
+                                    @change="onFileChange(field, $event)"
+                                />
+                                <a
+                                    v-if="typeof item[`${field.name}_url`] === 'string' && item[`${field.name}_url`]"
+                                    :href="item[`${field.name}_url`] as string"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="mt-2 inline-block text-sm text-indigo-600 hover:text-indigo-900"
+                                >
+                                    Открыть текущее изображение
+                                </a>
+                            </div>
 
                             <InputError class="mt-2" :message="form.errors[field.name]" />
                         </div>

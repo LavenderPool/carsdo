@@ -14,7 +14,7 @@
         ->filter(fn ($photo) => filled($photo->photo_path))
         ->unique(fn ($photo) => $photo->id)
         ->values();
-    $mainPhoto = $photos->first()?->photo_path ?: $car->coverUrl();
+    $mainPhoto = $photos->first()?->url() ?: $car->coverUrl();
     $now = now();
     $currentYear = $now->year;
     $carPath = '/'.$brand->slug.'/'.$car->slug;
@@ -33,98 +33,6 @@
     $priceRangeText = filled($minPrice) && filled($maxPrice)
         ? ($minPrice === $maxPrice ? $formatPrice((int) $minPrice) : $formatPrice((int) $minPrice).' - '.$formatPrice((int) $maxPrice))
         : 'не объявлена';
-    $cityLinksMain = [
-        'moscow' => 'Москва',
-        'spb' => 'Санкт-Петербург',
-        'astrakhan' => 'Астрахань',
-        'volgograd' => 'Волгоград',
-        'voronezh' => 'Воронеж',
-        'ekaterinburg' => 'Екатеринбург',
-        'kazan' => 'Казань',
-        'krasnodar' => 'Краснодар',
-        'krasnoyarsk' => 'Красноярск',
-        'novgorod' => 'Нижний Новгород',
-        'novosibirsk' => 'Новосибирск',
-        'omsk' => 'Омск',
-        'perm' => 'Пермь',
-        'rostov' => 'Ростов',
-        'samara' => 'Самара',
-        'saratov' => 'Саратов',
-        'sochi' => 'Сочи',
-        'tver' => 'Тверь',
-        'tyumen' => 'Тюмень',
-        'ufa' => 'Уфа',
-        'chelyabinsk' => 'Челябинск',
-        'yaroslavl' => 'Ярославль',
-    ];
-    $cityLinksExtra = [
-        'abakan' => 'Абакан',
-        'almetyevsk' => 'Альметьевск',
-        'armavir' => 'Армавир',
-        'arkhangelsk' => 'Архангельск',
-        'barnaul' => 'Барнаул',
-        'belgorod' => 'Белгород',
-        'berezniki' => 'Березники',
-        'blagoveshchensk' => 'Благовещенск',
-        'bratsk' => 'Братск',
-        'bryansk' => 'Брянск',
-        'velikiy-novgorod' => 'Великий Новгород',
-        'vladivostok' => 'Владивосток',
-        'vladimir' => 'Владимир',
-        'vologda' => 'Вологда',
-        'ivanovo' => 'Иваново',
-        'izhevsk' => 'Ижевск',
-        'irkutsk' => 'Иркутск',
-        'yoshkar-ola' => 'Йошкар-Ола',
-        'kaliningrad' => 'Калининград',
-        'kaluga' => 'Калуга',
-        'kemerovo' => 'Кемерово',
-        'kirov' => 'Киров',
-        'kopeysk' => 'Копейск',
-        'kostroma' => 'Кострома',
-        'kurgan' => 'Курган',
-        'kursk' => 'Курск',
-        'lipetsk' => 'Липецк',
-        'magnitogorsk' => 'Магнитогорск',
-        'makhachkala' => 'Махачкала',
-        'miass' => 'Миасс',
-        'mineralnyye-vody' => 'Минеральные Воды',
-        'murmansk' => 'Мурманск',
-        'naberezhnye-chelny' => 'Набережные Челны',
-        'nizhnevartovsk' => 'Нижневартовск',
-        'nizhniy-tagil' => 'Нижний Тагил',
-        'novokuznetsk' => 'Новокузнецк',
-        'novorossiysk' => 'Новороссийск',
-        'orel' => 'Орел',
-        'orenburg' => 'Оренбург',
-        'orsk' => 'Орск',
-        'penza' => 'Пенза',
-        'petrozavodsk' => 'Петрозаводск',
-        'pskov' => 'Псков',
-        'pyatigorsk' => 'Пятигорск',
-        'ryazan' => 'Рязань',
-        'saransk' => 'Саранск',
-        'simferopol' => 'Симферополь',
-        'smolensk' => 'Смоленск',
-        'stavropol' => 'Ставрополь',
-        'stary-oskol' => 'Старый Оскол',
-        'sterlitamak' => 'Стерлитамак',
-        'surgut' => 'Сургут',
-        'syktyvkar' => 'Сыктывкар',
-        'tambov' => 'Тамбов',
-        'tolyatty' => 'Тольятти',
-        'tomsk' => 'Томск',
-        'tula' => 'Тула',
-        'ulyanovsk' => 'Ульяновск',
-        'khabarovsk' => 'Хабаровск',
-        'cheboksary' => 'Чебоксары',
-        'cherepovets' => 'Череповец',
-        'chita' => 'Чита',
-        'shakhty' => 'Шахты',
-        'engels' => 'Энгельс',
-        'yuzhno-sakhalinsk' => 'Южно-Сахалинск',
-    ];
-
     $extractYoutubeId = static function (?string $value): ?string {
         if (! is_string($value)) {
             return null;
@@ -190,7 +98,7 @@
     <div id="block_price1">
         <div class="block_PN_1">
             <div class="data_price"><div class="dp1">Официальные данные от {{ $now->format('d.m.Y') }}</div></div>
-            <div class="block_PN_H1"><h1>{{ $car->name }}</h1></div>
+            <div class="block_PN_H1"><h1>{{ $pageH1 ?? $car->name }}</h1></div>
 
             <div class="block_PN_1_a">
                 <div class="block_PN_1_b">
@@ -221,7 +129,7 @@
             <div class="preview">
                 <a href="{{ $carPath }}/photo/">
                     @forelse ($photos->take(4) as $photo)
-                        <img src="{{ $photo->photo_path }}">
+                                <img src="{{ $photo->url() }}">
                     @empty
                         <img src="{{ $car->coverUrl() }}">
                     @endforelse
@@ -235,7 +143,13 @@
     <div class="price_new_text">
         В России цена {{ $brand->name }} {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} рублей,
         автомобиль продается в {{ $configurationGroups->count() }} комплектациях
-        (официальный сайт <a target="_blank" href="{{ $car->official_site ?: '#' }}">{{ $brand->name }}</a>).
+        (официальный сайт
+        @if (filled($car->official_site))
+            <a target="_blank" rel="noopener noreferrer" href="{{ $car->official_site }}">{{ $brand->name }}</a>
+        @else
+            {{ $brand->name }}
+        @endif
+        ).
         Стоимость нового автомобиля в {{ $currentYear }} году у официального дилера во всех городах РФ одинаковая и зависит
         от выбранной комплектации и дополнительных опций. <a target="_self" href="#block_city">Найти дилера</a>.
     </div>
@@ -323,38 +237,20 @@
         </ul>
     </div>
 
-    <div id="block_city">
-        <div class="title_city"><h3>Официальные дилеры</h3></div>
-        <p style="color:#fff;">Где купить {{ $brand->name }} {{ $car->name }} в России.</p>
+    @include('site.car.partials.dealer-cities', [
+        'brand' => $brand,
+        'car' => $car,
+        'carPath' => $carPath,
+        'dealerCitiesToggleId' => 'dealer-cities-index',
+    ])
 
-        <div class="kupmos">
-            @foreach ($cityLinksMain as $citySlug => $cityName)
-                <a href="{{ $carPath }}/{{ $citySlug }}/">{{ $cityName }}</a>
-            @endforeach
-
-            <div class="dopcity"><a id="dopcity_a" href="#dopcity" onclick="view('dopcity'); return false">Другие города</a></div>
-
-            <div id="dopcity" style="display: none;">
-                @foreach ($cityLinksExtra as $citySlug => $cityName)
-                    <a href="{{ $carPath }}/{{ $citySlug }}/">{{ $cityName }}</a>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    <div>
-        <div class="photo_title">Новый {{ $brand->name }} {{ $car->name }}. Сейчас в продаже</div>
-    </div>
-    <div><img class="preview_photo" src="{{ $mainPhoto }}"></div>
-    <div class="preview_photo_mini">
-        @forelse ($photos->take(6) as $photo)
-            <img src="{{ $photo->photo_path }}">
-        @empty
-            <img src="{{ $car->coverUrl() }}">
-        @endforelse
-    </div>
-    <div class="dop_photo"><a href="{{ $carPath }}/photo/">ВСЕ ФОТО</a></div>
-    <div><script type="text/javascript">$('.preview_photo_mini').delegate('img','click', function(){$('.preview_photo').attr('src',$(this).attr('src').replace('thumb','large'));});</script></div>
+    @include('site.car.partials.galery', [
+        'brand' => $brand,
+        'car' => $car,
+        'carPath' => $carPath,
+        'photos' => $photos,
+        'galleryBlockId' => 'car-gallery',
+    ])
 </div>
 
 <div class="block_video">

@@ -29,7 +29,7 @@
     @endphp
 
     <section class="block_modeli">
-        <h1 style="margin-top:20px; padding-left:20px;">{{ $brand->name }} › Модельный ряд</h1>
+        <h1 style="margin-top:20px; padding-left:20px;">{{ $pageH1 ?? ($brand->name . ' › Модельный ряд') }}</h1>
 
         <p>Цены на новый модельный ряд {{ $brand->name }} {{ $currentYear }} в России. Актуальные комплектации и цены, фото
             и тест-драйвы, оборудование и доп опции на новые автомобили {{ $brand->name }} от производителя. <a

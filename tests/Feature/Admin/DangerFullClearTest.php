@@ -4,11 +4,14 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarDealer;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationEquipment;
 use App\Models\CarConfigurationEquipmentCategory;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
+use App\Models\City;
+use App\Models\Dealer;
 use App\Models\CarPhoto;
 use App\Models\CarPhotoGroup;
 use App\Models\CarReview;
@@ -54,6 +57,13 @@ class DangerFullClearTest extends TestCase
             'start_price' => 50000,
             'end_price' => 65000,
             'cover_path' => null,
+        ]);
+        $city = City::query()->create([
+            'name' => 'Москва',
+            'slug' => 'moscow',
+        ]);
+        $dealer = Dealer::query()->create([
+            'name' => 'Tesla Store',
         ]);
 
         $group = CarConfigurationGroup::query()->create([
@@ -116,6 +126,15 @@ class DangerFullClearTest extends TestCase
             'author' => 'Autoblog',
             'video_path' => '/test-drive/model-y',
         ]);
+        CarDealer::query()->create([
+            'car_id' => $car->id,
+            'city_id' => $city->id,
+            'dealer_id' => $dealer->id,
+            'address' => 'Ленинградский проспект, 10',
+            'phone' => '+7 (495) 000-00-00',
+            'website' => 'https://example.com/tesla-store',
+            'is_official' => true,
+        ]);
 
         $photoGroup = CarPhotoGroup::query()->create([
             'car_id' => $car->id,
@@ -125,11 +144,13 @@ class DangerFullClearTest extends TestCase
         CarPhoto::query()->create([
             'car_id' => $car->id,
             'car_photo_group_id' => $photoGroup->id,
-            'photo_path' => '/img/cars/model-y/front.jpg',
+            'photo_path' => 'images/tesla/model-y/front.jpg',
         ]);
 
         Storage::disk('public')->put('covers/tesla/model-y/cover.jpg', 'cover');
+        Storage::disk('public')->put('images/tesla/model-y/front.jpg', 'front');
         $this->assertTrue(Storage::disk('public')->exists('covers/tesla/model-y/cover.jpg'));
+        $this->assertTrue(Storage::disk('public')->exists('images/tesla/model-y/front.jpg'));
 
         $response = $this->actingAs($user)->get(route('admin.danger.full-clear'));
 
@@ -139,6 +160,9 @@ class DangerFullClearTest extends TestCase
 
         $this->assertDatabaseCount('brands', 0);
         $this->assertDatabaseCount('cars', 0);
+        $this->assertDatabaseCount('cities', 0);
+        $this->assertDatabaseCount('dealers', 0);
+        $this->assertDatabaseCount('car_dealers', 0);
         $this->assertDatabaseCount('car_crash_tests', 0);
         $this->assertDatabaseCount('car_test_drives', 0);
         $this->assertDatabaseCount('car_reviews', 0);
@@ -149,5 +173,6 @@ class DangerFullClearTest extends TestCase
         $this->assertDatabaseCount('car_photo_groups', 0);
         $this->assertDatabaseCount('car_photos', 0);
         $this->assertFalse(Storage::disk('public')->exists('covers/tesla/model-y/cover.jpg'));
+        $this->assertFalse(Storage::disk('public')->exists('images/tesla/model-y/front.jpg'));
     }
 }

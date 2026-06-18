@@ -5,12 +5,17 @@ namespace Tests\Feature\Admin;
 use App\Jobs\ProcessImportJsonJob;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarDealer;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationEquipment;
 use App\Models\CarConfigurationEquipmentCategory;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
+use App\Models\CarPhoto;
+use App\Models\CarPhotoGroup;
 use App\Models\CarReview;
+use App\Models\City;
+use App\Models\Dealer;
 use App\Models\ImportRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -76,28 +81,48 @@ class ImportTest extends TestCase
         $response
             ->assertAccepted()
             ->assertJsonPath('run.status', 'succeeded')
-            ->assertJsonPath('run.stats.new', 9)
+            ->assertJsonPath('run.stats.new', 15)
             ->assertJsonPath('run.stats.updated', 0)
             ->assertJsonPath('run.stats.unchanged', 0)
-            ->assertJsonPath('run.stats.processed', 9)
+            ->assertJsonPath('run.stats.processed', 15)
             ->assertJsonPath('run.processed_cars', 1)
             ->assertJsonPath('run.total_cars', 1);
 
+        $city = City::query()->firstOrFail();
         $brand = Brand::query()->firstOrFail();
         $car = Car::query()->firstOrFail();
+        $dealer = Dealer::query()->firstOrFail();
+        $carDealer = CarDealer::query()->firstOrFail();
+        $configuration = CarConfiguration::query()->firstOrFail();
+        $photoGroup = CarPhotoGroup::query()->firstOrFail();
+        $photo = CarPhoto::query()->firstOrFail();
         $group = CarConfigurationGroup::query()->firstOrFail();
         $category = CarConfigurationEquipmentCategory::query()->firstOrFail();
 
+        $this->assertSame('moscow', $city->slug);
         $this->assertSame('tesla', $brand->slug);
         $this->assertSame($brand->id, $car->brand_id);
+        $this->assertSame('images/tesla/model-y/cover.jpg', $car->cover_path);
+        $this->assertSame('Tesla Store', $dealer->name);
+        $this->assertSame($car->id, $carDealer->car_id);
+        $this->assertSame($city->id, $carDealer->city_id);
+        $this->assertSame($dealer->id, $carDealer->dealer_id);
+        $this->assertSame('images/tesla/model-y/gallery/front.jpg', $photo->photo_path);
+        $this->assertSame($photoGroup->id, $photo->car_photo_group_id);
+        $this->assertSame('5.0', $configuration->acceleration);
         $this->assertSame(0, $group->import_index);
         $this->assertSame($group->id, $category->car_configuration_group_id);
 
+        $this->assertDatabaseCount('cities', 1);
         $this->assertDatabaseCount('brands', 1);
+        $this->assertDatabaseCount('dealers', 1);
         $this->assertDatabaseCount('cars', 1);
+        $this->assertDatabaseCount('car_dealers', 1);
         $this->assertDatabaseCount('car_crash_tests', 1);
         $this->assertDatabaseCount('car_test_drives', 1);
         $this->assertDatabaseCount('car_reviews', 1);
+        $this->assertDatabaseCount('car_photo_groups', 1);
+        $this->assertDatabaseCount('car_photos', 2);
         $this->assertDatabaseCount('car_configuration_groups', 1);
         $this->assertDatabaseCount('car_configurations', 1);
         $this->assertDatabaseCount('car_configuration_equipment_categories', 1);
@@ -125,8 +150,8 @@ class ImportTest extends TestCase
             ->assertJsonPath('run.status', 'succeeded')
             ->assertJsonPath('run.stats.new', 0)
             ->assertJsonPath('run.stats.updated', 0)
-            ->assertJsonPath('run.stats.unchanged', 9)
-            ->assertJsonPath('run.stats.processed', 9);
+            ->assertJsonPath('run.stats.unchanged', 15)
+            ->assertJsonPath('run.stats.processed', 15);
     }
 
     public function test_import_updates_changed_records_without_deleting_missing_nested_entries(): void
@@ -157,8 +182,8 @@ class ImportTest extends TestCase
             ->assertJsonPath('run.status', 'succeeded')
             ->assertJsonPath('run.stats.new', 0)
             ->assertJsonPath('run.stats.updated', 4)
-            ->assertJsonPath('run.stats.unchanged', 4)
-            ->assertJsonPath('run.stats.processed', 8);
+            ->assertJsonPath('run.stats.unchanged', 10)
+            ->assertJsonPath('run.stats.processed', 14);
 
         $car = Car::query()->firstOrFail();
         $crashTest = CarCrashTest::query()->firstOrFail();
@@ -170,6 +195,63 @@ class ImportTest extends TestCase
         $this->assertSame(56000, $configuration->price);
         $this->assertSame(2500, $equipment->price);
         $this->assertDatabaseCount('car_reviews', 1);
+    }
+
+    public function test_import_converts_acceleration_from_milliseconds_to_seconds(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $payload = $this->payload();
+        $payload['cars'][0]['groups'][0]['items'][0]['acceleration'] = 2495;
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'import-acceleration-ms.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'succeeded');
+
+        $configuration = CarConfiguration::query()->firstOrFail();
+
+        $this->assertSame('2.5', $configuration->acceleration);
+    }
+
+    public function test_import_allows_payload_without_brands_when_brand_exists(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => true,
+        ]);
+
+        $payload = $this->payload();
+        unset($payload['brands']);
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'import-without-brands.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'succeeded')
+            ->assertJsonPath('run.stats.new', 14)
+            ->assertJsonPath('run.stats.updated', 0)
+            ->assertJsonPath('run.stats.unchanged', 0)
+            ->assertJsonPath('run.stats.processed', 14);
+
+        $this->assertDatabaseCount('brands', 1);
+        $this->assertDatabaseCount('cars', 1);
     }
 
     public function test_import_status_is_available_only_to_owner(): void
@@ -541,6 +623,12 @@ class ImportTest extends TestCase
     private function payload(): array
     {
         return [
+            'cities' => [
+                [
+                    'name' => 'Москва',
+                    'slug' => 'moscow',
+                ],
+            ],
             'brands' => [
                 [
                     'name' => 'Tesla',
@@ -559,6 +647,7 @@ class ImportTest extends TestCase
                     'is_another_models' => false,
                     'start_price' => 50000,
                     'end_price' => 65000,
+                    'cover_path' => '/images/tesla/model-y/cover.jpg',
                     'crash_test' => [
                         'year' => 2024,
                         'rating' => 5,
@@ -574,6 +663,25 @@ class ImportTest extends TestCase
                         [
                             'type' => 'good',
                             'value' => 'Быстрый и просторный',
+                        ],
+                    ],
+                    'photo_groups' => [
+                        [
+                            'name' => 'Экстерьер',
+                            'photo_list' => [
+                                '/images/tesla/model-y/gallery/front.jpg',
+                                '/images/tesla/model-y/gallery/rear.jpg',
+                            ],
+                        ],
+                    ],
+                    'dealers' => [
+                        [
+                            'name' => 'Tesla Store',
+                            'city_slug' => 'moscow',
+                            'is_official_deler' => true,
+                            'address' => 'Ленинградский проспект, 10',
+                            'phone' => '+7 (495) 000-00-00',
+                            'url' => 'https://example.com/tesla-store',
                         ],
                     ],
                     'groups' => [
@@ -635,6 +743,7 @@ class ImportTest extends TestCase
     private function payloadWithCarsCount(int $carsCount): array
     {
         $payload = [
+            'cities' => [],
             'brands' => [
                 [
                     'name' => 'Tesla',

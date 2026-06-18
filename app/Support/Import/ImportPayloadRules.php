@@ -2,6 +2,7 @@
 
 namespace App\Support\Import;
 
+use Closure;
 use Illuminate\Validation\Rule;
 
 class ImportPayloadRules
@@ -12,8 +13,20 @@ class ImportPayloadRules
     public static function rootRules(): array
     {
         return [
-            'brands' => ['required', 'array'],
+            'cities' => ['sometimes', 'array'],
+            'brands' => ['sometimes', 'array'],
             'cars' => ['required', 'array'],
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     */
+    public static function cityRules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['required', 'string', 'max:255'],
         ];
     }
 
@@ -44,6 +57,7 @@ class ImportPayloadRules
             'is_another_models' => ['required', 'boolean'],
             'start_price' => ['nullable', 'numeric'],
             'end_price' => ['nullable', 'numeric'],
+            'cover_path' => ['nullable', 'string', 'max:255'],
             'crash_test' => ['nullable', 'array'],
             'crash_test.year' => ['nullable', 'integer', 'min:1900'],
             'crash_test.rating' => ['nullable', 'numeric'],
@@ -54,6 +68,19 @@ class ImportPayloadRules
             'reviews' => ['sometimes', 'array'],
             'reviews.*.type' => ['required', 'string', Rule::in(['good', 'bad'])],
             'reviews.*.value' => ['required', 'string'],
+            'photo_groups' => ['sometimes', 'array'],
+            'photo_groups.*.name' => ['required', 'string', 'max:255'],
+            'photo_groups.*.photo_list' => ['sometimes', 'array'],
+            'photo_groups.*.photo_list.*' => ['required', 'string', 'max:255'],
+            'dealers' => ['sometimes', 'array'],
+            'dealers.*.name' => ['required', 'string', 'max:255'],
+            'dealers.*.city_slug' => ['required', 'string', 'max:255'],
+            'dealers.*.is_official_deler' => ['nullable', 'boolean'],
+            'dealers.*.is_official' => ['nullable', 'boolean'],
+            'dealers.*.address' => ['nullable', 'string', 'max:255'],
+            'dealers.*.phone' => ['nullable', 'string', 'max:255'],
+            'dealers.*.url' => ['nullable', 'string', 'max:255'],
+            'dealers.*.website' => ['nullable', 'string', 'max:255'],
             'groups' => ['sometimes', 'array'],
             'groups.*.name' => ['required', 'string', 'max:255'],
             'groups.*.order' => ['nullable', 'integer', 'min:0'],
@@ -67,7 +94,26 @@ class ImportPayloadRules
             'groups.*.items.*.fuel_city' => ['nullable', 'numeric'],
             'groups.*.items.*.fuel_highway' => ['nullable', 'numeric'],
             'groups.*.items.*.fuel_combined' => ['nullable', 'numeric'],
-            'groups.*.items.*.acceleration' => ['nullable', 'numeric'],
+            'groups.*.items.*.acceleration' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                static function (string $attribute, mixed $value, Closure $fail): void {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+
+                    $numericValue = (float) $value;
+
+                    if ($numericValue > 999.9) {
+                        $numericValue /= 1000;
+                    }
+
+                    if ($numericValue > 999.9) {
+                        $fail("Поле {$attribute} содержит слишком большое значение acceleration.");
+                    }
+                },
+            ],
             'groups.*.items.*.speed' => ['nullable', 'integer', 'min:0'],
             'groups.*.equipment' => ['sometimes', 'array'],
             'groups.*.equipment.*.name' => ['required', 'string', 'max:255'],
@@ -85,6 +131,7 @@ class ImportPayloadRules
     {
         return [
             'cars.required' => 'Передайте массив машин для импорта.',
+            'cities.array' => 'Города должны быть переданы массивом.',
             'slug.required' => 'У каждой машины должен быть slug.',
             'brand_slug.required' => 'У каждой машины должен быть brand_slug.',
         ];

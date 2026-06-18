@@ -1,5 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../wayfinder'
 import brands from './brands'
+import dealers from './dealers'
+import carDealers from './car-dealers'
 import cars from './cars'
 import importMethod from './import'
 import danger from './danger'
@@ -51,6 +53,8 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 const admin = {
     dashboard: Object.assign(dashboard, dashboard),
     brands: Object.assign(brands, brands),
+    dealers: Object.assign(dealers, dealers),
+    carDealers: Object.assign(carDealers, carDealers),
     cars: Object.assign(cars, cars),
     import: Object.assign(importMethod, importMethod),
     danger: Object.assign(danger, danger),

@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -22,6 +23,36 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'start_price',
     'end_price',
     'official_site',
+    'seo_title',
+    'seo_description',
+    'seo_h1',
+    'seo_og_image',
+    'seo_canonical_url',
+    'seo_robots',
+    'equipment_seo_title',
+    'equipment_seo_description',
+    'equipment_seo_h1',
+    'equipment_seo_og_image',
+    'equipment_seo_canonical_url',
+    'equipment_seo_robots',
+    'reviews_seo_title',
+    'reviews_seo_description',
+    'reviews_seo_h1',
+    'reviews_seo_og_image',
+    'reviews_seo_canonical_url',
+    'reviews_seo_robots',
+    'crash_test_seo_title',
+    'crash_test_seo_description',
+    'crash_test_seo_h1',
+    'crash_test_seo_og_image',
+    'crash_test_seo_canonical_url',
+    'crash_test_seo_robots',
+    'test_drive_seo_title',
+    'test_drive_seo_description',
+    'test_drive_seo_h1',
+    'test_drive_seo_og_image',
+    'test_drive_seo_canonical_url',
+    'test_drive_seo_robots',
     'views_count',
 ])]
 class Car extends Model
@@ -85,20 +116,47 @@ class Car extends Model
         return $this->hasMany(CarPhoto::class);
     }
 
+    public function carDealers(): HasMany
+    {
+        return $this->hasMany(CarDealer::class);
+    }
+
+    public function dealers(): BelongsToMany
+    {
+        return $this->belongsToMany(Dealer::class, 'car_dealers')
+            ->withPivot(['city_id', 'address', 'phone', 'website', 'is_official'])
+            ->withTimestamps();
+    }
+
     public function coverUrl(): string
     {
+        if (is_string($this->cover_path) && $this->cover_path !== '') {
+            return $this->resolveMediaUrl($this->cover_path);
+        }
+
         $brandSlug = $this->brand?->slug;
 
         if (is_string($brandSlug) && $brandSlug !== '' && $this->slug !== '') {
             return "/covers/{$brandSlug}/{$this->slug}/cover.jpg";
         }
 
-        if (is_string($this->cover_path) && $this->cover_path !== '') {
-            return str_starts_with($this->cover_path, '/')
-                ? $this->cover_path
-                : '/storage/'.ltrim($this->cover_path, '/');
+        return '/assets/img/start.png';
+    }
+
+    private function resolveMediaUrl(string $path): string
+    {
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
         }
 
-        return '/assets/img/start.png';
+        if (str_starts_with($path, '/storage/')) {
+            return $path;
+        }
+
+        if (str_starts_with($path, '/')) {
+            return $path;
+        }
+
+        return '/storage/'.ltrim($path, '/');
     }
 }

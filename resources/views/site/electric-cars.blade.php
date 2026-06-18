@@ -31,14 +31,14 @@
     @endphp
 
     <section class="block_modeli">
-        <h1 style="margin-top:20px; padding-left:20px;">Электромобили в России</h1>
+        <h1 style="margin-top:20px; padding-left:20px;">{{ $pageH1 ?? 'Электромобили в России' }}</h1>
         <p>Каталог новых электромобилей в России {{ now()->year }}. Цены и комплектации на новые электромобили. Тест-драйвы и
             фото будущих новинок.</p>
 
         <ul class="ter">
-            <li><a href="/new-cars-2025/">Новые автомобили 2025</a></li>
-            <li><a href="/new-cars-2024/">Новые автомобили 2024</a></li>
-            <li><a href="/new-cars-2023/">Новые автомобили 2023</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevYear }}/">Новые автомобили {{ $catalogPrevYear }}</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevTwoYear }}/">Новые автомобили {{ $catalogPrevTwoYear }}</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/">Новые автомобили {{ $catalogPrevTwoYear - 1 }}</a></li>
         </ul>
 
         <h2 style="margin:55px 15px 7px 20px;">Новые электромобили: сейчас в продаже</h2>
@@ -111,9 +111,9 @@
         @endif
 
         <ul style="margin-bottom:50px;" class="ter">
-            <li><a href="/new-cars-2025/">Новые автомобили 2025</a></li>
-            <li><a href="/new-cars-2024/">Новые автомобили 2024</a></li>
-            <li><a href="/new-cars-2023/">Новые автомобили 2023</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevYear }}/">Новые автомобили {{ $catalogPrevYear }}</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevTwoYear }}/">Новые автомобили {{ $catalogPrevTwoYear }}</a></li>
+            <li><a href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/">Новые автомобили {{ $catalogPrevTwoYear - 1 }}</a></li>
         </ul>
     </section>
 @endsection

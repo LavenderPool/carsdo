@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\SettingController::edit
-* @see app/Http/Controllers/Admin/SettingController.php:15
+* @see app/Http/Controllers/Admin/SettingController.php:16
 * @route '/admin/settings'
 */
 export const edit = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::edit
-* @see app/Http/Controllers/Admin/SettingController.php:15
+* @see app/Http/Controllers/Admin/SettingController.php:16
 * @route '/admin/settings'
 */
 edit.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ edit.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::edit
-* @see app/Http/Controllers/Admin/SettingController.php:15
+* @see app/Http/Controllers/Admin/SettingController.php:16
 * @route '/admin/settings'
 */
 edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ edit.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::edit
-* @see app/Http/Controllers/Admin/SettingController.php:15
+* @see app/Http/Controllers/Admin/SettingController.php:16
 * @route '/admin/settings'
 */
 edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ edit.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::update
-* @see app/Http/Controllers/Admin/SettingController.php:32
+* @see app/Http/Controllers/Admin/SettingController.php:33
 * @route '/admin/settings'
 */
 export const update = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -60,7 +60,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::update
-* @see app/Http/Controllers/Admin/SettingController.php:32
+* @see app/Http/Controllers/Admin/SettingController.php:33
 * @route '/admin/settings'
 */
 update.url = (options?: RouteQueryOptions) => {
@@ -69,7 +69,7 @@ update.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\SettingController::update
-* @see app/Http/Controllers/Admin/SettingController.php:32
+* @see app/Http/Controllers/Admin/SettingController.php:33
 * @route '/admin/settings'
 */
 update.put = (options?: RouteQueryOptions): RouteDefinition<'put'> => ({

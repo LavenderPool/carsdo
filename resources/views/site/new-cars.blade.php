@@ -31,7 +31,7 @@
     @endphp
 
     <section class="block_modeli">
-        <h1 style="margin-top:25px; padding-left:20px;">Новые автомобили {{ $displayYear }}</h1>
+        <h1 style="margin-top:25px; padding-left:20px;">{{ $pageH1 ?? ('Новые автомобили ' . $displayYear) }}</h1>
         <p>Последние новинки автопрома: фото, комплектации и цены на новые авто российского и зарубежного производства
             {{ $displayYear }} года.</p>
 

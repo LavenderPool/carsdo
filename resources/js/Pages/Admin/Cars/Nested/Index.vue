@@ -6,7 +6,7 @@ const props = defineProps<{
     title: string;
     car: { id: number; name: string };
     items: Array<Record<string, unknown> & { id: number }>;
-    columns: Array<{ key: string; label: string }>;
+    columns: Array<{ key: string; label: string; type?: 'text' | 'image' | 'link' }>;
     createUrl: string;
     editBaseUrl: string;
     destroyBaseUrl: string;
@@ -84,7 +84,22 @@ const remove = (item: Record<string, unknown> & { id: number }) => {
                                         :key="`${item.id}-${column.key}`"
                                         class="px-6 py-4 text-sm text-gray-600"
                                     >
-                                        {{ valueToString(item[column.key]) }}
+                                        <img
+                                            v-if="column.type === 'image' && typeof item[column.key] === 'string' && item[column.key]"
+                                            :src="item[column.key] as string"
+                                            alt=""
+                                            class="h-16 w-24 rounded object-cover"
+                                        />
+                                        <a
+                                            v-else-if="column.type === 'link' && typeof item[column.key] === 'string' && item[column.key]"
+                                            :href="item[column.key] as string"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            class="text-indigo-600 hover:text-indigo-900"
+                                        >
+                                            {{ item[column.key] }}
+                                        </a>
+                                        <span v-else>{{ valueToString(item[column.key]) }}</span>
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                         <div class="flex justify-end gap-4">

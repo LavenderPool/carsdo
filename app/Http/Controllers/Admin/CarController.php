@@ -7,6 +7,8 @@ use App\Http\Requests\Admin\StoreCarRequest;
 use App\Http\Requests\Admin\UpdateCarRequest;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Support\Media\CarMediaStorage;
+use App\Support\Seo\AdminSeoFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -59,7 +61,7 @@ class CarController extends Controller
                 'is_electric_car' => $isElectric === '' ? null : $isElectric,
             ],
             'brands' => Brand::query()
-                ->orderBy('name')
+                ->orderBy('name', 'asc')
                 ->get(['id', 'name']),
             'flash' => [
                 'success' => session('success'),
@@ -74,7 +76,7 @@ class CarController extends Controller
     {
         return Inertia::render('Admin/Cars/Create', [
             'brands' => Brand::query()
-                ->orderBy('name')
+                ->orderBy('name', 'asc')
                 ->get(['id', 'name']),
         ]);
     }
@@ -97,7 +99,7 @@ class CarController extends Controller
     public function edit(Car $car): Response
     {
         return Inertia::render('Admin/Cars/Edit', [
-            'car' => [
+            'car' => array_merge([
                 'id' => $car->id,
                 'brand_id' => $car->brand_id,
                 'name' => $car->name,
@@ -110,9 +112,9 @@ class CarController extends Controller
                 'is_electric_car' => $car->is_electric_car,
                 'is_soon' => $car->is_soon,
                 'is_another_models' => $car->is_another_models,
-            ],
+            ], $car->only(AdminSeoFields::carFields())),
             'brands' => Brand::query()
-                ->orderBy('name')
+                ->orderBy('name', 'asc')
                 ->get(['id', 'name']),
             'nestedLinks' => [
                 'crash_test' => route('admin.cars.crash-tests.index', $car),
@@ -146,6 +148,7 @@ class CarController extends Controller
     public function destroy(Car $car): RedirectResponse
     {
         DB::transaction(function () use ($car): void {
+            $car->load('photos');
             $groupIds = $car->configurationGroups()->pluck('id');
             $categoryIds = $car->configurationGroups()
                 ->with('equipmentCategories:id,car_configuration_group_id')
@@ -172,11 +175,15 @@ class CarController extends Controller
             DB::table('car_crash_tests')->where('car_id', $car->id)->delete();
             DB::table('car_test_drives')->where('car_id', $car->id)->delete();
             DB::table('car_reviews')->where('car_id', $car->id)->delete();
+            DB::table('car_dealers')->where('car_id', $car->id)->delete();
             DB::table('car_photos')->where('car_id', $car->id)->delete();
             DB::table('car_photo_groups')->where('car_id', $car->id)->delete();
 
-            $car->delete();
+            Car::query()->whereKey($car->id)->delete();
         });
+
+        CarMediaStorage::deletePhotoFiles($car->photos);
+        CarMediaStorage::deleteCarDirectories($car);
 
         return redirect()
             ->route('admin.cars.index')

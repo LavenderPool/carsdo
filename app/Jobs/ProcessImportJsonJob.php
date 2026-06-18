@@ -17,7 +17,6 @@ class ProcessImportJsonJob implements ShouldQueue
 {
     use Queueable;
 
-    private const PROGRESS_UPDATE_EVERY = 10;
     private const CAR_VALIDATION_CHUNK_SIZE = 100;
 
     public int $timeout = 0;
@@ -87,8 +86,18 @@ class ProcessImportJsonJob implements ShouldQueue
 
             $failureStage = 'persist_data';
 
+            $citiesStageStartedAt = microtime(true);
+            $stats = $importService->importCities($payload['cities']);
+
+            $this->logInfo($importRun, 'import.stage.cities_completed', [
+                'stage' => 'persist_cities',
+                'duration_ms' => $this->durationMs($citiesStageStartedAt),
+                'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                'stats' => $this->compactStats($stats),
+            ]);
+
             $brandsStageStartedAt = microtime(true);
-            $stats = $importService->importBrands($payload['brands']);
+            $stats = $importService->importBrands($payload['brands'], $stats);
 
             $this->logInfo($importRun, 'import.stage.brands_completed', [
                 'stage' => 'persist_brands',
@@ -151,34 +160,7 @@ class ProcessImportJsonJob implements ShouldQueue
                 $stats = $importService->importCarsChunk(
                     $validatedCarsChunk,
                     $stats,
-                    function (array $stats) use (&$importRun, $totalCars, $jobStartedAt): void {
-                        if (
-                            $stats['processed_cars'] % self::PROGRESS_UPDATE_EVERY !== 0
-                            && $stats['processed_cars'] !== $totalCars
-                        ) {
-                            return;
-                        }
-
-                        $importRun->forceFill([
-                            'message' => "Импортировано {$stats['processed_cars']} из {$totalCars} машин.",
-                            'processed_cars' => $stats['processed_cars'],
-                            'stats_new' => $stats['new'],
-                            'stats_updated' => $stats['updated'],
-                            'stats_unchanged' => $stats['unchanged'],
-                            'stats_processed' => $stats['processed'],
-                        ])->save();
-
-                        $this->logInfo($importRun, 'import.progress', [
-                            'stage' => 'persist_cars',
-                            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
-                            'processed_cars' => $stats['processed_cars'],
-                            'total_cars' => $totalCars,
-                            'percent' => $totalCars > 0
-                                ? (int) round(($stats['processed_cars'] / $totalCars) * 100)
-                                : 0,
-                            'stats' => $this->compactStats($stats),
-                        ]);
-                    },
+                    null,
                     function () use (&$importRun): bool {
                         $freshImportRun = $importRun->fresh();
 
@@ -202,6 +184,8 @@ class ProcessImportJsonJob implements ShouldQueue
                     'total_cars' => $totalCars,
                     'stats' => $this->compactStats($stats),
                 ]);
+
+                $this->persistProgress($importRun, $stats, $totalCars, $jobStartedAt);
             }
 
             $this->logInfo($importRun, 'import.stage.cars_completed', [
@@ -292,7 +276,7 @@ class ProcessImportJsonJob implements ShouldQueue
     }
 
     /**
-     * @return array{brands: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>}
+     * @return array{cities: array<int, array<string, mixed>>, brands: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>}
      */
     private function parsePayload(ImportRun $importRun, float $jobStartedAt): array
     {
@@ -325,16 +309,18 @@ class ProcessImportJsonJob implements ShouldQueue
             throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
         }
 
-        $brands = $payload['brands'] ?? null;
+        $cities = $payload['cities'] ?? [];
+        $brands = $payload['brands'] ?? [];
         $cars = $payload['cars'] ?? null;
 
-        if (!is_array($brands) || !is_array($cars)) {
+        if (!is_array($cities) || !is_array($brands) || !is_array($cars)) {
             throw new RuntimeException('Структура JSON не соответствует ожидаемому payload.');
         }
 
         $this->logInfo($importRun, 'import.stage.structure_ok', [
             'stage' => 'structure_check',
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'cities_count' => count($cities),
             'brands_count' => count($brands),
             'cars_count' => count($cars),
         ]);
@@ -342,6 +328,7 @@ class ProcessImportJsonJob implements ShouldQueue
         $validationStageStartedAt = microtime(true);
 
         $validator = Validator::make([
+            'cities' => $cities,
             'brands' => $brands,
             'cars' => $cars,
         ], ImportPayloadRules::rootRules(), ImportPayloadRules::messages());
@@ -358,14 +345,16 @@ class ProcessImportJsonJob implements ShouldQueue
             throw new RuntimeException((string) $validator->errors()->first());
         }
 
-        /** @var array{brands: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>} $validated */
+        /** @var array{cities?: array<int, array<string, mixed>>, brands?: array<int, array<string, mixed>>, cars: array<int, array<string, mixed>>} $validated */
         $validated = $validator->validated();
-        $validatedBrands = $this->validateBrands($validated['brands']);
+        $validatedCities = $this->validateCities($validated['cities'] ?? []);
+        $validatedBrands = $this->validateBrands($validated['brands'] ?? []);
 
         $this->logInfo($importRun, 'import.stage.root_validation_ok', [
             'stage' => 'root_validation',
             'duration_ms' => $this->durationMs($validationStageStartedAt),
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
             'cars_count' => count($validated['cars']),
         ]);
@@ -374,14 +363,44 @@ class ProcessImportJsonJob implements ShouldQueue
             'stage' => 'validation',
             'duration_ms' => $this->durationMs($validationStageStartedAt),
             'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'cities_count' => count($validatedCities),
             'brands_count' => count($validatedBrands),
             'cars_count' => count($validated['cars']),
         ]);
 
         return [
+            'cities' => $validatedCities,
             'brands' => $validatedBrands,
             'cars' => $validated['cars'],
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $cities
+     * @return array<int, array<string, mixed>>
+     */
+    private function validateCities(array $cities): array
+    {
+        $validatedCities = [];
+
+        foreach ($cities as $cityIndex => $cityPayload) {
+            $validator = Validator::make(
+                $cityPayload,
+                ImportPayloadRules::cityRules(),
+                ImportPayloadRules::messages(),
+            );
+
+            if ($validator->fails()) {
+                $humanIndex = $cityIndex + 1;
+                throw new RuntimeException("Ошибка валидации города #{$humanIndex}: {$validator->errors()->first()}");
+            }
+
+            /** @var array<string, mixed> $validatedCity */
+            $validatedCity = $validator->validated();
+            $validatedCities[] = $validatedCity;
+        }
+
+        return $validatedCities;
     }
 
     /**
@@ -451,6 +470,32 @@ class ProcessImportJsonJob implements ShouldQueue
         }
 
         return $validatedCars;
+    }
+
+    /**
+     * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
+     */
+    private function persistProgress(ImportRun $importRun, array $stats, int $totalCars, float $jobStartedAt): void
+    {
+        $importRun->forceFill([
+            'message' => "Импортировано {$stats['processed_cars']} из {$totalCars} машин.",
+            'processed_cars' => $stats['processed_cars'],
+            'stats_new' => $stats['new'],
+            'stats_updated' => $stats['updated'],
+            'stats_unchanged' => $stats['unchanged'],
+            'stats_processed' => $stats['processed'],
+        ])->save();
+
+        $this->logInfo($importRun, 'import.progress', [
+            'stage' => 'persist_cars',
+            'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+            'processed_cars' => $stats['processed_cars'],
+            'total_cars' => $totalCars,
+            'percent' => $totalCars > 0
+                ? (int) round(($stats['processed_cars'] / $totalCars) * 100)
+                : 0,
+            'stats' => $this->compactStats($stats),
+        ]);
     }
 
     private function isStopRequested(ImportRun $importRun): bool

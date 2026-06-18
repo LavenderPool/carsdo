@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SeoFieldsSection from '@/Components/Admin/SeoFieldsSection.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -17,6 +18,36 @@ type CarForm = ReturnType<typeof useForm<{
     is_electric_car: boolean;
     is_soon: boolean;
     is_another_models: boolean;
+    seo_title: string;
+    seo_description: string;
+    seo_h1: string;
+    seo_og_image: string;
+    seo_canonical_url: string;
+    seo_robots: string;
+    equipment_seo_title: string;
+    equipment_seo_description: string;
+    equipment_seo_h1: string;
+    equipment_seo_og_image: string;
+    equipment_seo_canonical_url: string;
+    equipment_seo_robots: string;
+    reviews_seo_title: string;
+    reviews_seo_description: string;
+    reviews_seo_h1: string;
+    reviews_seo_og_image: string;
+    reviews_seo_canonical_url: string;
+    reviews_seo_robots: string;
+    crash_test_seo_title: string;
+    crash_test_seo_description: string;
+    crash_test_seo_h1: string;
+    crash_test_seo_og_image: string;
+    crash_test_seo_canonical_url: string;
+    crash_test_seo_robots: string;
+    test_drive_seo_title: string;
+    test_drive_seo_description: string;
+    test_drive_seo_h1: string;
+    test_drive_seo_og_image: string;
+    test_drive_seo_canonical_url: string;
+    test_drive_seo_robots: string;
 }>>;
 
 defineProps<{
@@ -114,6 +145,51 @@ const emit = defineEmits<{
             </label>
             <InputError class="mt-1" :message="form.errors.is_another_models" />
         </div>
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="seo"
+            title="SEO основной страницы"
+            description="SEO для основной карточки автомобиля."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {year}, {site_name}, {price}, {price_range}, {configurations_count}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="equipment_seo"
+            title="SEO страницы комплектаций"
+            description="Используется на страницах вида `equipment-N`."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {group}, {configuration_price}, {site_name}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="reviews_seo"
+            title="SEO страницы отзывов"
+            description="Используется на странице отзывов владельцев."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {reviews_count}, {site_name}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="crash_test_seo"
+            title="SEO страницы краш-теста"
+            description="Используется на странице краш-теста."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {crash_test_year}, {crash_test_rating}, {site_name}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="test_drive_seo"
+            title="SEO страницы тест-драйва"
+            description="Используется на странице тест-драйвов."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {test_drives_count}, {site_name}."
+            :fallback-image="form.cover_path || null"
+        />
 
         <div class="flex items-center gap-4">
             <PrimaryButton :disabled="form.processing">

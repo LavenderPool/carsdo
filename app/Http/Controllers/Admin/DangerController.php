@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarDealer;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationEquipment;
 use App\Models\CarConfigurationEquipmentCategory;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
+use App\Models\City;
+use App\Models\Dealer;
 use App\Models\CarPhoto;
 use App\Models\CarPhotoGroup;
 use App\Models\CarReview;
@@ -32,11 +35,15 @@ class DangerController extends Controller
             CarCrashTest::query()->delete();
             CarReview::query()->delete();
             CarTestDrive::query()->delete();
+            CarDealer::query()->delete();
             Car::query()->delete();
+            Dealer::query()->delete();
+            City::query()->delete();
             Brand::withTrashed()->forceDelete();
         });
 
         Storage::disk('public')->deleteDirectory('covers');
+        Storage::disk('public')->deleteDirectory('images');
 
         return redirect()
             ->route('admin.dashboard')

@@ -15,6 +15,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.20",
+        "ralphjsmit/laravel-seo": "^1.8",
         "tightenco/ziggy": "^2.0"
     },
     "require-dev": {

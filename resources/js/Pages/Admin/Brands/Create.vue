@@ -8,6 +8,12 @@ const form = useForm({
     name: '',
     slug: '',
     leave_from_russian: false,
+    seo_title: '',
+    seo_description: '',
+    seo_h1: '',
+    seo_og_image: '',
+    seo_canonical_url: '',
+    seo_robots: '',
 });
 
 const submit = () => {

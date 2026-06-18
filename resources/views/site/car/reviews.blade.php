@@ -20,7 +20,7 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Отзывы владельцев (плюсы и минусы)</h1>
+    <h1 style="padding-left:20px;">{{ $pageH1 ?? ($car->name . ' › Отзывы владельцев (плюсы и минусы)') }}</h1>
 
     <div class="p_test_drive">
         Преимущества и недостатки {{ $car->name }}: оценка потребительских качеств автомобиля,
@@ -53,6 +53,13 @@
         </div>
     </div>
 </div>
+
+@include('site.car.partials.galery', [
+    'brand' => $brand,
+    'car' => $car,
+    'carPath' => $carPath,
+    'galleryBlockId' => 'reviews-gallery',
+])
 
 @include('site.car.partials.specs-and-models', [
     'brand' => $brand,
