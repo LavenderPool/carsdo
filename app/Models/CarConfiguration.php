@@ -7,11 +7,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([PublicContentObserver::class])]
 #[Fillable([
     'car_id',
     'car_configuration_group_id',
+    'local_id',
     'import_index',
     'price',
     'engine_type',
@@ -31,6 +33,7 @@ class CarConfiguration extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'local_id' => 'integer',
         'import_index' => 'integer',
         'price' => 'integer',
         'engine_capacity' => 'decimal:2',
@@ -50,5 +53,10 @@ class CarConfiguration extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(CarConfigurationGroup::class, 'car_configuration_group_id');
+    }
+
+    public function equipmentCategories(): HasMany
+    {
+        return $this->hasMany(CarConfigurationEquipmentCategory::class, 'car_configuration_id');
     }
 }

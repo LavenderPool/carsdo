@@ -136,6 +136,7 @@ class ImportTest extends TestCase
         $photo = CarPhoto::query()->firstOrFail();
         $group = CarConfigurationGroup::query()->firstOrFail();
         $category = CarConfigurationEquipmentCategory::query()->firstOrFail();
+        $equipment = CarConfigurationEquipment::query()->firstOrFail();
 
         $this->assertSame('moscow', $city->slug);
         $this->assertSame('tesla', $brand->slug);
@@ -147,9 +148,12 @@ class ImportTest extends TestCase
         $this->assertSame($dealer->id, $carDealer->dealer_id);
         $this->assertSame('images/tesla/model-y/gallery/front.jpg', $photo->photo_path);
         $this->assertSame($photoGroup->id, $photo->car_photo_group_id);
+        $this->assertSame(['2024', 'Highland'], $car->versions);
+        $this->assertSame(101, $configuration->local_id);
         $this->assertSame('5.0', $configuration->acceleration);
         $this->assertSame(0, $group->import_index);
-        $this->assertSame($group->id, $category->car_configuration_group_id);
+        $this->assertSame($configuration->id, $category->car_configuration_id);
+        $this->assertSame($configuration->id, $equipment->car_configuration_id);
 
         $this->assertDatabaseCount('cities', 1);
         $this->assertDatabaseCount('brands', 1);
@@ -319,7 +323,7 @@ class ImportTest extends TestCase
         $updatedPayload['cars'][0]['start_price'] = 53000;
         $updatedPayload['cars'][0]['crash_test']['rating'] = 4;
         $updatedPayload['cars'][0]['groups'][0]['items'][0]['price'] = 56000;
-        $updatedPayload['cars'][0]['groups'][0]['equipment'][0]['items'][0]['price'] = 2500;
+        $updatedPayload['cars'][0]['groups'][0]['items'][0]['equipment'][0]['items'][0]['price'] = 2500;
         unset($updatedPayload['cars'][0]['reviews']);
 
         $response = $this->actingAs($user)->post(route('admin.import.store'), [
@@ -801,6 +805,7 @@ class ImportTest extends TestCase
                     'name' => 'Model Y',
                     'slug' => 'model-y',
                     'brand_slug' => 'tesla',
+                    'versions' => ['2024', 'Highland'],
                     'year' => '2024',
                     'is_electric_car' => true,
                     'is_soon' => false,
@@ -850,6 +855,7 @@ class ImportTest extends TestCase
                             'order' => 1,
                             'items' => [
                                 [
+                                    'local_id' => 101,
                                     'price' => 54000,
                                     'engine_type' => 'electric',
                                     'horsepower' => 384,
@@ -860,16 +866,16 @@ class ImportTest extends TestCase
                                     'fuel_combined' => 0,
                                     'acceleration' => 5.0,
                                     'speed' => 217,
-                                ],
-                            ],
-                            'equipment' => [
-                                [
-                                    'name' => 'Комфорт',
-                                    'items' => [
+                                    'equipment' => [
                                         [
-                                            'value' => 'Подогрев сидений',
-                                            'is_extension' => false,
-                                            'price' => 2000,
+                                            'name' => 'Комфорт',
+                                            'items' => [
+                                                [
+                                                    'value' => 'Подогрев сидений',
+                                                    'is_extension' => false,
+                                                    'price' => 2000,
+                                                ],
+                                            ],
                                         ],
                                     ],
                                 ],

@@ -150,10 +150,10 @@ class CarController extends Controller
         DB::transaction(function () use ($car): void {
             $car->load('photos');
             $groupIds = $car->configurationGroups()->pluck('id');
-            $categoryIds = $car->configurationGroups()
-                ->with('equipmentCategories:id,car_configuration_group_id')
+            $categoryIds = $car->configurations()
+                ->with('equipmentCategories:id,car_configuration_id')
                 ->get()
-                ->flatMap(fn ($group) => $group->equipmentCategories->pluck('id'))
+                ->flatMap(fn ($configuration) => $configuration->equipmentCategories->pluck('id'))
                 ->all();
 
             DB::table('car_configuration_equipment')

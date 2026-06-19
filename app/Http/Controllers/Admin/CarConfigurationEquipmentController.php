@@ -17,8 +17,8 @@ class CarConfigurationEquipmentController extends Controller
     public function index(Car $car): Response
     {
         $items = CarConfigurationEquipment::query()
-            ->whereHas('category.group', fn ($query) => $query->where('car_id', $car->id))
-            ->with(['category:id,name'])
+            ->whereHas('category.configuration', fn ($query) => $query->where('car_id', $car->id))
+            ->with(['category:id,name,car_configuration_id'])
             ->latest()
             ->get()
             ->map(fn (CarConfigurationEquipment $item) => [
@@ -143,7 +143,7 @@ class CarConfigurationEquipmentController extends Controller
     public function destroy(Car $car, CarConfigurationEquipment $equipment): RedirectResponse
     {
         abort_unless($this->equipmentBelongsToCar($car, $equipment), 404);
-        $equipment->delete();
+        CarConfigurationEquipment::query()->whereKey($equipment->id)->delete();
 
         return redirect()
             ->route('admin.cars.equipment.index', $car)
@@ -155,10 +155,10 @@ class CarConfigurationEquipmentController extends Controller
      */
     private function categoryOptions(Car $car): array
     {
-        return $car->configurationGroups()
-            ->with('equipmentCategories:id,name,car_configuration_group_id')
+        return $car->configurations()
+            ->with('equipmentCategories:id,name,car_configuration_id')
             ->get()
-            ->flatMap(fn ($group) => $group->equipmentCategories->map(
+            ->flatMap(fn ($configuration) => $configuration->equipmentCategories->map(
                 fn ($category) => ['value' => $category->id, 'label' => $category->name ?? "Category #{$category->id}"]
             ))
             ->values()
@@ -167,7 +167,7 @@ class CarConfigurationEquipmentController extends Controller
 
     private function categoryBelongsToCar(Car $car, int $categoryId): bool
     {
-        return $car->configurationGroups()
+        return $car->configurations()
             ->whereHas('equipmentCategories', fn ($query) => $query->whereKey($categoryId))
             ->exists();
     }
@@ -185,7 +185,7 @@ class CarConfigurationEquipmentController extends Controller
     {
         return CarConfigurationEquipment::query()
             ->whereKey($equipment->id)
-            ->whereHas('category.group', fn ($query) => $query->where('car_id', $car->id))
+            ->whereHas('category.configuration', fn ($query) => $query->where('car_id', $car->id))
             ->exists();
     }
 }

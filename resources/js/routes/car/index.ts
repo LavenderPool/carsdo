@@ -262,29 +262,29 @@ photo.head = (args: { brand: string | { slug: string }, car: string | { slug: st
 /**
 * @see \App\Http\Controllers\Site\CarController::equipment
 * @see app/Http/Controllers/Site/CarController.php:161
-* @route '/{brand}/{car}/equipment-{order}'
+* @route '/{brand}/{car}/equipment-{localId}'
 */
-export const equipment = (args: { brand: string | { slug: string }, car: string | { slug: string }, order: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, order: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+export const equipment = (args: { brand: string | { slug: string }, car: string | { slug: string }, localId: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, localId: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: equipment.url(args, options),
     method: 'get',
 })
 
 equipment.definition = {
     methods: ["get","head"],
-    url: '/{brand}/{car}/equipment-{order}',
+    url: '/{brand}/{car}/equipment-{localId}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Site\CarController::equipment
 * @see app/Http/Controllers/Site/CarController.php:161
-* @route '/{brand}/{car}/equipment-{order}'
+* @route '/{brand}/{car}/equipment-{localId}'
 */
-equipment.url = (args: { brand: string | { slug: string }, car: string | { slug: string }, order: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, order: string | number ], options?: RouteQueryOptions) => {
+equipment.url = (args: { brand: string | { slug: string }, car: string | { slug: string }, localId: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, localId: string | number ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             brand: args[0],
             car: args[1],
-            order: args[2],
+            localId: args[2],
         }
     }
 
@@ -297,22 +297,22 @@ equipment.url = (args: { brand: string | { slug: string }, car: string | { slug:
         car: typeof args.car === 'object'
         ? args.car.slug
         : args.car,
-        order: args.order,
+        localId: args.localId,
     }
 
     return equipment.definition.url
             .replace('{brand}', parsedArgs.brand.toString())
             .replace('{car}', parsedArgs.car.toString())
-            .replace('{order}', parsedArgs.order.toString())
+            .replace('{localId}', parsedArgs.localId.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Site\CarController::equipment
 * @see app/Http/Controllers/Site/CarController.php:161
-* @route '/{brand}/{car}/equipment-{order}'
+* @route '/{brand}/{car}/equipment-{localId}'
 */
-equipment.get = (args: { brand: string | { slug: string }, car: string | { slug: string }, order: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, order: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+equipment.get = (args: { brand: string | { slug: string }, car: string | { slug: string }, localId: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, localId: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: equipment.url(args, options),
     method: 'get',
 })
@@ -320,16 +320,16 @@ equipment.get = (args: { brand: string | { slug: string }, car: string | { slug:
 /**
 * @see \App\Http\Controllers\Site\CarController::equipment
 * @see app/Http/Controllers/Site/CarController.php:161
-* @route '/{brand}/{car}/equipment-{order}'
+* @route '/{brand}/{car}/equipment-{localId}'
 */
-equipment.head = (args: { brand: string | { slug: string }, car: string | { slug: string }, order: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, order: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+equipment.head = (args: { brand: string | { slug: string }, car: string | { slug: string }, localId: string | number } | [brand: string | { slug: string }, car: string | { slug: string }, localId: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: equipment.url(args, options),
     method: 'head',
 })
 
 /**
 * @see \App\Http\Controllers\Site\CarController::dealer
-* @see app/Http/Controllers/Site/CarController.php:209
+* @see app/Http/Controllers/Site/CarController.php:222
 * @route '/{brand}/{car}/{city}'
 */
 export const dealer = (args: { brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } } | [brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -344,7 +344,7 @@ dealer.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\CarController::dealer
-* @see app/Http/Controllers/Site/CarController.php:209
+* @see app/Http/Controllers/Site/CarController.php:222
 * @route '/{brand}/{car}/{city}'
 */
 dealer.url = (args: { brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } } | [brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } ], options?: RouteQueryOptions) => {
@@ -379,7 +379,7 @@ dealer.url = (args: { brand: string | { slug: string }, car: string | { slug: st
 
 /**
 * @see \App\Http\Controllers\Site\CarController::dealer
-* @see app/Http/Controllers/Site/CarController.php:209
+* @see app/Http/Controllers/Site/CarController.php:222
 * @route '/{brand}/{car}/{city}'
 */
 dealer.get = (args: { brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } } | [brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -389,7 +389,7 @@ dealer.get = (args: { brand: string | { slug: string }, car: string | { slug: st
 
 /**
 * @see \App\Http\Controllers\Site\CarController::dealer
-* @see app/Http/Controllers/Site/CarController.php:209
+* @see app/Http/Controllers/Site/CarController.php:222
 * @route '/{brand}/{car}/{city}'
 */
 dealer.head = (args: { brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } } | [brand: string | { slug: string }, car: string | { slug: string }, city: string | { slug: string } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({

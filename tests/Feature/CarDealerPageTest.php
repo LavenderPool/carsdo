@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarDealer;
 use App\Models\City;
@@ -76,11 +77,19 @@ class CarDealerPageTest extends TestCase
     {
         [$brand, $car] = $this->createBrandAndCar();
 
-        CarConfigurationGroup::query()->create([
+        $group = CarConfigurationGroup::query()->create([
             'car_id' => $car->id,
             'name' => 'Base',
             'order' => 1,
             'import_index' => 0,
+        ]);
+
+        CarConfiguration::query()->create([
+            'car_id' => $car->id,
+            'car_configuration_group_id' => $group->id,
+            'local_id' => 101,
+            'import_index' => 0,
+            'price' => 3500000,
         ]);
 
         $city = City::query()->create([
@@ -101,7 +110,7 @@ class CarDealerPageTest extends TestCase
             'is_official' => true,
         ]);
 
-        $this->get('/tesla/model-y/equipment-1/')
+        $this->get('/tesla/model-y/equipment-101/')
             ->assertOk()
             ->assertSee('Moscow')
             ->assertSee('/tesla/model-y/moscow', false);
@@ -188,7 +197,7 @@ class CarDealerPageTest extends TestCase
         $this->get('/tesla/model-y/novosibirsk')
             ->assertOk()
             ->assertSee('в Новосибирске')
-            ->assertSee('Где купить Tesla Model Y в Новосибирске');
+            ->assertSee('Где купить Model Y в Новосибирске');
     }
 
     /**

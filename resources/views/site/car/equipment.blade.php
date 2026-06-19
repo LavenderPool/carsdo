@@ -17,20 +17,31 @@
             ['id', 'asc'],
         ])
         ->values();
+    $configurationsByGroup = $configurations->groupBy('car_configuration_group_id');
+    $equipmentUrl = static function ($configuration) use ($carPath): ?string {
+        if (! $configuration || ! filled($configuration->local_id)) {
+            return null;
+        }
 
-    $selectedGroupConfigurations = $configurations
-        ->where('car_configuration_group_id', $selectedGroup->id)
-        ->values();
-    $selectedConfiguration = $selectedGroupConfigurations->first();
+        return $carPath.'/equipment-'.$configuration->local_id.'/';
+    };
+    $primaryConfigurationForGroup = static function (int $groupId) use ($configurationsByGroup) {
+        $groupConfigurations = $configurationsByGroup->get($groupId, collect())->values();
 
-    $selectedGroupCategories = $selectedGroup->equipmentCategories
+        return $groupConfigurations->first(fn ($configuration) => filled($configuration->local_id))
+            ?? $groupConfigurations->first();
+    };
+
+    $selectedConfiguration = isset($selectedConfiguration) ? $selectedConfiguration : null;
+
+    $selectedConfigurationCategories = ($selectedConfiguration?->equipmentCategories ?? collect())
         ->sortBy([
             ['import_index', 'asc'],
             ['id', 'asc'],
         ])
         ->values();
 
-    $standardCategories = $selectedGroupCategories
+    $standardCategories = $selectedConfigurationCategories
         ->map(function ($category) {
             $items = $category->items
                 ->sortBy([
@@ -49,7 +60,7 @@
         ->filter(fn ($category) => $category->items->isNotEmpty())
         ->values();
 
-    $extensionItems = $selectedGroupCategories
+    $extensionItems = $selectedConfigurationCategories
         ->flatMap(function ($category) {
             return $category->items
                 ->sortBy([
@@ -138,11 +149,7 @@
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
     <h1 style="padding-left:20px;">
-        @if (filled($pageH1 ?? null))
-            {{ $pageH1 }}
-        @else
-            <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
-        @endif
+        <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
     </h1>
 
     @if ($selectedConfiguration)
@@ -212,15 +219,20 @@
                         </li>
                     @endforeach
                     @if ($extensionItems->count() > 10)
-                        <li class="dop"><a class="dop_a" href="#dop" onclick="view('dop'); return false">Все допы</a></li>
-                        <div id="dop" style="display: none;">
-                            @foreach ($extensionItems->slice(10) as $item)
-                                <li class="dop">
-                                    <span class="dop_obor">{{ $item->value }}</span>
-                                    <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
-                                </li>
-                            @endforeach
-                        </div>
+                        <li class="dop">
+                            <a
+                                class="dop_a"
+                                href="#"
+                                data-dop-toggle
+                                aria-expanded="false"
+                            >Все допы</a>
+                        </li>
+                        @foreach ($extensionItems->slice(10) as $item)
+                            <li class="dop" data-dop-item hidden>
+                                <span class="dop_obor">{{ $item->value }}</span>
+                                <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
+                            </li>
+                        @endforeach
                     @endif
                 </ul>
             </div>
@@ -234,18 +246,28 @@
     <ul id="complete">
         @forelse ($configurationGroups as $groupIndex => $group)
             @php
-                $groupConfigurations = $configurations->where('car_configuration_group_id', $group->id)->values();
+                $groupConfigurations = $configurationsByGroup->get($group->id, collect())->values();
             @endphp
             @forelse ($groupConfigurations as $configuration)
                 <li>
-                    <a href="{{ $carPath }}/equipment-{{ $groupIndex + 1 }}/">
+                    @php $configurationUrl = $equipmentUrl($configuration); @endphp
+                    @if ($configurationUrl)
+                        <a href="{{ $configurationUrl }}">
+                            <span class="clt1">{{ $group->name }}</span>
+                            <span class="clt2">
+                                {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
+                                {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
+                            </span>
+                            <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                        </a>
+                    @else
                         <span class="clt1">{{ $group->name }}</span>
                         <span class="clt2">
                             {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                             {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                         </span>
                         <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
-                    </a>
+                    @endif
                 </li>
             @empty
                 <li>
@@ -293,10 +315,17 @@
 
         @forelse ($configurationGroups as $groupIndex => $group)
             @php
-                $groupConfigurations = $configurations->where('car_configuration_group_id', $group->id)->values();
+                $groupConfigurations = $configurationsByGroup->get($group->id, collect())->values();
+                $groupUrl = $equipmentUrl($primaryConfigurationForGroup($group->id));
             @endphp
             <div class="{{ $loop->odd ? 'price_car_1' : 'price_car_2' }}">
-                <div class="pc_name"><a href="{{ $carPath }}/equipment-{{ $groupIndex + 1 }}/">{{ $group->name }}</a></div>
+                <div class="pc_name">
+                    @if ($groupUrl)
+                        <a href="{{ $groupUrl }}">{{ $group->name }}</a>
+                    @else
+                        {{ $group->name }}
+                    @endif
+                </div>
                 @forelse ($groupConfigurations as $configuration)
                     <div class="price_modific">
                         <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">руб.</span></div>
@@ -395,4 +424,31 @@
 
     <div class="brand_model_new_title"><div class="brand_model_new_title_2"><a href="/new-cars-{{ $currentYear }}/">Все новые авто {{ $currentYear }}</a></div></div>
 </div>
+
+@if ($extensionItems->count() > 10)
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toggle = document.querySelector('[data-dop-toggle]');
+            var items = document.querySelectorAll('[data-dop-item]');
+
+            if (!toggle || !items.length) {
+                return;
+            }
+
+            toggle.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                var nextExpandedState = !isExpanded;
+
+                items.forEach(function (item) {
+                    item.hidden = !nextExpandedState;
+                });
+
+                toggle.setAttribute('aria-expanded', nextExpandedState ? 'true' : 'false');
+                toggle.textContent = nextExpandedState ? 'Скрыть допы' : 'Все допы';
+            });
+        });
+    </script>
+@endif
 @endsection

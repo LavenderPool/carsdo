@@ -1,6 +1,7 @@
 @extends('layouts.site')
 
 @php
+    $carPath = '/'.$brand->slug.'/'.$car->slug;
     $configurations = $car->configurations
         ->sortBy([
             ['car_configuration_group_id', 'asc'],
@@ -8,6 +9,20 @@
             ['id', 'asc'],
         ])
         ->values();
+    $configurationsByGroup = $configurations->groupBy('car_configuration_group_id');
+    $equipmentUrl = static function ($configuration) use ($carPath): ?string {
+        if (! $configuration || ! filled($configuration->local_id)) {
+            return null;
+        }
+
+        return $carPath.'/equipment-'.$configuration->local_id.'/';
+    };
+    $primaryConfigurationForGroup = static function (int $groupId) use ($configurationsByGroup) {
+        $groupConfigurations = $configurationsByGroup->get($groupId, collect())->values();
+
+        return $groupConfigurations->first(fn ($configuration) => filled($configuration->local_id))
+            ?? $groupConfigurations->first();
+    };
     $configurationGroups = $car->configurationGroups->sortBy('order')->values();
     $photos = $car->photos
         ->concat($car->photoGroups->flatMap->photos)
@@ -17,7 +32,6 @@
     $mainPhoto = $photos->first()?->url() ?: $car->coverUrl();
     $now = now();
     $currentYear = $now->year;
-    $carPath = '/'.$brand->slug.'/'.$car->slug;
     $mainCars = $brand->cars
         ->where('is_another_models', false)
         ->where('is_soon', false)
@@ -167,10 +181,17 @@
 
         @forelse ($configurationGroups as $groupIndex => $group)
             @php
-                $groupConfigurations = $configurations->where('car_configuration_group_id', $group->id)->values();
+                $groupConfigurations = $configurationsByGroup->get($group->id, collect())->values();
+                $groupUrl = $equipmentUrl($primaryConfigurationForGroup($group->id));
             @endphp
             <div class="{{ $loop->odd ? 'price_car_1' : 'price_car_2' }}">
-                <div class="pc_name"><a href="{{ $carPath }}/equipment-{{ $groupIndex + 1 }}/">{{ $group->name }}</a></div>
+                <div class="pc_name">
+                    @if ($groupUrl)
+                        <a href="{{ $groupUrl }}">{{ $group->name }}</a>
+                    @else
+                        {{ $group->name }}
+                    @endif
+                </div>
                 @forelse ($groupConfigurations as $configuration)
                     <div class="price_modific">
                         <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">руб.</span></div>
@@ -210,18 +231,28 @@
         <ul id="complete">
             @forelse ($configurationGroups as $groupIndex => $group)
                 @php
-                    $groupConfigurations = $configurations->where('car_configuration_group_id', $group->id)->values();
+                    $groupConfigurations = $configurationsByGroup->get($group->id, collect())->values();
                 @endphp
                 @forelse ($groupConfigurations as $configuration)
                     <li>
-                        <a href="{{ $carPath }}/equipment-{{ $groupIndex + 1 }}/">
+                        @php $configurationUrl = $equipmentUrl($configuration); @endphp
+                        @if ($configurationUrl)
+                            <a href="{{ $configurationUrl }}">
+                                <span class="clt1">{{ $group->name }}</span>
+                                <span class="clt2">
+                                    {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
+                                    {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
+                                </span>
+                                <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                            </a>
+                        @else
                             <span class="clt1">{{ $group->name }}</span>
                             <span class="clt2">
                                 {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                                 {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                             </span>
                             <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
-                        </a>
+                        @endif
                     </li>
                 @empty
                     <li>

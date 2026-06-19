@@ -195,7 +195,6 @@ class CarCrudTest extends TestCase
 
         $this->actingAs($user)
             ->post(route('admin.cars.equipment-categories.store', $car), [
-                'car_configuration_group_id' => $group->id,
                 'car_configuration_id' => $configuration->id,
                 'name' => 'Комфорт',
                 'import_index' => 0,
@@ -344,7 +343,6 @@ class CarCrudTest extends TestCase
             'price' => 55000,
         ]);
         $category = CarConfigurationEquipmentCategory::query()->create([
-            'car_configuration_group_id' => $group->id,
             'car_configuration_id' => $configuration->id,
             'name' => 'Comfort',
             'import_index' => 0,

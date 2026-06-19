@@ -73,14 +73,7 @@ class DangerFullClearTest extends TestCase
             'import_index' => 0,
         ]);
 
-        $category = CarConfigurationEquipmentCategory::query()->create([
-            'car_configuration_group_id' => $group->id,
-            'car_configuration_id' => null,
-            'name' => 'Комфорт',
-            'import_index' => 0,
-        ]);
-
-        CarConfiguration::query()->create([
+        $configuration = CarConfiguration::query()->create([
             'car_id' => $car->id,
             'car_configuration_group_id' => $group->id,
             'import_index' => 0,
@@ -97,8 +90,14 @@ class DangerFullClearTest extends TestCase
             'speed' => 217,
         ]);
 
+        $category = CarConfigurationEquipmentCategory::query()->create([
+            'car_configuration_id' => $configuration->id,
+            'name' => 'Комфорт',
+            'import_index' => 0,
+        ]);
+
         CarConfigurationEquipment::query()->create([
-            'car_configuration_id' => null,
+            'car_configuration_id' => $configuration->id,
             'car_configuration_equipment_category_id' => $category->id,
             'import_index' => 0,
             'value' => 'Подогрев сидений',

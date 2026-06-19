@@ -54,6 +54,7 @@ class SitemapController extends Controller
                     ->with([
                         'crashTest:id,car_id,updated_at',
                         'configurationGroups:id,car_id,order,import_index,updated_at',
+                        'configurations:id,car_id,car_configuration_group_id,local_id,updated_at',
                     ]),
             ])
             ->orderBy('name')
@@ -115,17 +116,20 @@ class SitemapController extends Controller
                         ));
                     }
 
-                    $car->configurationGroups
+                    $car->configurations
+                        ->filter(fn ($configuration): bool => filled($configuration->local_id))
                         ->sortBy([
-                            ['order', 'asc'],
+                            ['car_configuration_group_id', 'asc'],
                             ['import_index', 'asc'],
                             ['id', 'asc'],
                         ])
                         ->values()
-                        ->each(function ($group, int $index) use ($brand, $car, $urls): void {
+                        ->each(function ($configuration) use ($brand, $car, $urls): void {
+                            $group = $car->configurationGroups->firstWhere('id', $configuration->car_configuration_group_id);
+
                             $urls->push($this->entry(
-                                url("/{$brand->slug}/{$car->slug}/equipment-".($index + 1).'/'),
-                                $this->latestUpdatedAt([$car, $group]),
+                                url("/{$brand->slug}/{$car->slug}/equipment-{$configuration->local_id}/"),
+                                $this->latestUpdatedAt([$car, $group, $configuration]),
                             ));
                         });
                 });

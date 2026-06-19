@@ -16,14 +16,14 @@ class CarConfigurationEquipmentCategoryController extends Controller
     public function index(Car $car): Response
     {
         $items = CarConfigurationEquipmentCategory::query()
-            ->whereHas('group', fn ($query) => $query->where('car_id', $car->id))
-            ->with(['group:id,name', 'configuration:id,car_id'])
+            ->whereHas('configuration', fn ($query) => $query->where('car_id', $car->id))
+            ->with(['configuration:id,car_id,car_configuration_group_id', 'configuration.group:id,name'])
             ->latest()
             ->get()
             ->map(fn (CarConfigurationEquipmentCategory $item) => [
                 'id' => $item->id,
                 'name' => $item->name,
-                'group' => $item->group?->name,
+                'group' => $item->configuration?->group?->name,
                 'car_configuration_id' => $item->car_configuration_id,
                 'import_index' => $item->import_index,
             ]);
@@ -60,13 +60,11 @@ class CarConfigurationEquipmentCategoryController extends Controller
                 'label' => 'Создать',
             ],
             'item' => [
-                'car_configuration_group_id' => null,
                 'car_configuration_id' => null,
                 'name' => '',
                 'import_index' => null,
             ],
             'fields' => [
-                ['name' => 'car_configuration_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
                 ['name' => 'car_configuration_id', 'label' => 'Комплектация', 'type' => 'select', 'options' => $this->configurationOptions($car)],
                 ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
                 ['name' => 'import_index', 'label' => 'Import index', 'type' => 'number'],
@@ -77,11 +75,7 @@ class CarConfigurationEquipmentCategoryController extends Controller
     public function store(StoreCarConfigurationEquipmentCategoryRequest $request, Car $car): RedirectResponse
     {
         $data = $request->validated();
-        abort_unless($car->configurationGroups()->whereKey($data['car_configuration_group_id'])->exists(), 422);
-
-        if (! empty($data['car_configuration_id'])) {
-            abort_unless($car->configurations()->whereKey($data['car_configuration_id'])->exists(), 422);
-        }
+        abort_unless($car->configurations()->whereKey($data['car_configuration_id'])->exists(), 422);
 
         CarConfigurationEquipmentCategory::query()->create($data);
 
@@ -92,7 +86,7 @@ class CarConfigurationEquipmentCategoryController extends Controller
 
     public function edit(Car $car, CarConfigurationEquipmentCategory $equipmentCategory): Response
     {
-        abort_unless($equipmentCategory->group?->car_id === $car->id, 404);
+        abort_unless($equipmentCategory->configuration?->car_id === $car->id, 404);
 
         return Inertia::render('Admin/Cars/Nested/Form', [
             'title' => 'Редактирование категории оснащения',
@@ -104,13 +98,11 @@ class CarConfigurationEquipmentCategoryController extends Controller
                 'label' => 'Сохранить',
             ],
             'item' => [
-                'car_configuration_group_id' => $equipmentCategory->car_configuration_group_id,
                 'car_configuration_id' => $equipmentCategory->car_configuration_id,
                 'name' => $equipmentCategory->name,
                 'import_index' => $equipmentCategory->import_index,
             ],
             'fields' => [
-                ['name' => 'car_configuration_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
                 ['name' => 'car_configuration_id', 'label' => 'Комплектация', 'type' => 'select', 'options' => $this->configurationOptions($car)],
                 ['name' => 'name', 'label' => 'Название', 'type' => 'text', 'required' => true],
                 ['name' => 'import_index', 'label' => 'Import index', 'type' => 'number'],
@@ -123,14 +115,10 @@ class CarConfigurationEquipmentCategoryController extends Controller
         Car $car,
         CarConfigurationEquipmentCategory $equipmentCategory
     ): RedirectResponse {
-        abort_unless($equipmentCategory->group?->car_id === $car->id, 404);
+        abort_unless($equipmentCategory->configuration?->car_id === $car->id, 404);
 
         $data = $request->validated();
-        abort_unless($car->configurationGroups()->whereKey($data['car_configuration_group_id'])->exists(), 422);
-
-        if (! empty($data['car_configuration_id'])) {
-            abort_unless($car->configurations()->whereKey($data['car_configuration_id'])->exists(), 422);
-        }
+        abort_unless($car->configurations()->whereKey($data['car_configuration_id'])->exists(), 422);
 
         $equipmentCategory->update($data);
 
@@ -141,8 +129,8 @@ class CarConfigurationEquipmentCategoryController extends Controller
 
     public function destroy(Car $car, CarConfigurationEquipmentCategory $equipmentCategory): RedirectResponse
     {
-        abort_unless($equipmentCategory->group?->car_id === $car->id, 404);
-        $equipmentCategory->delete();
+        abort_unless($equipmentCategory->configuration?->car_id === $car->id, 404);
+        CarConfigurationEquipmentCategory::query()->whereKey($equipmentCategory->id)->delete();
 
         return redirect()
             ->route('admin.cars.equipment-categories.index', $car)
@@ -152,24 +140,16 @@ class CarConfigurationEquipmentCategoryController extends Controller
     /**
      * @return array<int, array{value: int, label: string}>
      */
-    private function groupOptions(Car $car): array
-    {
-        return $car->configurationGroups()
-            ->orderBy('name')
-            ->get(['id', 'name'])
-            ->map(fn ($group) => ['value' => $group->id, 'label' => $group->name ?? "Group #{$group->id}"])
-            ->all();
-    }
-
-    /**
-     * @return array<int, array{value: int, label: string}>
-     */
     private function configurationOptions(Car $car): array
     {
         return $car->configurations()
+            ->with('group:id,name')
             ->orderBy('id')
-            ->get(['id'])
-            ->map(fn ($configuration) => ['value' => $configuration->id, 'label' => "Configuration #{$configuration->id}"])
+            ->get(['id', 'car_configuration_group_id'])
+            ->map(fn ($configuration) => [
+                'value' => $configuration->id,
+                'label' => trim(($configuration->group?->name ?? 'Configuration')." #{$configuration->id}"),
+            ])
             ->all();
     }
 }

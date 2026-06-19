@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
 use App\Models\CarPhoto;
@@ -107,11 +108,19 @@ class CarPhotoPageTest extends TestCase
             'value' => 'Comfortable ride',
         ]);
 
-        CarConfigurationGroup::query()->create([
+        $group = CarConfigurationGroup::query()->create([
             'car_id' => $car->id,
             'name' => 'Base',
             'order' => 1,
             'import_index' => 0,
+        ]);
+
+        CarConfiguration::query()->create([
+            'car_id' => $car->id,
+            'car_configuration_group_id' => $group->id,
+            'local_id' => 101,
+            'import_index' => 0,
+            'price' => 3500000,
         ]);
 
         foreach ([
@@ -119,7 +128,7 @@ class CarPhotoPageTest extends TestCase
             '/tesla/model-y/crash-test/',
             '/tesla/model-y/test-drive/',
             '/tesla/model-y/reviews/',
-            '/tesla/model-y/equipment-1/',
+            '/tesla/model-y/equipment-101/',
         ] as $url) {
             $this->get($url)
                 ->assertOk()

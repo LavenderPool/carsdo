@@ -137,7 +137,7 @@ create.head = (args: { car: number | { id: number } } | [car: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::store
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:77
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:75
 * @route '/admin/cars/{car}/equipment-categories'
 */
 export const store = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -152,7 +152,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::store
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:77
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:75
 * @route '/admin/cars/{car}/equipment-categories'
 */
 store.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -185,7 +185,7 @@ store.url = (args: { car: number | { id: number } } | [car: number | { id: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::store
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:77
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:75
 * @route '/admin/cars/{car}/equipment-categories'
 */
 store.post = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -195,7 +195,7 @@ store.post = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::edit
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:93
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:87
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}/edit'
 */
 export const edit = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -210,7 +210,7 @@ edit.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::edit
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:93
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:87
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}/edit'
 */
 edit.url = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -240,7 +240,7 @@ edit.url = (args: { car: number | { id: number }, equipmentCategory: number | { 
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::edit
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:93
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:87
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}/edit'
 */
 edit.get = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -250,7 +250,7 @@ edit.get = (args: { car: number | { id: number }, equipmentCategory: number | { 
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::edit
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:93
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:87
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}/edit'
 */
 edit.head = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -260,7 +260,7 @@ edit.head = (args: { car: number | { id: number }, equipmentCategory: number | {
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::update
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:121
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:113
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 export const update = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -275,7 +275,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::update
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:121
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:113
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 update.url = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -305,7 +305,7 @@ update.url = (args: { car: number | { id: number }, equipmentCategory: number | 
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::update
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:121
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:113
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 update.put = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -315,7 +315,7 @@ update.put = (args: { car: number | { id: number }, equipmentCategory: number | 
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::update
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:121
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:113
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 update.patch = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -325,7 +325,7 @@ update.patch = (args: { car: number | { id: number }, equipmentCategory: number 
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::destroy
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:142
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:130
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 export const destroy = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -340,7 +340,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::destroy
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:142
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:130
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 destroy.url = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions) => {
@@ -370,7 +370,7 @@ destroy.url = (args: { car: number | { id: number }, equipmentCategory: number |
 
 /**
 * @see \App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController::destroy
-* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:142
+* @see app/Http/Controllers/Admin/CarConfigurationEquipmentCategoryController.php:130
 * @route '/admin/cars/{car}/equipment-categories/{equipmentCategory}'
 */
 destroy.delete = (args: { car: number | { id: number }, equipmentCategory: number | { id: number } } | [car: number | { id: number }, equipmentCategory: number | { id: number } ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

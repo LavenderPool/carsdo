@@ -101,6 +101,7 @@ class PageSeoOverrideTest extends TestCase
         CarConfiguration::query()->create([
             'car_id' => $car->id,
             'car_configuration_group_id' => $group->id,
+            'local_id' => 101,
             'import_index' => 0,
             'price' => 7900000,
         ]);
@@ -120,7 +121,7 @@ class PageSeoOverrideTest extends TestCase
         $carResponse->assertSee('Описание BMW X5', false);
         $carResponse->assertSee('H1 X5');
 
-        $equipmentResponse = $this->get('/bmw/x5/equipment-1/');
+        $equipmentResponse = $this->get('/bmw/x5/equipment-101/');
 
         $equipmentResponse->assertOk();
         $equipmentResponse->assertSee('Комплектация Premium', false);

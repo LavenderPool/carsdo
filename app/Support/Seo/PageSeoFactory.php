@@ -74,8 +74,8 @@ class PageSeoFactory
             'site.car.index' => isset($data['brand'], $data['car'])
                 ? $this->forCarIndex($data['brand'], $data['car'])
                 : null,
-            'site.car.equipment' => isset($data['brand'], $data['car'], $data['selectedGroup'])
-                ? $this->forCarEquipment($data['brand'], $data['car'], $data['selectedGroup'])
+            'site.car.equipment' => isset($data['brand'], $data['car'], $data['selectedConfiguration'], $data['selectedGroup'])
+                ? $this->forCarEquipment($data['brand'], $data['car'], $data['selectedConfiguration'], $data['selectedGroup'])
                 : null,
             'site.car.dealer' => isset($data['brand'], $data['car'], $data['city'])
                 ? $this->forCarDealer($data['brand'], $data['car'], $data['city'])
@@ -509,15 +509,13 @@ class PageSeoFactory
         );
     }
 
-    private function forCarEquipment(Brand $brand, Car $car, CarConfigurationGroup $selectedGroup): ResolvedPageSeo
+    private function forCarEquipment(
+        Brand $brand,
+        Car $car,
+        CarConfiguration $selectedConfiguration,
+        CarConfigurationGroup $selectedGroup,
+    ): ResolvedPageSeo
     {
-        $configurationGroups = $this->toCollection($car->configurationGroups)
-            ->sortBy([
-                ['order', 'asc'],
-                ['import_index', 'asc'],
-                ['id', 'asc'],
-            ])
-            ->values();
         $configurations = $this->toCollection($car->configurations)
             ->sortBy([
                 ['car_configuration_group_id', 'asc'],
@@ -525,9 +523,6 @@ class PageSeoFactory
                 ['id', 'asc'],
             ])
             ->values();
-        $selectedConfiguration = $configurations
-            ->where('car_configuration_group_id', $selectedGroup->id)
-            ->first();
         $defaultTitle = "{$brand->name} {$car->name} {$selectedGroup->name}: цена, характеристики и оборудование";
         $defaultDescription = $this->limitDescription(
             "{$brand->name} {$car->name} в комплектации {$selectedGroup->name}: оборудование, опции, характеристики и цена "
@@ -548,8 +543,9 @@ class PageSeoFactory
             context: array_merge($this->carContext($brand, $car), [
                 'group' => $selectedGroup->name,
                 'configuration_price' => $this->configurationPriceText($selectedConfiguration),
+                'configuration_local_id' => (string) ($selectedConfiguration->local_id ?? ''),
             ]),
-            modifiedTime: $this->latestUpdatedAt([$brand, $car, $selectedGroup, $configurations]),
+            modifiedTime: $this->latestUpdatedAt([$brand, $car, $selectedGroup, $selectedConfiguration, $configurations]),
             schema: $this->makeSchema(
                 [
                     ['name' => 'Главная', 'url' => $this->homeUrl()],

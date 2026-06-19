@@ -28,7 +28,7 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -158,7 +158,7 @@ class CarController extends Controller
         ]);
     }
 
-    public function equipment(Brand $brand, Car $car, int $order): View
+    public function equipment(Brand $brand, Car $car, int $localId): View
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
@@ -170,9 +170,9 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurationGroups.equipmentCategories:id,car_configuration_group_id,name,import_index',
-                'configurationGroups.equipmentCategories.items:id,car_configuration_equipment_category_id,import_index,value,is_extension,price',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations.equipmentCategories:id,car_configuration_id,name,import_index',
+                'configurations.equipmentCategories.items:id,car_configuration_id,car_configuration_equipment_category_id,import_index,value,is_extension,price',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -195,14 +195,27 @@ class CarController extends Controller
             ])
             ->values();
 
-        $selectedGroup = $configurationGroups->get($order - 1);
+        $configurations = $car->configurations
+            ->sortBy([
+                ['car_configuration_group_id', 'asc'],
+                ['import_index', 'asc'],
+                ['id', 'asc'],
+            ])
+            ->values();
+
+        $selectedConfiguration = $configurations
+            ->first(fn ($configuration) => $configuration->local_id === $localId);
+        abort_if($selectedConfiguration === null, 404);
+
+        $selectedGroup = $configurationGroups
+            ->firstWhere('id', $selectedConfiguration->car_configuration_group_id);
         abort_if($selectedGroup === null, 404);
 
         return view('site.car.equipment', [
             'brand' => $this->brandWithSidebar($brand),
             'car' => $car,
+            'selectedConfiguration' => $selectedConfiguration,
             'selectedGroup' => $selectedGroup,
-            'selectedOrder' => $order,
         ]);
     }
 

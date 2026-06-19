@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([PublicContentObserver::class])]
 #[Fillable([
-    'car_configuration_group_id',
     'car_configuration_id',
     'name',
     'import_index',
@@ -24,11 +23,6 @@ class CarConfigurationEquipmentCategory extends Model
     protected $casts = [
         'import_index' => 'integer',
     ];
-
-    public function group(): BelongsTo
-    {
-        return $this->belongsTo(CarConfigurationGroup::class, 'car_configuration_group_id');
-    }
 
     public function configuration(): BelongsTo
     {

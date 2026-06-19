@@ -228,8 +228,12 @@ class CarImportService
                 foreach ($car->configurationGroups as $group) {
                     $this->initializeConfigurationGroupRelations($group);
 
-                    foreach ($group->equipmentCategories as $category) {
-                        $this->initializeEquipmentCategoryRelations($category);
+                    foreach ($group->configurations as $configuration) {
+                        $this->initializeConfigurationRelations($configuration);
+
+                        foreach ($configuration->equipmentCategories as $category) {
+                            $this->initializeEquipmentCategoryRelations($category);
+                        }
                     }
                 }
 
@@ -361,6 +365,7 @@ class CarImportService
             'name' => $this->normalizeString($payload['name'] ?? null) ?? '',
             'slug' => $slug,
             'year' => $this->normalizeString($payload['year'] ?? null),
+            'versions' => $this->normalizeStringArray($payload['versions'] ?? []),
             'is_electric_car' => $this->normalizeBoolean($payload['is_electric_car'] ?? false),
             'is_soon' => $this->normalizeBoolean($payload['is_soon'] ?? false),
             'is_another_models' => $this->normalizeBoolean($payload['is_another_models'] ?? false),
@@ -626,7 +631,6 @@ class CarImportService
             }
 
             $this->syncConfigurations($car, $group, $groupPayload['items'] ?? [], $stats);
-            $this->syncEquipmentCategories($group, $groupPayload['equipment'] ?? [], $stats);
         }
     }
 
@@ -648,6 +652,7 @@ class CarImportService
             $configuration = $this->syncModel($configuration, CarConfiguration::class, [
                 'car_id' => $car->id,
                 'car_configuration_group_id' => $group->id,
+                'local_id' => $this->normalizeInteger($configurationPayload['local_id'] ?? null),
                 'import_index' => $configurationIndex,
                 'price' => $this->normalizeInteger($configurationPayload['price'] ?? null),
                 'engine_type' => $this->normalizeString($configurationPayload['engine_type'] ?? null),
@@ -661,10 +666,13 @@ class CarImportService
                 'acceleration' => $this->normalizeAcceleration($configurationPayload['acceleration'] ?? null),
                 'speed' => $this->normalizeInteger($configurationPayload['speed'] ?? null),
             ], $stats);
+            $this->initializeConfigurationRelations($configuration);
 
             if ($wasMissing) {
                 $configurations->push($configuration);
             }
+
+            $this->syncEquipmentCategories($configuration, $configurationPayload['equipment'] ?? [], $stats);
         }
     }
 
@@ -672,10 +680,10 @@ class CarImportService
      * @param  array<int, array<string, mixed>>  $payload
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
-    private function syncEquipmentCategories(CarConfigurationGroup $group, array $payload, array &$stats): void
+    private function syncEquipmentCategories(CarConfiguration $configuration, array $payload, array &$stats): void
     {
         /** @var EloquentCollection<int, CarConfigurationEquipmentCategory> $categories */
-        $categories = $group->getRelation('equipmentCategories');
+        $categories = $configuration->getRelation('equipmentCategories');
 
         foreach ($payload as $categoryIndex => $categoryPayload) {
             /** @var CarConfigurationEquipmentCategory|null $category */
@@ -684,8 +692,7 @@ class CarImportService
 
             /** @var CarConfigurationEquipmentCategory $category */
             $category = $this->syncModel($category, CarConfigurationEquipmentCategory::class, [
-                'car_configuration_group_id' => $group->id,
-                'car_configuration_id' => null,
+                'car_configuration_id' => $configuration->id,
                 'name' => $this->normalizeString($categoryPayload['name'] ?? null) ?? '',
                 'import_index' => $categoryIndex,
             ], $stats);
@@ -695,7 +702,7 @@ class CarImportService
                 $categories->push($category);
             }
 
-            $this->syncEquipmentItems($category, $categoryPayload['items'] ?? [], $stats);
+            $this->syncEquipmentItems($configuration, $category, $categoryPayload['items'] ?? [], $stats);
         }
     }
 
@@ -703,7 +710,12 @@ class CarImportService
      * @param  array<int, array<string, mixed>>  $payload
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
-    private function syncEquipmentItems(CarConfigurationEquipmentCategory $category, array $payload, array &$stats): void
+    private function syncEquipmentItems(
+        CarConfiguration $configuration,
+        CarConfigurationEquipmentCategory $category,
+        array $payload,
+        array &$stats
+    ): void
     {
         /** @var EloquentCollection<int, CarConfigurationEquipment> $items */
         $items = $category->getRelation('items');
@@ -715,7 +727,7 @@ class CarImportService
 
             /** @var CarConfigurationEquipment $item */
             $item = $this->syncModel($item, CarConfigurationEquipment::class, [
-                'car_configuration_id' => null,
+                'car_configuration_id' => $configuration->id,
                 'car_configuration_equipment_category_id' => $category->id,
                 'import_index' => $itemIndex,
                 'value' => $this->normalizeString($itemPayload['value'] ?? null),
@@ -768,9 +780,12 @@ class CarImportService
         if (!$group->relationLoaded('configurations')) {
             $group->setRelation('configurations', new EloquentCollection());
         }
+    }
 
-        if (!$group->relationLoaded('equipmentCategories')) {
-            $group->setRelation('equipmentCategories', new EloquentCollection());
+    private function initializeConfigurationRelations(CarConfiguration $configuration): void
+    {
+        if (!$configuration->relationLoaded('equipmentCategories')) {
+            $configuration->setRelation('equipmentCategories', new EloquentCollection());
         }
     }
 
@@ -792,8 +807,7 @@ class CarImportService
             'reviews',
             'photoGroups.photos',
             'carDealers',
-            'configurationGroups.configurations',
-            'configurationGroups.equipmentCategories.items',
+            'configurationGroups.configurations.equipmentCategories.items',
         ];
     }
 
@@ -966,8 +980,12 @@ class CarImportService
             foreach ($car->configurationGroups as $group) {
                 $this->initializeConfigurationGroupRelations($group);
 
-                foreach ($group->equipmentCategories as $category) {
-                    $this->initializeEquipmentCategoryRelations($category);
+                foreach ($group->configurations as $configuration) {
+                    $this->initializeConfigurationRelations($configuration);
+
+                    foreach ($configuration->equipmentCategories as $category) {
+                        $this->initializeEquipmentCategoryRelations($category);
+                    }
                 }
             }
 
@@ -1038,6 +1056,22 @@ class CarImportService
         $normalized = trim((string) $value);
 
         return $normalized === '' ? null : $normalized;
+    }
+
+    /**
+     * @param  mixed  $value
+     * @return array<int, string>
+     */
+    private function normalizeStringArray(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            array_map(fn (mixed $item): ?string => $this->normalizeString($item), $value),
+            static fn (?string $item): bool => $item !== null,
+        ));
     }
 
     private function normalizeBoolean(mixed $value): bool

@@ -123,8 +123,8 @@ Route::get('/{brand:slug}/{car:slug}/test-drive/', [SiteCarController::class, 't
 Route::get('/{brand:slug}/{car:slug}/crash-test/', [SiteCarController::class, 'crashTest'])->name('car.crash-test');
 Route::get('/{brand:slug}/{car:slug}/reviews/', [SiteCarController::class, 'reviews'])->name('car.reviews');
 Route::get('/{brand:slug}/{car:slug}/photo/', [SiteCarController::class, 'photo'])->name('car.photo');
-Route::get('/{brand:slug}/{car:slug}/equipment-{order}/', [SiteCarController::class, 'equipment'])
-    ->where('order', '[1-9]\d*')
+Route::get('/{brand:slug}/{car:slug}/equipment-{localId}/', [SiteCarController::class, 'equipment'])
+    ->where('localId', '\d+')
     ->name('car.equipment');
 Route::get('/{brand:slug}/{car:slug}/{city:slug}', [SiteCarController::class, 'dealer'])
     ->name('car.dealer');

@@ -19,6 +19,19 @@
         ])
         ->values()
         ->groupBy('car_configuration_group_id');
+    $equipmentUrl = static function ($configuration) use ($carPath): ?string {
+        if (! $configuration || ! filled($configuration->local_id)) {
+            return null;
+        }
+
+        return $carPath.'/equipment-'.$configuration->local_id.'/';
+    };
+    $primaryConfigurationForGroup = static function (int $groupId) use ($configurations) {
+        $groupConfigurations = $configurations->get($groupId, collect())->values();
+
+        return $groupConfigurations->first(fn ($configuration) => filled($configuration->local_id))
+            ?? $groupConfigurations->first();
+    };
 
     $mainCars = $brand->cars
         ->where('is_soon', false)
@@ -54,9 +67,16 @@
             @php
                 $rowClass = $groupIndex % 2 === 0 ? 'price_car_1' : 'price_car_2';
                 $groupConfigurations = $configurations->get($group->id, collect());
+                $groupUrl = $equipmentUrl($primaryConfigurationForGroup($group->id));
             @endphp
             <div class="{{ $rowClass }}">
-                <div class="pc_name"><a href="{{ $carPath }}/equipment-{{ $groupIndex + 1 }}/">{{ $group->name }}</a></div>
+                <div class="pc_name">
+                    @if ($groupUrl)
+                        <a href="{{ $groupUrl }}">{{ $group->name }}</a>
+                    @else
+                        {{ $group->name }}
+                    @endif
+                </div>
                 @foreach ($groupConfigurations as $configuration)
                     <div class="price_modific">
                         <div class="pc_price">{{ filled($configuration->price) ? number_format((int) $configuration->price, 0, ',', ' ') : '-' }} <span class="des">руб.</span></div>

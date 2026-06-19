@@ -30,9 +30,4 @@ class CarConfigurationGroup extends Model
     {
         return $this->hasMany(CarConfiguration::class);
     }
-
-    public function equipmentCategories(): HasMany
-    {
-        return $this->hasMany(CarConfigurationEquipmentCategory::class);
-    }
 }

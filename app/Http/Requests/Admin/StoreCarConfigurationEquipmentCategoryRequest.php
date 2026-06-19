@@ -23,8 +23,7 @@ class StoreCarConfigurationEquipmentCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'car_configuration_group_id' => ['required', 'integer', 'exists:car_configuration_groups,id'],
-            'car_configuration_id' => ['nullable', 'integer', 'exists:car_configurations,id'],
+            'car_configuration_id' => ['required', 'integer', 'exists:car_configurations,id'],
             'name' => ['required', 'string', 'max:255'],
             'import_index' => ['nullable', 'integer', 'min:0'],
         ];
