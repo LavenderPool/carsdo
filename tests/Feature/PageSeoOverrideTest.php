@@ -4,8 +4,14 @@ namespace Tests\Feature;
 
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarDealer;
+use App\Models\CarPageSeo;
+use App\Models\CarPhoto;
+use App\Models\CarPhotoGroup;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
+use App\Models\City;
+use App\Models\Dealer;
 use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -120,5 +126,173 @@ class PageSeoOverrideTest extends TestCase
         $equipmentResponse->assertSee('Комплектация Premium', false);
         $equipmentResponse->assertSee('X5 Premium');
         $equipmentResponse->assertSee('/special-equipment/', false);
+    }
+
+    public function test_car_page_seo_uses_car_override_before_page_record_for_dealer_page(): void
+    {
+        Setting::query()->create([
+            'id' => 1,
+            'brand_name' => 'CarsDo',
+        ]);
+        config([
+            'seo.site_name' => 'CarsDo',
+            'seo.admin.default_robots' => 'index, follow',
+        ]);
+
+        $brand = Brand::query()->create([
+            'name' => 'BMW',
+            'slug' => 'bmw',
+            'leave_from_russian' => false,
+        ]);
+
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'X5',
+            'slug' => 'x5',
+            'year' => '2026',
+            'start_price' => 7900000,
+            'is_electric_car' => false,
+            'is_soon' => false,
+            'is_another_models' => false,
+            'dealer_seo_title' => 'Персональный title {brand} {car}',
+        ]);
+
+        $city = City::query()->create([
+            'name' => 'Москва',
+            'slug' => 'moscow',
+        ]);
+        $dealer = Dealer::query()->create([
+            'name' => 'BMW Центр',
+        ]);
+        CarDealer::query()->create([
+            'car_id' => $car->id,
+            'city_id' => $city->id,
+            'dealer_id' => $dealer->id,
+            'address' => 'ул. Тестовая, 1',
+            'phone' => '+7 999 000 00 00',
+            'website' => 'https://example.com/dealer',
+            'is_official' => true,
+        ]);
+
+        CarPageSeo::query()
+            ->where('page_key', 'car_dealer')
+            ->update([
+                'title' => 'Шаблон дилеров {brand} {car}',
+                'description' => 'Описание дилеров {city}',
+                'h1' => 'Купить {brand} {car} в {city}',
+            ]);
+
+        $response = $this->get('/bmw/x5/moscow');
+
+        $response->assertOk();
+        $response->assertSee('Персональный title BMW X5', false);
+        $response->assertSee('Описание дилеров Москва', false);
+        $response->assertSee('Купить BMW X5 в Москва');
+    }
+
+    public function test_car_page_seo_uses_page_record_when_car_override_missing_for_photo_page(): void
+    {
+        Setting::query()->create([
+            'id' => 1,
+            'brand_name' => 'CarsDo',
+        ]);
+        config([
+            'seo.site_name' => 'CarsDo',
+            'seo.admin.default_robots' => 'index, follow',
+        ]);
+
+        $brand = Brand::query()->create([
+            'name' => 'Audi',
+            'slug' => 'audi',
+            'leave_from_russian' => false,
+        ]);
+
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'A6',
+            'slug' => 'a6',
+            'year' => '2026',
+            'is_electric_car' => false,
+            'is_soon' => false,
+            'is_another_models' => false,
+        ]);
+        $photoGroup = CarPhotoGroup::query()->create([
+            'car_id' => $car->id,
+            'name' => 'Галерея',
+        ]);
+
+        CarPhoto::query()->create([
+            'car_id' => $car->id,
+            'car_photo_group_id' => $photoGroup->id,
+            'photo_path' => '/images/a6-photo.jpg',
+        ]);
+
+        CarPageSeo::query()
+            ->where('page_key', 'car_photo')
+            ->update([
+                'title' => 'Фото {brand} {car}',
+                'description' => 'Фотогалерея {brand} {car}',
+                'h1' => 'Фото {brand} {car} в галерее',
+            ]);
+
+        $response = $this->get('/audi/a6/photo/');
+
+        $response->assertOk();
+        $response->assertSee('Фото Audi A6', false);
+        $response->assertSee('Фотогалерея Audi A6', false);
+        $response->assertSee('Фото Audi A6 в галерее');
+    }
+
+    public function test_car_page_seo_falls_back_to_factory_defaults_when_overrides_are_empty(): void
+    {
+        Setting::query()->create([
+            'id' => 1,
+            'brand_name' => 'CarsDo',
+        ]);
+        config([
+            'seo.site_name' => 'CarsDo',
+            'seo.admin.default_robots' => 'index, follow',
+        ]);
+
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Model S',
+            'slug' => 'model-s',
+            'year' => '2026',
+            'is_electric_car' => true,
+            'is_soon' => false,
+            'is_another_models' => false,
+        ]);
+        $photoGroup = CarPhotoGroup::query()->create([
+            'car_id' => $car->id,
+            'name' => 'Галерея',
+        ]);
+
+        CarPageSeo::query()
+            ->where('page_key', 'car_photo')
+            ->update([
+                'title' => null,
+                'description' => null,
+                'h1' => null,
+            ]);
+
+        CarPhoto::query()->create([
+            'car_id' => $car->id,
+            'car_photo_group_id' => $photoGroup->id,
+            'photo_path' => '/images/model-s.jpg',
+        ]);
+
+        $response = $this->get('/tesla/model-s/photo/');
+
+        $response->assertOk();
+        $response->assertSee('Model S - фото салона, новый кузов', false);
+        $response->assertSee('Model S - фото нового кузова, фото внутри салона автомобиля', false);
+        $response->assertSee('Model S › Фото');
     }
 }

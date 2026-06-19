@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CarDealerController;
+use App\Http\Controllers\Admin\CarPageSeoController;
 use App\Http\Controllers\Admin\CarConfigurationController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentController;
@@ -43,6 +44,9 @@ Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
             ->except(['show']);
         Route::resource('cars', CarController::class)
             ->except(['show']);
+        Route::get('car-page-seos', [CarPageSeoController::class, 'index'])->name('car-page-seos.index');
+        Route::get('car-page-seos/{pageKey}', [CarPageSeoController::class, 'edit'])->name('car-page-seos.edit');
+        Route::put('car-page-seos/{pageKey}', [CarPageSeoController::class, 'update'])->name('car-page-seos.update');
         Route::resource('cars.crash-tests', CarCrashTestController::class)
             ->parameters(['crash-tests' => 'crashTest'])
             ->except(['show']);
@@ -123,6 +127,5 @@ Route::get('/{brand:slug}/{car:slug}/equipment-{order}/', [SiteCarController::cl
     ->where('order', '[1-9]\d*')
     ->name('car.equipment');
 Route::get('/{brand:slug}/{car:slug}/{city:slug}', [SiteCarController::class, 'dealer'])
-    ->withoutScopedBindings()
     ->name('car.dealer');
 Route::get('/{brand:slug}/{car:slug}', [SiteCarController::class, 'show'])->name('car.show');

@@ -38,6 +38,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'equipment_seo_og_image',
     'equipment_seo_canonical_url',
     'equipment_seo_robots',
+    'dealer_seo_title',
+    'dealer_seo_description',
+    'dealer_seo_h1',
+    'dealer_seo_og_image',
+    'dealer_seo_canonical_url',
+    'dealer_seo_robots',
     'reviews_seo_title',
     'reviews_seo_description',
     'reviews_seo_h1',
@@ -56,6 +62,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'test_drive_seo_og_image',
     'test_drive_seo_canonical_url',
     'test_drive_seo_robots',
+    'photo_seo_title',
+    'photo_seo_description',
+    'photo_seo_h1',
+    'photo_seo_og_image',
+    'photo_seo_canonical_url',
+    'photo_seo_robots',
     'views_count',
 ])]
 class Car extends Model
@@ -129,6 +141,11 @@ class Car extends Model
         return $this->belongsToMany(Dealer::class, 'car_dealers')
             ->withPivot(['city_id', 'address', 'phone', 'website', 'is_official'])
             ->withTimestamps();
+    }
+
+    public function cities(): BelongsToMany
+    {
+        return $this->belongsToMany(City::class, 'car_dealers');
     }
 
     public function coverUrl(): string

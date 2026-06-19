@@ -63,10 +63,14 @@
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
     <h1 style="padding-left:20px;">
-        <a href="{{ $carPath }}/">
-            {{ $car->name }}
-        </a>
-        › Тест-драйв
+        @if (filled($pageH1 ?? null))
+            {{ $pageH1 }}
+        @else
+            <a href="{{ $carPath }}/">
+                {{ $car->name }}
+            </a>
+            › Тест-драйв
+        @endif
     </h1>
 
     <div class="p_test_drive">Подборка видео обзоров {{ $car->name }}: тест-драйвы нового автомобиля.</div>

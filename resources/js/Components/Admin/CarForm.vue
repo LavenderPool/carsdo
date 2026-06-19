@@ -30,6 +30,12 @@ type CarForm = ReturnType<typeof useForm<{
     equipment_seo_og_image: string;
     equipment_seo_canonical_url: string;
     equipment_seo_robots: string;
+    dealer_seo_title: string;
+    dealer_seo_description: string;
+    dealer_seo_h1: string;
+    dealer_seo_og_image: string;
+    dealer_seo_canonical_url: string;
+    dealer_seo_robots: string;
     reviews_seo_title: string;
     reviews_seo_description: string;
     reviews_seo_h1: string;
@@ -48,6 +54,12 @@ type CarForm = ReturnType<typeof useForm<{
     test_drive_seo_og_image: string;
     test_drive_seo_canonical_url: string;
     test_drive_seo_robots: string;
+    photo_seo_title: string;
+    photo_seo_description: string;
+    photo_seo_h1: string;
+    photo_seo_og_image: string;
+    photo_seo_canonical_url: string;
+    photo_seo_robots: string;
 }>>;
 
 defineProps<{
@@ -166,6 +178,15 @@ const emit = defineEmits<{
 
         <SeoFieldsSection
             :form="form"
+            prefix="dealer_seo"
+            title="SEO страницы дилеров"
+            description="Используется на странице официальных дилеров в конкретном городе."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {city}, {site_name}, {price}, {price_range}, {current_year}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
             prefix="reviews_seo"
             title="SEO страницы отзывов"
             description="Используется на странице отзывов владельцев."
@@ -188,6 +209,15 @@ const emit = defineEmits<{
             title="SEO страницы тест-драйва"
             description="Используется на странице тест-драйвов."
             placeholders-hint="Плейсхолдеры: {brand}, {car}, {test_drives_count}, {site_name}."
+            :fallback-image="form.cover_path || null"
+        />
+
+        <SeoFieldsSection
+            :form="form"
+            prefix="photo_seo"
+            title="SEO страницы фото"
+            description="Используется на странице фотогалереи автомобиля."
+            placeholders-hint="Плейсхолдеры: {brand}, {car}, {site_name}."
             :fallback-image="form.cover_path || null"
         />
 

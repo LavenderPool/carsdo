@@ -108,7 +108,13 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Фото</h1>
+    <h1 style="padding-left:20px;">
+        @if (filled($pageH1 ?? null))
+            {{ $pageH1 }}
+        @else
+            <a href="{{ $carPath }}/">{{ $car->name }}</a> › Фото
+        @endif
+    </h1>
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>

@@ -4,6 +4,7 @@ namespace App\Support\Seo;
 
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarPageSeo;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
@@ -12,11 +13,17 @@ use App\Models\City;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Schema;
 use RalphJSmit\Laravel\SEO\SchemaCollection;
 use RalphJSmit\Laravel\SEO\Support\SEOData;
 
 class PageSeoFactory
 {
+    /**
+     * @var array<string, array<string, string|null>>|null
+     */
+    private ?array $carPageOverridesCache = null;
+
     public function forView(string $viewName, array $data): ?SEOData
     {
         return $this->resolveForView($viewName, $data)?->seoData;
@@ -479,7 +486,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => $car->name,
             ],
-            overrides: $this->modelSeoOverrides($car),
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car),
+                $this->carPageOverrides('car_index'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'price' => $priceText,
                 'price_range' => $priceText,
@@ -531,7 +541,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › {$selectedGroup->name}",
             ],
-            overrides: $this->modelSeoOverrides($car, 'equipment_seo'),
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'equipment_seo'),
+                $this->carPageOverrides('car_equipment'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'group' => $selectedGroup->name,
                 'configuration_price' => $this->configurationPriceText($selectedConfiguration),
@@ -567,7 +580,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › Отзывы владельцев (плюсы и минусы)",
             ],
-            overrides: $this->modelSeoOverrides($car, 'reviews_seo'),
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'reviews_seo'),
+                $this->carPageOverrides('car_reviews'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'reviews_count' => $reviews->count(),
             ]),
@@ -600,9 +616,15 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › Официальные дилеры ({$city->name})",
             ],
-            overrides: [],
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'dealer_seo'),
+                $this->carPageOverrides('car_dealer'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'city' => $city->name,
+                'current_year' => now()->year,
+                'price' => $this->carPriceText($car, $this->toCollection($car->configurations)),
+                'price_range' => $this->carPriceText($car, $this->toCollection($car->configurations)),
             ]),
             modifiedTime: $this->latestUpdatedAt([$brand, $car, $city]),
             schema: $this->makeSchema(
@@ -636,7 +658,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › Краш-тест",
             ],
-            overrides: $this->modelSeoOverrides($car, 'crash_test_seo'),
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'crash_test_seo'),
+                $this->carPageOverrides('car_crash_test'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'crash_test_year' => (string) ($crashTest?->year ?? ''),
                 'crash_test_rating' => (string) ($crashTest?->rating ?? ''),
@@ -685,7 +710,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › Тест-драйв",
             ],
-            overrides: $this->modelSeoOverrides($car, 'test_drive_seo'),
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'test_drive_seo'),
+                $this->carPageOverrides('car_test_drive'),
+            ),
             context: array_merge($this->carContext($brand, $car), [
                 'test_drives_count' => $testDrives->count(),
             ]),
@@ -725,7 +753,10 @@ class PageSeoFactory
                 'image' => $car->coverUrl(),
                 'h1' => "{$car->name} › Фото",
             ],
-            overrides: [],
+            overrides: $this->layeredOverrides(
+                $this->modelSeoOverrides($car, 'photo_seo'),
+                $this->carPageOverrides('car_photo'),
+            ),
             context: $this->carContext($brand, $car),
             modifiedTime: $this->latestUpdatedAt([$brand, $car, $this->toCollection($car->photos), $this->toCollection($car->photoGroups)]),
             schema: $this->makeSchema(
@@ -1199,6 +1230,15 @@ class PageSeoFactory
         return (array) config("seo.admin.pages.{$prefix}", []);
     }
 
+    private function carPageOverrides(string $pageKey): array
+    {
+        if ($this->carPageOverridesCache === null) {
+            $this->carPageOverridesCache = $this->loadCarPageOverrides();
+        }
+
+        return $this->carPageOverridesCache[$pageKey] ?? [];
+    }
+
     private function modelSeoOverrides(object $model, string $prefix = 'seo'): array
     {
         return [
@@ -1209,6 +1249,56 @@ class PageSeoFactory
             'canonical_url' => data_get($model, "{$prefix}_canonical_url"),
             'robots' => data_get($model, "{$prefix}_robots"),
         ];
+    }
+
+    private function layeredOverrides(array ...$layers): array
+    {
+        $resolved = [];
+
+        foreach (AdminSeoFields::BASE_KEYS as $field) {
+            $resolved[$field] = null;
+
+            foreach ($layers as $layer) {
+                $candidate = $layer[$field] ?? null;
+
+                if ($this->hasOverrideValue($candidate)) {
+                    $resolved[$field] = $candidate;
+                    break;
+                }
+            }
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * @return array<string, array<string, string|null>>
+     */
+    private function loadCarPageOverrides(): array
+    {
+        if (! Schema::hasTable('car_page_seos')) {
+            return [];
+        }
+
+        try {
+            return CarPageSeo::query()
+                ->get()
+                ->mapWithKeys(fn (CarPageSeo $page): array => [
+                    $page->page_key => $page->only(AdminSeoFields::BASE_KEYS),
+                ])
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    private function hasOverrideValue(mixed $value): bool
+    {
+        if (! is_string($value)) {
+            return $value !== null;
+        }
+
+        return trim($value) !== '';
     }
 
     private function resolveOverrideValue(mixed $value, array $context): ?string

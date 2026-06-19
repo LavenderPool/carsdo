@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{
     fallbackImage: null,
 });
 
-const fieldName = (suffix: string): string => `${props.prefix}_${suffix}`;
+const fieldName = (suffix: string): string => props.prefix !== '' ? `${props.prefix}_${suffix}` : suffix;
 
 const previewImage = computed(() => {
     const customImage = props.form[fieldName('og_image')];

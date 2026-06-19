@@ -64,10 +64,14 @@
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
     <h1 style="padding-left:20px;">
-        <a href="{{ $carPath }}/">
-            {{ $car->name }}
-        </a>
-        › Краш-тест
+        @if (filled($pageH1 ?? null))
+            {{ $pageH1 }}
+        @else
+            <a href="{{ $carPath }}/">
+                {{ $car->name }}
+            </a>
+            › Краш-тест
+        @endif
     </h1>
 
     <div class="p_crash_test">

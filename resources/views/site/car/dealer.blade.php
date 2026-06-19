@@ -86,7 +86,13 @@
 @section('content')
 <div class="block1">
     <div class="block_moscow">
-        <h1 style="padding-left:20px;"><a href="{{ $carPath }}/">{{ $car->name }}</a> › Официальные дилеры ({{ $city->name }})</h1>
+        <h1 style="padding-left:20px;">
+            @if (filled($pageH1 ?? null))
+                {{ $pageH1 }}
+            @else
+                <a href="{{ $carPath }}/">{{ $car->name }}</a> › Официальные дилеры ({{ $city->name }})
+            @endif
+        </h1>
 
         <p>
             Где купить новый {{ $car->name }} у оффициального диллера в {{ $cityInPrepositional }}. Ознакомиться с актуальными ценами,

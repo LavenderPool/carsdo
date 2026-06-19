@@ -3,6 +3,7 @@ import BrandController from './BrandController'
 import DealerController from './DealerController'
 import CarDealerController from './CarDealerController'
 import CarController from './CarController'
+import CarPageSeoController from './CarPageSeoController'
 import CarCrashTestController from './CarCrashTestController'
 import CarTestDriveController from './CarTestDriveController'
 import CarReviewController from './CarReviewController'
@@ -22,6 +23,7 @@ const Admin = {
     DealerController: Object.assign(DealerController, DealerController),
     CarDealerController: Object.assign(CarDealerController, CarDealerController),
     CarController: Object.assign(CarController, CarController),
+    CarPageSeoController: Object.assign(CarPageSeoController, CarPageSeoController),
     CarCrashTestController: Object.assign(CarCrashTestController, CarCrashTestController),
     CarTestDriveController: Object.assign(CarTestDriveController, CarTestDriveController),
     CarReviewController: Object.assign(CarReviewController, CarReviewController),

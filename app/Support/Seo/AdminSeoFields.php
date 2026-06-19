@@ -34,9 +34,11 @@ final class AdminSeoFields
     public const CAR_PAGE_PREFIXES = [
         'seo',
         'equipment_seo',
+        'dealer_seo',
         'reviews_seo',
         'crash_test_seo',
         'test_drive_seo',
+        'photo_seo',
     ];
 
     /**

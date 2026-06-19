@@ -74,6 +74,19 @@ const LinkIcon = createOutlineIcon([
     },
 ]);
 
+const DocumentTextIcon = createOutlineIcon([
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M19.5 14.25V11.625a3.375 3.375 0 0 0-3.375-3.375H14.25A2.25 2.25 0 0 1 12 6V4.125A3.375 3.375 0 0 0 8.625.75H6.75A2.25 2.25 0 0 0 4.5 3v18A2.25 2.25 0 0 0 6.75 23.25h10.5A2.25 2.25 0 0 0 19.5 21V14.25Z',
+    },
+    {
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
+        d: 'M8.25 12h7.5M8.25 15.75h7.5M8.25 19.5h4.5',
+    },
+]);
+
 const CarIcon = defineComponent({
     name: 'CarIcon',
     render() {
@@ -205,6 +218,12 @@ const navigationItems: NavigationItem[] = [
         routeName: 'admin.cars.index',
         activePattern: 'admin.cars.*',
         icon: CarIcon,
+    },
+    {
+        label: 'SEO авто-страниц',
+        routeName: 'admin.car-page-seos.index',
+        activePattern: 'admin.car-page-seos.*',
+        icon: DocumentTextIcon,
     },
     {
         label: 'Глобальные настройки',

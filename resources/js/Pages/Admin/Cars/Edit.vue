@@ -29,6 +29,12 @@ const props = defineProps<{
         equipment_seo_og_image: string | null;
         equipment_seo_canonical_url: string | null;
         equipment_seo_robots: string | null;
+        dealer_seo_title: string | null;
+        dealer_seo_description: string | null;
+        dealer_seo_h1: string | null;
+        dealer_seo_og_image: string | null;
+        dealer_seo_canonical_url: string | null;
+        dealer_seo_robots: string | null;
         reviews_seo_title: string | null;
         reviews_seo_description: string | null;
         reviews_seo_h1: string | null;
@@ -47,6 +53,12 @@ const props = defineProps<{
         test_drive_seo_og_image: string | null;
         test_drive_seo_canonical_url: string | null;
         test_drive_seo_robots: string | null;
+        photo_seo_title: string | null;
+        photo_seo_description: string | null;
+        photo_seo_h1: string | null;
+        photo_seo_og_image: string | null;
+        photo_seo_canonical_url: string | null;
+        photo_seo_robots: string | null;
     };
     brands: Array<{ id: number; name: string }>;
     nestedLinks: Record<string, string>;
@@ -76,6 +88,12 @@ const form = useForm({
     equipment_seo_og_image: props.car.equipment_seo_og_image ?? '',
     equipment_seo_canonical_url: props.car.equipment_seo_canonical_url ?? '',
     equipment_seo_robots: props.car.equipment_seo_robots ?? '',
+    dealer_seo_title: props.car.dealer_seo_title ?? '',
+    dealer_seo_description: props.car.dealer_seo_description ?? '',
+    dealer_seo_h1: props.car.dealer_seo_h1 ?? '',
+    dealer_seo_og_image: props.car.dealer_seo_og_image ?? '',
+    dealer_seo_canonical_url: props.car.dealer_seo_canonical_url ?? '',
+    dealer_seo_robots: props.car.dealer_seo_robots ?? '',
     reviews_seo_title: props.car.reviews_seo_title ?? '',
     reviews_seo_description: props.car.reviews_seo_description ?? '',
     reviews_seo_h1: props.car.reviews_seo_h1 ?? '',
@@ -94,6 +112,12 @@ const form = useForm({
     test_drive_seo_og_image: props.car.test_drive_seo_og_image ?? '',
     test_drive_seo_canonical_url: props.car.test_drive_seo_canonical_url ?? '',
     test_drive_seo_robots: props.car.test_drive_seo_robots ?? '',
+    photo_seo_title: props.car.photo_seo_title ?? '',
+    photo_seo_description: props.car.photo_seo_description ?? '',
+    photo_seo_h1: props.car.photo_seo_h1 ?? '',
+    photo_seo_og_image: props.car.photo_seo_og_image ?? '',
+    photo_seo_canonical_url: props.car.photo_seo_canonical_url ?? '',
+    photo_seo_robots: props.car.photo_seo_robots ?? '',
 });
 
 const submit = () => {

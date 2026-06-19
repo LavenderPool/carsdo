@@ -104,7 +104,7 @@ defineProps<{
                                     >
                                         <div class="truncate text-slate-700">
                                             <span class="mr-2 font-medium text-slate-400">#{{ index + 1 }}</span>
-                                            {{ car.brand ? `${car.brand} ${car.name}` : car.name }}
+                                            {{ car.name }}
                                         </div>
                                         <div class="font-semibold text-slate-900">{{ car.views_count }}</div>
                                     </div>

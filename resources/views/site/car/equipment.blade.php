@@ -138,7 +138,11 @@
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
     <h1 style="padding-left:20px;">
-        <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
+        @if (filled($pageH1 ?? null))
+            {{ $pageH1 }}
+        @else
+            <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
+        @endif
     </h1>
 
     @if ($selectedConfiguration)

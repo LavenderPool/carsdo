@@ -3,6 +3,7 @@ import brands from './brands'
 import dealers from './dealers'
 import carDealers from './car-dealers'
 import cars from './cars'
+import carPageSeos from './car-page-seos'
 import importMethod from './import'
 import danger from './danger'
 import settings from './settings'
@@ -56,6 +57,7 @@ const admin = {
     dealers: Object.assign(dealers, dealers),
     carDealers: Object.assign(carDealers, carDealers),
     cars: Object.assign(cars, cars),
+    carPageSeos: Object.assign(carPageSeos, carPageSeos),
     import: Object.assign(importMethod, importMethod),
     danger: Object.assign(danger, danger),
     settings: Object.assign(settings, settings),

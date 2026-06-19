@@ -63,9 +63,11 @@ class CarCrudTest extends TestCase
                 'seo_robots' => 'index, follow',
                 'equipment_seo_title' => '{group} equipment',
                 'equipment_seo_h1' => '{car} equipment',
+                'dealer_seo_title' => 'Dealer {city}',
                 'reviews_seo_title' => 'Reviews {car}',
                 'crash_test_seo_title' => 'Crash {car}',
                 'test_drive_seo_title' => 'Drive {car}',
+                'photo_seo_title' => 'Photo {car}',
             ])
             ->assertRedirect(route('admin.cars.index'));
 
@@ -97,9 +99,11 @@ class CarCrudTest extends TestCase
                 'seo_robots' => 'noindex, nofollow',
                 'equipment_seo_title' => 'Equipment title',
                 'equipment_seo_h1' => 'Equipment H1',
+                'dealer_seo_title' => 'Dealer title',
                 'reviews_seo_title' => 'Reviews title',
                 'crash_test_seo_title' => 'Crash title',
                 'test_drive_seo_title' => 'Drive title',
+                'photo_seo_title' => 'Photo title',
             ])
             ->assertRedirect(route('admin.cars.index'));
 
@@ -110,6 +114,8 @@ class CarCrudTest extends TestCase
         $this->assertSame('Model 3 title', $car->seo_title);
         $this->assertSame('noindex, nofollow', $car->seo_robots);
         $this->assertSame('Equipment title', $car->equipment_seo_title);
+        $this->assertSame('Dealer title', $car->dealer_seo_title);
+        $this->assertSame('Photo title', $car->photo_seo_title);
 
         $this->actingAs($user)
             ->delete(route('admin.cars.destroy', $car))

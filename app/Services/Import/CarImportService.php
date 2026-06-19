@@ -159,7 +159,7 @@ class CarImportService
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
-     *     carsBySlug: array<string, Car>
+     *     carsByKey: array<string, Car>
      * }
      */
     private function buildChunkContext(array $carsPayload): array
@@ -217,18 +217,10 @@ class CarImportService
             ->keyBy('name')
             ->all();
 
-        /** @var array<string, Car> $carsBySlug */
-        $carsBySlug = Car::query()
+        /** @var array<string, Car> $carsByKey */
+        $carsByKey = Car::query()
             ->whereIn('slug', array_values(array_unique($carSlugs)), 'and', false)
-            ->with([
-                'crashTest',
-                'testDrives',
-                'reviews',
-                'photoGroups.photos',
-                'carDealers',
-                'configurationGroups.configurations',
-                'configurationGroups.equipmentCategories.items',
-            ])
+            ->with($this->carImportRelations())
             ->get()
             ->mapWithKeys(function (Car $car): array {
                 $this->initializeCarRelations($car);
@@ -245,7 +237,7 @@ class CarImportService
                     $this->initializePhotoGroupRelations($group);
                 }
 
-                return [$car->slug => $car];
+                return [$this->carKey($car->brand_id, $car->slug) => $car];
             })
             ->all();
 
@@ -253,7 +245,7 @@ class CarImportService
             'brandsBySlug' => $brandsBySlug,
             'citiesBySlug' => $citiesBySlug,
             'dealersByName' => $dealersByName,
-            'carsBySlug' => $carsBySlug,
+            'carsByKey' => $carsByKey,
         ];
     }
 
@@ -377,13 +369,15 @@ class CarImportService
             'cover_path' => $this->normalizeMediaPath($payload['cover_path'] ?? null),
         ];
 
+        $carKey = $this->carKey($brand->id, $slug);
+
         /** @var Car|null $car */
-        $car = $chunkContext['carsBySlug'][$slug] ?? null;
+        $car = $chunkContext['carsByKey'][$carKey] ?? null;
 
         /** @var Car $car */
-        $car = $this->syncModel($car, Car::class, $attributes, $stats);
+        $car = $this->syncImportedCar($car, $brand->id, $slug, $attributes, $stats);
         $this->initializeCarRelations($car);
-        $chunkContext['carsBySlug'][$slug] = $car;
+        $this->cacheCar($chunkContext, $car);
 
         $this->syncCrashTest($car, $payload['crash_test'] ?? null, $stats);
         $this->syncTestDrives($car, $payload['test_drives'] ?? [], $stats);
@@ -788,6 +782,64 @@ class CarImportService
     }
 
     /**
+     * @return array<int, string>
+     */
+    private function carImportRelations(): array
+    {
+        return [
+            'crashTest',
+            'testDrives',
+            'reviews',
+            'photoGroups.photos',
+            'carDealers',
+            'configurationGroups.configurations',
+            'configurationGroups.equipmentCategories.items',
+        ];
+    }
+
+    private function carKey(int $brandId, string $slug): string
+    {
+        return $brandId.'|'.mb_strtolower($slug);
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
+     */
+    private function syncImportedCar(?Car $car, int $brandId, string $slug, array $attributes, array &$stats): Car
+    {
+        if ($car instanceof Car) {
+            /** @var Car $car */
+            $car = $this->syncModel($car, Car::class, $attributes, $stats);
+
+            return $car;
+        }
+
+        try {
+            /** @var Car $created */
+            $created = Car::query()->create($attributes);
+            $this->bump($stats, 'new');
+
+            return $created;
+        } catch (QueryException $exception) {
+            if (! $this->isUniqueConstraintViolation($exception)) {
+                throw $exception;
+            }
+
+            $existingCar = $this->findCarByBrandAndSlug($brandId, $slug);
+
+            if (! $existingCar instanceof Car) {
+                throw $exception;
+            }
+
+            /** @var Car $existingCar */
+            $existingCar = $this->syncModel($existingCar, Car::class, $attributes, $stats);
+
+            return $existingCar;
+        }
+    }
+
+    /**
      * @param  class-string<Model>  $modelClass
      * @param  array<string, mixed>  $attributes
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
@@ -821,7 +873,7 @@ class CarImportService
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
-     *     carsBySlug: array<string, Car>
+     *     carsByKey: array<string, Car>
      * }  $chunkContext
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
@@ -877,13 +929,54 @@ class CarImportService
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
-     *     carsBySlug: array<string, Car>
+     *     carsByKey: array<string, Car>
      * }  $chunkContext
      */
     private function cacheDealer(array &$chunkContext, string $lookupName, Dealer $dealer): void
     {
         $chunkContext['dealersByName'][$lookupName] = $dealer;
         $chunkContext['dealersByName'][$dealer->name] = $dealer;
+    }
+
+    /**
+     * @param  array{
+     *     brandsBySlug: array<string, Brand>,
+     *     citiesBySlug: array<string, City>,
+     *     dealersByName: array<string, Dealer>,
+     *     carsByKey: array<string, Car>
+     * }  $chunkContext
+     */
+    private function cacheCar(array &$chunkContext, Car $car): void
+    {
+        $chunkContext['carsByKey'][$this->carKey($car->brand_id, $car->slug)] = $car;
+    }
+
+    private function findCarByBrandAndSlug(int $brandId, string $slug): ?Car
+    {
+        /** @var Car|null $car */
+        $car = Car::query()
+            ->where('brand_id', $brandId)
+            ->where('slug', $slug)
+            ->with($this->carImportRelations())
+            ->first();
+
+        if ($car instanceof Car) {
+            $this->initializeCarRelations($car);
+
+            foreach ($car->configurationGroups as $group) {
+                $this->initializeConfigurationGroupRelations($group);
+
+                foreach ($group->equipmentCategories as $category) {
+                    $this->initializeEquipmentCategoryRelations($category);
+                }
+            }
+
+            foreach ($car->photoGroups as $group) {
+                $this->initializePhotoGroupRelations($group);
+            }
+        }
+
+        return $car;
     }
 
     private function findDealerByName(string $dealerName): ?Dealer
