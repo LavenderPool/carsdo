@@ -653,6 +653,9 @@ class CarImportService
                 'car_id' => $car->id,
                 'car_configuration_group_id' => $group->id,
                 'local_id' => $this->normalizeInteger($configurationPayload['local_id'] ?? null),
+                'have_page' => array_key_exists('have_page', $configurationPayload)
+                    ? $this->normalizeBoolean($configurationPayload['have_page'])
+                    : ($configuration?->have_page ?? true),
                 'import_index' => $configurationIndex,
                 'price' => $this->normalizeInteger($configurationPayload['price'] ?? null),
                 'engine_type' => $this->normalizeString($configurationPayload['engine_type'] ?? null),

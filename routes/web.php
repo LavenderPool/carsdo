@@ -79,6 +79,8 @@ Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
         Route::get('/import/{importRun}', [ImportController::class, 'status'])->name('import.status');
         Route::post('/import/{importRun}/stop', [ImportController::class, 'stop'])->name('import.stop');
         Route::get('/danger/full-clear', [DangerController::class, 'fullClear'])->name('danger.full-clear');
+        Route::get('/danger/set-local-ids', [DangerController::class, 'setLocalIds'])->name('danger.set-local-ids');
+        Route::post('/danger/set-local-ids', [DangerController::class, 'applySetLocalIds'])->name('danger.set-local-ids.apply');
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     });

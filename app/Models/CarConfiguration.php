@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'car_id',
     'car_configuration_group_id',
     'local_id',
+    'have_page',
     'import_index',
     'price',
     'engine_type',
@@ -34,6 +35,7 @@ class CarConfiguration extends Model
      */
     protected $casts = [
         'local_id' => 'integer',
+        'have_page' => 'boolean',
         'import_index' => 'integer',
         'price' => 'integer',
         'engine_capacity' => 'decimal:2',

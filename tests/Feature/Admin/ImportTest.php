@@ -150,6 +150,7 @@ class ImportTest extends TestCase
         $this->assertSame($photoGroup->id, $photo->car_photo_group_id);
         $this->assertSame(['2024', 'Highland'], $car->versions);
         $this->assertSame(101, $configuration->local_id);
+        $this->assertFalse($configuration->have_page);
         $this->assertSame('5.0', $configuration->acceleration);
         $this->assertSame(0, $group->import_index);
         $this->assertSame($configuration->id, $category->car_configuration_id);
@@ -323,6 +324,7 @@ class ImportTest extends TestCase
         $updatedPayload['cars'][0]['start_price'] = 53000;
         $updatedPayload['cars'][0]['crash_test']['rating'] = 4;
         $updatedPayload['cars'][0]['groups'][0]['items'][0]['price'] = 56000;
+        $updatedPayload['cars'][0]['groups'][0]['items'][0]['have_page'] = true;
         $updatedPayload['cars'][0]['groups'][0]['items'][0]['equipment'][0]['items'][0]['price'] = 2500;
         unset($updatedPayload['cars'][0]['reviews']);
 
@@ -346,6 +348,7 @@ class ImportTest extends TestCase
         $this->assertSame(53000, $car->start_price);
         $this->assertSame(4, $crashTest->rating);
         $this->assertSame(56000, $configuration->price);
+        $this->assertTrue($configuration->have_page);
         $this->assertSame(2500, $equipment->price);
         $this->assertDatabaseCount('car_reviews', 1);
     }
@@ -372,6 +375,30 @@ class ImportTest extends TestCase
         $configuration = CarConfiguration::query()->firstOrFail();
 
         $this->assertSame('2.5', $configuration->acceleration);
+    }
+
+    public function test_import_uses_default_have_page_when_payload_omits_field(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+
+        $payload = $this->payload();
+        unset($payload['cars'][0]['groups'][0]['items'][0]['have_page']);
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'import-without-have-page.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'succeeded');
+
+        $configuration = CarConfiguration::query()->firstOrFail();
+
+        $this->assertTrue($configuration->have_page);
     }
 
     public function test_import_allows_payload_without_brands_when_brand_exists(): void
@@ -856,6 +883,7 @@ class ImportTest extends TestCase
                             'items' => [
                                 [
                                     'local_id' => 101,
+                                    'have_page' => false,
                                     'price' => 54000,
                                     'engine_type' => 'electric',
                                     'horsepower' => 384,
