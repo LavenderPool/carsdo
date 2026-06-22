@@ -13,7 +13,7 @@ class HomeController extends Controller
 {
     public function __invoke(): View
     {
-        $data = SiteCache::remember('home', static function (): array {
+        $data = SiteCache::remember('home:v2', static function (): array {
             $latestTestDriveIds = CarTestDrive::query()
                 ->selectRaw('MAX(id)', [])
                 ->groupBy('car_id');
@@ -49,7 +49,7 @@ class HomeController extends Controller
                     ->with(['brand:id,name,slug'])
                     ->whereHas('brand')
                     ->popular()
-                    ->limit(40)
+                    ->limit(11)
                     ->get(),
             ];
         });

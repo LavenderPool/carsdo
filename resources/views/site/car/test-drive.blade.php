@@ -62,36 +62,36 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">
-        @if (filled($pageH1 ?? null))
-            {{ $pageH1 }}
-        @else
-            <a href="{{ $carPath }}/">
-                {{ $car->name }}
-            </a>
-            › Тест-драйв
-        @endif
+    <h1>
+        <a href="{{ $carPath }}/">
+            {{ $car->name }}
+        </a>
+        › Тест-драйв
     </h1>
 
     <div class="p_test_drive">Подборка видео обзоров {{ $car->name }}: тест-драйвы нового автомобиля.</div>
 
-    @foreach ($testDrives as $testDrive)
-        @php
-            $youtubeId = $extractYoutubeId($testDrive->video_path);
-        @endphp
-        @if (filled($youtubeId))
-            <div class="name_test_drive">{{ $testDrive->author }}</div>
-            <div class="video">
-                <div
-                    class="youtube"
-                    id="{{ $youtubeId }}"
-                    style="background-image: url('https://i.ytimg.com/vi/{{ $youtubeId }}/hqdefault.jpg');"
-                >
-                    <div class="play"></div>
-                </div>
-            </div>
-        @endif
-    @endforeach
+    <div class="test-drive-list">
+        @foreach ($testDrives as $testDrive)
+            @php
+                $youtubeId = $extractYoutubeId($testDrive->video_path);
+            @endphp
+            @if (filled($youtubeId))
+                <article class="test-drive-card">
+                    <div class="name_test_drive">{{ $testDrive->author }}</div>
+                    <div class="video">
+                        <div
+                            class="youtube"
+                            id="{{ $youtubeId }}"
+                            style="background-image: url('https://i.ytimg.com/vi/{{ $youtubeId }}/hqdefault.jpg');"
+                        >
+                            <div class="play"></div>
+                        </div>
+                    </div>
+                </article>
+            @endif
+        @endforeach
+    </div>
 </div>
 
 <script>

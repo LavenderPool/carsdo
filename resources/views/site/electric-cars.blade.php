@@ -26,37 +26,98 @@
             return 'не объявлена';
         };
 
-        $activePageStyle = 'background:linear-gradient(135deg,#e93737,#b40e0e);';
         $showSoonElectricCars = $electricCars->currentPage() === 1 && $soonElectricCars->isNotEmpty();
+        $normalizedCurrentUrl = rtrim(url()->current(), '/');
+        $isTerActive = static fn (string $path): bool => $normalizedCurrentUrl === rtrim(url($path), '/');
+        $buildPaginationItems = static function (int $currentPage, int $lastPage): array {
+            if ($lastPage < 1) {
+                return [];
+            }
+
+            $pages = [1, $lastPage];
+            $windowStart = max(1, $currentPage - 1);
+            $windowEnd = min($lastPage, $currentPage + 1);
+
+            for ($page = $windowStart; $page <= $windowEnd; $page++) {
+                $pages[] = $page;
+            }
+
+            $pages = array_values(array_unique($pages));
+            sort($pages);
+
+            $items = [];
+            $previousPage = null;
+
+            foreach ($pages as $page) {
+                if ($previousPage !== null && $page - $previousPage > 1) {
+                    $items[] = 'ellipsis';
+                }
+
+                $items[] = $page;
+                $previousPage = $page;
+            }
+
+            return $items;
+        };
+        $electricCarsCurrentPage = $electricCars->currentPage();
+        $electricCarsLastPage = $electricCars->lastPage();
+        $electricCarsPaginationItems = $buildPaginationItems($electricCarsCurrentPage, $electricCarsLastPage);
     @endphp
 
     <section class="block_modeli">
-        <h1 style="margin-top:20px; padding-left:20px;">{{ $pageH1 ?? 'Электромобили в России' }}</h1>
+        <h1>{{ $pageH1 ?? 'Электромобили в России' }}</h1>
         <p>Каталог новых электромобилей в России {{ now()->year }}. Цены и комплектации на новые электромобили. Тест-драйвы и
             фото будущих новинок.</p>
 
         <ul class="ter">
-            <li><a href="/new-cars-{{ $catalogPrevYear }}/">Новые автомобили {{ $catalogPrevYear }}</a></li>
-            <li><a href="/new-cars-{{ $catalogPrevTwoYear }}/">Новые автомобили {{ $catalogPrevTwoYear }}</a></li>
-            <li><a href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/">Новые автомобили {{ $catalogPrevTwoYear - 1 }}</a></li>
+            <li>
+                <a @class(['is-active' => $isTerActive('/new-cars-'.$catalogPrevYear.'/')]) href="/new-cars-{{ $catalogPrevYear }}/">
+                    Новые автомобили {{ $catalogPrevYear }}
+                </a>
+            </li>
+            <li>
+                <a @class(['is-active' => $isTerActive('/new-cars-'.$catalogPrevTwoYear.'/')]) href="/new-cars-{{ $catalogPrevTwoYear }}/">
+                    Новые автомобили {{ $catalogPrevTwoYear }}
+                </a>
+            </li>
+            <li>
+                <a
+                    @class(['is-active' => $isTerActive('/new-cars-'.($catalogPrevTwoYear - 1).'/')])
+                    href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/"
+                >
+                    Новые автомобили {{ $catalogPrevTwoYear - 1 }}
+                </a>
+            </li>
         </ul>
 
-        <h2 style="margin:55px 15px 7px 20px;">Новые электромобили: сейчас в продаже</h2>
+        <h2>Новые электромобили: сейчас в продаже</h2>
 
-        @if ($electricCars->lastPage() > 1)
-            <div class="test_page_div_2">
+        @if ($electricCarsLastPage > 1)
+            <nav class="test_page_div_2" aria-label="Страницы списка электромобилей">
                 <ul class="test_page_2">
-                    @for ($page = 1; $page <= $electricCars->lastPage(); $page++)
+                    @if ($electricCarsCurrentPage > 1)
                         <li>
-                            @if ($page === $electricCars->currentPage())
-                                <a style="{{ $activePageStyle }}" href="#">{{ $page }}</a>
+                            <a href="{{ $electricCars->url($electricCarsCurrentPage - 1) }}" aria-label="Предыдущая страница">Назад</a>
+                        </li>
+                    @endif
+                    @foreach ($electricCarsPaginationItems as $paginationItem)
+                        <li>
+                            @if ($paginationItem === 'ellipsis')
+                                <span class="is-ellipsis" aria-hidden="true">…</span>
+                            @elseif ($paginationItem === $electricCarsCurrentPage)
+                                <span aria-current="page" aria-label="Страница {{ $paginationItem }}, текущая">{{ $paginationItem }}</span>
                             @else
-                                <a href="{{ $electricCars->url($page) }}">{{ $page }}</a>
+                                <a href="{{ $electricCars->url($paginationItem) }}" aria-label="Страница {{ $paginationItem }}">{{ $paginationItem }}</a>
                             @endif
                         </li>
-                    @endfor
+                    @endforeach
+                    @if ($electricCarsCurrentPage < $electricCarsLastPage)
+                        <li>
+                            <a href="{{ $electricCars->url($electricCarsCurrentPage + 1) }}" aria-label="Следующая страница">Вперёд</a>
+                        </li>
+                    @endif
                 </ul>
-            </div>
+            </nav>
         @endif
 
         @if ($electricCars->isEmpty())
@@ -64,15 +125,15 @@
         @else
             <ul style="float:none;" class="modeli">
                 @foreach ($electricCars as $car)
-                    <li>
-                        <a class="model_auto_a" href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
-                            <span class="model_auto_photo">
-                                <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                            </span>
-                            <h3 class="model_auto_name">{{ $car->name }}</h3>
-                            <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
-                        </a>
-                    </li>
+                    <x-site.car-card
+                        :href="'/'.$car->brand->slug.'/'.$car->slug.'/'"
+                        :name="$car->name"
+                        :image="$car->coverUrl()"
+                        :price-text="$formatPriceRange($car)"
+                        :is-new="$car->is_soon"
+                        :year="$car->year"
+                        :is-electric="$car->is_electric_car"
+                    />
                 @endforeach
             </ul>
         @endif
@@ -81,39 +142,66 @@
             <h2 style="margin:75px 15px 7px 20px;">Новые электромобили: скоро в продаже</h2>
             <ul style="float:none;" class="modeli">
                 @foreach ($soonElectricCars as $car)
-                    <li>
-                        <a class="model_auto_a" href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
-                            <span class="model_auto_photo">
-                                <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                            </span>
-                            <h3 class="model_auto_name">{{ $car->name }}</h3>
-                            <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
-                        </a>
-                    </li>
+                    <x-site.car-card
+                        :href="'/'.$car->brand->slug.'/'.$car->slug.'/'"
+                        :name="$car->name"
+                        :image="$car->coverUrl()"
+                        :price-text="$formatPriceRange($car)"
+                        :is-new="$car->is_soon"
+                        :year="$car->year"
+                        :is-electric="$car->is_electric_car"
+                    />
                 @endforeach
             </ul>
         @endif
 
-        @if ($electricCars->lastPage() > 1)
-            <div class="test_page_div_2">
+        @if ($electricCarsLastPage > 1)
+            <nav class="test_page_div_2" aria-label="Страницы списка электромобилей">
                 <ul class="test_page_2">
-                    @for ($page = 1; $page <= $electricCars->lastPage(); $page++)
+                    @if ($electricCarsCurrentPage > 1)
                         <li>
-                            @if ($page === $electricCars->currentPage())
-                                <a style="{{ $activePageStyle }}" href="#">{{ $page }}</a>
+                            <a href="{{ $electricCars->url($electricCarsCurrentPage - 1) }}" aria-label="Предыдущая страница">Назад</a>
+                        </li>
+                    @endif
+                    @foreach ($electricCarsPaginationItems as $paginationItem)
+                        <li>
+                            @if ($paginationItem === 'ellipsis')
+                                <span class="is-ellipsis" aria-hidden="true">…</span>
+                            @elseif ($paginationItem === $electricCarsCurrentPage)
+                                <span aria-current="page" aria-label="Страница {{ $paginationItem }}, текущая">{{ $paginationItem }}</span>
                             @else
-                                <a href="{{ $electricCars->url($page) }}">{{ $page }}</a>
+                                <a href="{{ $electricCars->url($paginationItem) }}" aria-label="Страница {{ $paginationItem }}">{{ $paginationItem }}</a>
                             @endif
                         </li>
-                    @endfor
+                    @endforeach
+                    @if ($electricCarsCurrentPage < $electricCarsLastPage)
+                        <li>
+                            <a href="{{ $electricCars->url($electricCarsCurrentPage + 1) }}" aria-label="Следующая страница">Вперёд</a>
+                        </li>
+                    @endif
                 </ul>
-            </div>
+            </nav>
         @endif
 
         <ul style="margin-bottom:50px;" class="ter">
-            <li><a href="/new-cars-{{ $catalogPrevYear }}/">Новые автомобили {{ $catalogPrevYear }}</a></li>
-            <li><a href="/new-cars-{{ $catalogPrevTwoYear }}/">Новые автомобили {{ $catalogPrevTwoYear }}</a></li>
-            <li><a href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/">Новые автомобили {{ $catalogPrevTwoYear - 1 }}</a></li>
+            <li>
+                <a @class(['is-active' => $isTerActive('/new-cars-'.$catalogPrevYear.'/')]) href="/new-cars-{{ $catalogPrevYear }}/">
+                    Новые автомобили {{ $catalogPrevYear }}
+                </a>
+            </li>
+            <li>
+                <a @class(['is-active' => $isTerActive('/new-cars-'.$catalogPrevTwoYear.'/')]) href="/new-cars-{{ $catalogPrevTwoYear }}/">
+                    Новые автомобили {{ $catalogPrevTwoYear }}
+                </a>
+            </li>
+            <li>
+                <a
+                    @class(['is-active' => $isTerActive('/new-cars-'.($catalogPrevTwoYear - 1).'/')])
+                    href="/new-cars-{{ $catalogPrevTwoYear - 1 }}/"
+                >
+                    Новые автомобили {{ $catalogPrevTwoYear - 1 }}
+                </a>
+            </li>
         </ul>
     </section>
 @endsection

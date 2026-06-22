@@ -29,7 +29,7 @@
     @endphp
 
     <section class="block_modeli">
-        <h1 style="margin-top:20px; padding-left:20px;">{{ $pageH1 ?? ($brand->name . ' › Модельный ряд') }}</h1>
+        <h1>{{ $pageH1 ?? ($brand->name . ' › Модельный ряд') }}</h1>
 
         <p>Цены на новый модельный ряд {{ $brand->name }} {{ $currentYear }} в России. Актуальные комплектации и цены, фото
             и тест-драйвы, оборудование и доп опции на новые автомобили {{ $brand->name }} от производителя. <a
@@ -44,15 +44,15 @@
                 </div>
                 <ul class="modeli">
                     @foreach ($currentCars as $car)
-                        <li>
-                            <a class="model_auto_a" href="/{{ $brand->slug }}/{{ $car->slug }}/">
-                                <span class="model_auto_photo">
-                                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                                </span>
-                                <h3 class="model_auto_name">{{ $car->name }}</h3>
-                                <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
-                            </a>
-                        </li>
+                        <x-site.car-card
+                            :href="'/'.$brand->slug.'/'.$car->slug.'/'"
+                            :name="$car->name"
+                            :image="$car->coverUrl()"
+                            :price-text="$formatPriceRange($car)"
+                            :is-new="$car->is_soon"
+                            :year="$car->year"
+                            :is-electric="$car->is_electric_car"
+                        />
                     @endforeach
                 </ul>
             @endif
@@ -64,15 +64,15 @@
                 </div>
                 <ul class="modeli">
                     @foreach ($soonCars as $car)
-                        <li>
-                            <a class="model_auto_a" href="/{{ $brand->slug }}/{{ $car->slug }}/">
-                                <span class="model_auto_photo">
-                                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                                </span>
-                                <h3 class="model_auto_name">{{ $car->name }}</h3>
-                                <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
-                            </a>
-                        </li>
+                        <x-site.car-card
+                            :href="'/'.$brand->slug.'/'.$car->slug.'/'"
+                            :name="$car->name"
+                            :image="$car->coverUrl()"
+                            :price-text="$formatPriceRange($car)"
+                            :is-new="$car->is_soon"
+                            :year="$car->year"
+                            :is-electric="$car->is_electric_car"
+                        />
                     @endforeach
                 </ul>
             @endif
@@ -84,15 +84,15 @@
                 </div>
                 <ul class="modeli">
                     @foreach ($otherCars as $car)
-                        <li>
-                            <a class="model_auto_a" href="/{{ $brand->slug }}/{{ $car->slug }}/">
-                                <span class="model_auto_photo">
-                                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                                </span>
-                                <h3 class="model_auto_name">{{ $car->name }}</h3>
-                                <div class="model_auto_price">{{ $formatPriceRange($car) }}</div>
-                            </a>
-                        </li>
+                        <x-site.car-card
+                            :href="'/'.$brand->slug.'/'.$car->slug.'/'"
+                            :name="$car->name"
+                            :image="$car->coverUrl()"
+                            :price-text="$formatPriceRange($car)"
+                            :is-new="$car->is_soon"
+                            :year="$car->year"
+                            :is-electric="$car->is_electric_car"
+                        />
                     @endforeach
                 </ul>
             @endif

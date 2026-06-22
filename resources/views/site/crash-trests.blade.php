@@ -14,34 +14,14 @@
         <div class="homepage_p">Независимая оценка безопасности вашего будущего автомобиля.</div>
 
         <div class="test_page_div">
-            <ul class="test_page">
-                <li>
-                    <a
-                        style="{{ $selectedCrashTestBrand || $isElectricOnly ? '' : 'color:#ff0000; font-weight:bold;' }}"
-                        href="/crash-test/"
-                    >
-                        Последние
-                    </a>
-                </li>
-                <li>
-                    <a
-                        style="{{ $isElectricOnly ? 'color:#ff0000; font-weight:bold;' : '' }}"
-                        href="/crash-test/electric-cars/"
-                    >
-                        Электромобили
-                    </a>
-                </li>
-                @foreach($crashTestBrands as $crashTestBrand)
-                    <li>
-                        <a
-                            style="{{ $selectedCrashTestBrand?->id === $crashTestBrand->id ? 'color:#ff0000; font-weight:bold;' : '' }}"
-                            href="/crash-test/{{ $crashTestBrand->slug }}/"
-                        >
-                            {{ $crashTestBrand->name }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+            <x-site.brand-filter-select
+                base-url="/crash-test/"
+                :brands="$crashTestBrands"
+                :selected-brand="$selectedCrashTestBrand"
+                :show-electric="true"
+                electric-url="/crash-test/electric-cars/"
+                :is-electric-only="$isElectricOnly"
+            />
         </div>
 
         <div class="homecrash">
@@ -61,6 +41,7 @@
                                     <img
                                         alt="Краш-тест {{ $car->name }}"
                                         src="{{ $car->coverUrl() }}"
+                                        data-car-image="true"
                                     >
                                     <span class="crash-test-card__overlay"></span>
                                     <span class="crash-test-card__content">

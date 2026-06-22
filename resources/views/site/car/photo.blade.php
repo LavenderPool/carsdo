@@ -108,7 +108,7 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">
+    <h1>
         @if (filled($pageH1 ?? null))
             {{ $pageH1 }}
         @else
@@ -124,19 +124,19 @@
         <div><div class="photo_text"><a href="{{ $carPath }}/">Новые комплектации и цены {{ $car->name }}</a></div></div>
 
         @forelse ($photoSections as $sectionIndex => $photoSection)
-            <h2 style="text-align:center; padding:5px 0 10px;">{{ mb_strtoupper($photoSection->name) }}</h2>
+            <h2>{{ mb_strtoupper($photoSection->name) }}</h2>
 
             <div class="photogallerybox">
                 <div class="gallery11">
                     @foreach ($photoSection->photos as $photo)
-                        <a data-fancybox="gallery-{{ $sectionIndex }}" href="{{ $photo->url() }}"><img src="{{ $photo->url() }}"></a>
+                        <a data-fancybox="gallery-{{ $sectionIndex }}" href="{{ $photo->url() }}"><img src="{{ $photo->url() }}" data-car-image="true"></a>
                     @endforeach
                 </div>
             </div>
         @empty
             <div class="photogallerybox">
                 <div class="gallery11">
-                    <img src="{{ $car->coverUrl() }}">
+                    <img src="{{ $car->coverUrl() }}" data-car-image="true">
                 </div>
             </div>
         @endforelse

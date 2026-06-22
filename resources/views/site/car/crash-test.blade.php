@@ -49,6 +49,9 @@
         return null;
     };
 
+    $crashTestYear = $car->crashTest?->year;
+    $crashTestRating = $car->crashTest?->rating;
+    $hasCrashTestMeta = filled($crashTestYear) || ! is_null($crashTestRating);
     $crashTestVideoId = $extractYoutubeId($car->crashTest?->video_path);
     $firstTestDriveVideoPath = $car->testDrives->first()?->video_path;
     $testDriveVideoId = $extractYoutubeId($firstTestDriveVideoPath);
@@ -60,27 +63,37 @@
 @section('title', $car->name.' — краш-тест')
 
 @section('content')
-<div class="block1">
+<div class="block1" style="margin-bottom: 32px; padding-bottom: 32px;">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">
-        @if (filled($pageH1 ?? null))
-            {{ $pageH1 }}
-        @else
-            <a href="{{ $carPath }}/">
-                {{ $car->name }}
-            </a>
-            › Краш-тест
-        @endif
+    <h1>
+        <a href="{{ $carPath }}/">
+            {{ $car->name }}
+        </a>
+        › Краш-тест
     </h1>
 
     <div class="p_crash_test">
-        Краш-тест {{ $car->name }}: видео независимой оценки безопасности нового автомобиля.
-        @if (filled($car->crashTest?->year))
-            <br>Год проведения: {{ $car->crashTest->year }}.
-        @endif
-        @if (filled($car->crashTest?->rating))
-            Результат теста: {{ $car->crashTest->rating }} из 5.
+        <div class="crash-test-intro">
+            Краш-тест {{ $car->name }}: видео независимой оценки безопасности нового автомобиля.
+        </div>
+
+        @if ($hasCrashTestMeta)
+            <div class="crash-test-meta" aria-label="Данные краш-теста">
+                @if (filled($crashTestYear))
+                    <div class="crash-test-meta__item">
+                        <span class="crash-test-meta__label">Год проведения</span>
+                        <span class="crash-test-meta__value">{{ $crashTestYear }} года</span>
+                    </div>
+                @endif
+
+                @if (! is_null($crashTestRating))
+                    <div class="crash-test-meta__item crash-test-meta__item--accent">
+                        <span class="crash-test-meta__label">Результат</span>
+                        <span class="crash-test-meta__value">{{ $crashTestRating }} из 5</span>
+                    </div>
+                @endif
+            </div>
         @endif
     </div>
 
@@ -88,19 +101,22 @@
         @if (filled($crashTestVideoId))
             <div
                 class="youtube"
-                id="{{ $crashTestVideoId }}"
+                data-youtube-id="{{ $crashTestVideoId }}"
+                role="button"
+                tabindex="0"
+                aria-label="Смотреть видео краш-теста {{ $car->name }}"
                 style="background-image: url('https://i.ytimg.com/vi/{{ $crashTestVideoId }}/hqdefault.jpg');"
             >
                 <div class="play"></div>
             </div>
         @else
-            <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}">
+            <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}" data-car-image="true">
         @endif
     </div>
 </div>
 
 @if ($car->testDrives->isNotEmpty())
-    <div class="block_video">
+    <div class="block_video" style="grid-template-columns: 1fr; max-width: 600px; margin: 0 auto!important; marign-bottom: 32px; padding-bottom: 32px;">
         <div class="testdrive_div">
             <div class="testdrive_h"><a href="{{ $carPath }}/test-drive/">Тест-драйв</a></div>
             <div class="testdrive_a">
@@ -117,8 +133,8 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.video .youtube').forEach(function (preview) {
-        preview.addEventListener('click', function () {
-            var videoId = preview.getAttribute('id');
+        var activatePreview = function () {
+            var videoId = preview.getAttribute('data-youtube-id');
             if (!videoId) {
                 return;
             }
@@ -132,6 +148,16 @@ document.addEventListener('DOMContentLoaded', function () {
             iframe.style.height = '100%';
 
             preview.replaceWith(iframe);
+        };
+
+        preview.addEventListener('click', activatePreview, { once: true });
+        preview.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            event.preventDefault();
+            activatePreview();
         }, { once: true });
     });
 });

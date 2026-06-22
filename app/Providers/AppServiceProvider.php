@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
 
         $setting = new Setting(['brand_name' => 'carsDo']);
         $brands = collect();
+        $headerBrands = collect();
 
         try {
             $hasSettingsTable = Schema::hasTable('settings');
@@ -48,6 +49,15 @@ class AppServiceProvider extends ServiceProvider
                     ->orderBy('name')
                     ->get())
                 : $brands;
+            $headerBrands = $hasBrandsTable
+                ? SiteCache::remember('header:popular-brands', static fn () => Brand::query()
+                    ->select(['id', 'name', 'slug'])
+                    ->whereHas('cars')
+                    ->popular()
+                    ->orderBy('name')
+                    ->limit(15)
+                    ->get())
+                : $headerBrands;
         } catch (\Throwable) {
             // CLI build steps (e.g. Wayfinder generation) may run without DB access.
         }
@@ -76,6 +86,7 @@ class AppServiceProvider extends ServiceProvider
             'siteFaviconUrl' => asset(ltrim($siteFaviconPath, '/')),
             'footerBrandsActive' => $brands->where('leave_from_russian', false)->values(),
             'footerBrandsLeft' => $brands->where('leave_from_russian', true)->values(),
+            'headerPopularBrands' => $headerBrands,
             'catalogYear' => $currentYear,
             'catalogPrevYear' => $currentYear - 1,
             'catalogPrevTwoYear' => $currentYear - 2,

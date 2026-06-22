@@ -50,7 +50,7 @@
     };
 @endphp
 
-<div style="padding:75px 12px 10px 20px;" class="tito-new"><h2>Комплектации и цены <br>{{ $car->name }}</h2></div>
+<div class="tito-new"><h2>Комплектации и цены <br>{{ $car->name }}</h2></div>
 <div class="price_new_margin">
     <div id="price_new">
         <div class="price_car_0">
@@ -117,8 +117,10 @@
             @foreach ($mainCars as $mainCarIndex => $mainCar)
                 @php $rowClass = $mainCarIndex % 2 === 0 ? 'brand_model_1' : 'brand_model_2'; @endphp
                 <div class="{{ $rowClass }}">
-                    <div class="brand_model_car"><a href="/{{ $brand->slug }}/{{ $mainCar->slug }}/">{{ $mainCar->name }}</a></div>
-                    <div class="brand_model_price">{{ $formatPrice($mainCar->start_price) }}</div>
+                    <a class="brand_model_row_link" href="/{{ $brand->slug }}/{{ $mainCar->slug }}/">
+                        <div class="brand_model_car">{{ $mainCar->name }}</div>
+                        <div class="brand_model_price">{{ $formatPrice($mainCar->start_price) }}</div>
+                    </a>
                 </div>
             @endforeach
         </div>

@@ -20,11 +20,6 @@ body {
     width: 100%;
     max-width: 1000px;}
     
-    p::after, div::after, ul::after, ol::after, li::after, form::after {
-    clear: both;
-    content: "";
-    display: block;}
-    
     .block1 {
     position: relative;
     width: 100%;
@@ -42,7 +37,6 @@ body {
     .a_moscow {font-weight: bold;}
     
     p {
-    margin: 7px 20px 7px 20px;
     font-size: 1.2em;
     text-align: left;
     color: #555;}
@@ -75,15 +69,32 @@ body {
     font-size: 1.35em;
     text-decoration: none;}
     
-    h3 {
-    font-family: Roboto Condensed;
-    font-size: 2em;
-    font-weight: bold;
-    line-height: 1em;
-    line-height: 110%;
-    padding: 0 20px;}
-    
     img {border: 0 none;}
+
+    img[data-car-image] {
+    display: block;
+    opacity: 0;
+    transition: opacity .2s ease;
+    background-color: #edf1f5;
+    background-image: linear-gradient(90deg, rgba(237, 241, 245, 0.96) 0%, rgba(255, 255, 255, 0.96) 50%, rgba(237, 241, 245, 0.96) 100%);
+    background-repeat: no-repeat;
+    background-size: 200% 100%;}
+
+    img[data-car-image].is-loading {
+    animation: car-image-skeleton 1.2s linear infinite;}
+
+    img[data-car-image].is-loaded {
+    opacity: 1;
+    animation: none;
+    background-image: none;}
+
+    img[data-car-image].is-error {
+    background-color: #f5f7fa;
+    object-fit: contain;}
+
+    @keyframes car-image-skeleton {
+    0% {background-position: 200% 0;}
+    100% {background-position: -200% 0;}}
     
     table {border-collapse: collapse;}
     
@@ -112,40 +123,6 @@ body {
     .social_networks img {
     width: 44px;
     margin-left: 7px;}
-    
-    .menu {
-    width: 100%;
-    text-transform: uppercase;}
-    
-    .main_menu {
-    list-style: none;
-    width: 100%;}
-     
-    .main_menu li {
-    float: left;
-    width: 16.66%;
-    text-align: center;
-    background-color: #555;
-    -moz-box-sizing: border-box;
-    box-sizing: border-box;
-    border-bottom: 1px solid #fff;
-    line-height: 2.5em;
-    color: #fff;
-    font-size: 1.1em;
-    font-family: Roboto Condensed;
-    border-right: 1px solid #fff;
-    background: linear-gradient(-12deg,#31b5b5,#065878);
-    letter-spacing: 1px;}
-    
-    .main_menu li:hover {
-    background: linear-gradient(196deg, #8c0b0b, #fb5757);}
-     
-    .main_menu a {
-    display: block;
-    color: #fff;
-    letter-spacing: 1px;
-    text-decoration: none;
-    text-shadow: 2px 3px 2px #555;}
      
     #minsk {width: 100%;}
     
@@ -154,8 +131,6 @@ body {
     text-transform: uppercase;
     width: 100%;
     font-family: Roboto Condensed;}
-    
-    .menu-bottom {}
     
     .menu-bottom-text {
     padding: 20px;
@@ -423,8 +398,6 @@ body {
     
     #block_price1 {
     width: 100%;
-    background-color: #eee;
-    height: 312px;
     overflow: hidden;}
     
     .crash_test_1 {margin: 15px 0;}
@@ -1178,16 +1151,6 @@ body {
     padding: 20px 30px;
     width: 50%;}
     
-    .salon_normal a {
-    background-color: #777;
-    color: #fff;
-    background: linear-gradient(170deg,#ccc,#666);
-    text-decoration: none;}
-    
-    .salon_normal:hover {
-    background-color: #ddeffc;
-    background-image: linear-gradient(to top,#ddeffc,#eff6fb);}
-    
     .salon_klient {
     background-color: #f9e4e4;
     background: linear-gradient(-170deg,#fff1a3,#fbb);
@@ -1236,22 +1199,6 @@ body {
     text-align: center;
     width: 100%;
     margin-top: 25px;}
-    
-    .salon_new_a {
-    background-color: #46bc4c;
-    color: #fff;
-    font-size: 1em;
-    padding: 6px 20px 6px;
-    font-family: Roboto Condensed;
-    background: linear-gradient(170deg,#ffd800,#b32222);
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: 4px;
-    box-shadow: 0px 1px 2px #666;}
-    
-    .salon_new_a:hover {
-    background-color: #46bc4c;
-    background: linear-gradient(170deg,#33e03c,#15921b);
-    color: #fff;}
     
     .dzz {
     font-size: 1em;
@@ -1380,25 +1327,6 @@ body {
     float: left;
     margin-left: 25px;
     width: 300px;}
-    
-    .model_auto_a {
-    font-family: Open Sans;
-    font-size: 17px;
-    text-decoration: none;}
-    
-    .model_auto_photo {text-align: center;}
-    
-    .model_auto_name {
-    width: 100%;
-    font-size: 1.2em;
-    padding: 0;}
-    
-    .model_auto_price {
-    margin-top: 5px;
-    font-size: 0.8em;
-    font-family: arial;
-    color: #777;
-    font-weight: bold;}
      
     .modeli_title {
     background-color: #21a822;
@@ -1415,7 +1343,14 @@ body {
     display: grid;
     list-style: none;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    gap: 8px;
+}
+
+    @media screen and (min-width: 1001px) {
+    .modeli {
+        gap: 24px;
+    grid-template-columns: repeat(4, 1fr);
+}
 }
     
     .modeli li {
@@ -1591,8 +1526,6 @@ body {
     padding: 0 20px;
     font-size: 1.1em;}
     
-    .test_page_div {margin: 20px;}
-    
     .test_page {list-style: none;}
     
     .test_page li {
@@ -1612,13 +1545,10 @@ body {
     background:linear-gradient(-12deg,#31b5b5,#065878);
     color: #fff;}
     
-    .test_page_div_2 {margin: 20px;}
     
     .test_page_2 {list-style: none;}
     
     .test_page_2 li {float: left;font-size: 1.1em;min-height: 24px;margin: 5px;text-align: center;}
-    
-    .test_page_2 a {display: block;padding: 6px 10px 6px;border-radius: 6px;text-shadow: 1px 1px 1px #00adff9c;border: 1px solid #aaa;background-color: #ffbb00;background: linear-gradient(135deg,#31b5b5,#065878);color: #fff;font-family: Roboto Condensed;font-size: 1em;box-shadow: 1px 1px 3px #333;}
     
     .test_page_2 a:hover {
     background:linear-gradient(135deg,#e93737,#b40e0e);
@@ -1648,7 +1578,10 @@ body {
     .nch .home-top-card {
     position: relative;
     display: block;
-    overflow: hidden;}
+    overflow: hidden;
+    background-color: #edf1f5;}
+
+    .nch .home-top-card img[data-car-image] {min-height: 185px;}
 
     .nch .home-top-card__overlay {
     position: absolute;
@@ -1697,7 +1630,10 @@ body {
     .homecrash .ctc .test-drive-card {
     position: relative;
     display: block;
-    overflow: hidden;}
+    overflow: hidden;
+    background-color: #edf1f5;}
+
+    .homecrash .ctc .test-drive-card img[data-car-image] {min-height: 210px;}
 
     .homecrash .ctc .test-drive-card__overlay {
     position: absolute;
@@ -1725,7 +1661,10 @@ body {
     .homecrash .ctc .crash-test-card {
     position: relative;
     display: block;
-    overflow: hidden;}
+    overflow: hidden;
+    background-color: #edf1f5;}
+
+    .homecrash .ctc .crash-test-card img[data-car-image] {min-height: 210px;}
 
     .homecrash .ctc .crash-test-card__overlay {
     position: absolute;
@@ -1805,6 +1744,13 @@ body {
     .testdrive_a {border-left: 1px solid #fff;}
     
     .testdrive_a img {width: 100%;}
+
+    .preview img[data-car-image] {min-height: 185px;}
+
+    .preview_photo[data-car-image] {min-height: 320px;}
+
+    .preview_photo_mini img[data-car-image],
+    .gallery11 img[data-car-image] {min-height: 78px;}
     
     .p_test_drive {
     margin: 0 0 10px;
@@ -2464,11 +2410,7 @@ z-index: 1;
     width: 33.33%;
     font-size: 1.2em;}
     
-    .main_menu li {
-    width: 33.33%;
-    font-size: 1em;
-    line-height: 2.2em;
-    letter-spacing: 0px;}
+  
     
     .main_menu a {
     line-height: 2.2em;
@@ -2601,7 +2543,7 @@ z-index: 1;
     .pc_6 {
     width: 50%;
     padding: 0 1%;
-    border: ;}
+    border: none;}
     
     .pc_name a {
     text-align: center;
@@ -2786,9 +2728,7 @@ z-index: 1;
     width: 33.33%;
     font-size: 1.2em;}
     
-    .main_menu li {
-    width: 33.33%;
-    font-size: 1em;}
+  
     
     .social_networks {
     text-align: center;
@@ -3072,7 +3012,7 @@ z-index: 1;
     width: 25%;
     font-size: 1.2em;}
     
-    .main_menu li {width: 33.33%;}
+  
      
     .social_networks {padding-right: 1.5em;}
     
@@ -3084,8 +3024,6 @@ z-index: 1;
     font-size: 1em;
     width: 100%;
     margin-top: 5px;}
-    
-    .modeli li {width: 50%;}
     
     .nch li {width: 33.33%;}
     
@@ -3233,7 +3171,6 @@ z-index: 1;
      
     .menu-bottom li {width: 25%;}
     
-    .main_menu li {font-size: 1.15em;}
      
     #price_new {font-size: 0.85em;}
     
@@ -3243,8 +3180,6 @@ z-index: 1;
     font-size: 1em;
     width: 100%;
     margin-top: 5px;}
-    
-    .modeli li {width: 50%;}
     
     .nch li {width: 25%;}
      
@@ -3414,4 +3349,3 @@ z-index: 1;
     
     .demo-floating-label__links {font-size: 0.84em;}
     }
-    

@@ -14,34 +14,14 @@
         <div class="homepage_p">Тест-драйвы новых автомобилей 2026: видео обзор.</div>
 
         <div class="test_page_div">
-            <ul class="test_page">
-                <li>
-                    <a
-                        style="{{ $selectedTestDriveBrand || $isElectricOnly ? '' : 'color:#ff0000; font-weight:bold;' }}"
-                        href="/test-drive/"
-                    >
-                        Последние
-                    </a>
-                </li>
-                <li>
-                    <a
-                        style="{{ $isElectricOnly ? 'color:#ff0000; font-weight:bold;' : '' }}"
-                        href="/test-drive/electric-cars/"
-                    >
-                        Электромобили
-                    </a>
-                </li>
-                @foreach($testDriveBrands as $testDriveBrand)
-                    <li>
-                        <a
-                            style="{{ $selectedTestDriveBrand?->id === $testDriveBrand->id ? 'color:#ff0000; font-weight:bold;' : '' }}"
-                            href="/test-drive/{{ $testDriveBrand->slug }}/"
-                        >
-                            {{ $testDriveBrand->name }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+            <x-site.brand-filter-select
+                base-url="/test-drive/"
+                :brands="$testDriveBrands"
+                :selected-brand="$selectedTestDriveBrand"
+                :show-electric="true"
+                electric-url="/test-drive/electric-cars/"
+                :is-electric-only="$isElectricOnly"
+            />
         </div>
 
         <div class="homecrash">
@@ -59,6 +39,7 @@
                                     <img
                                         alt="Тест-драйв {{ $car->name }}"
                                         src="{{ $car->coverUrl() }}"
+                                        data-car-image="true"
                                     >
                                     <span class="test-drive-card__overlay"></span>
                                     <span class="test-drive-card__title">{{ $car->name }}</span>

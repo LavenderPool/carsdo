@@ -44,7 +44,8 @@
     $minPrice = $configurations->whereNotNull('price')->min('price') ?? $car->start_price;
     $maxPrice = $configurations->whereNotNull('price')->max('price') ?? $car->end_price ?? $car->start_price;
     $formatPrice = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : 'не объявлена';
-    $priceRangeText = filled($minPrice) && filled($maxPrice)
+    $hasPrice = filled($minPrice) && filled($maxPrice);
+    $priceRangeText = $hasPrice
         ? ($minPrice === $maxPrice ? $formatPrice((int) $minPrice) : $formatPrice((int) $minPrice).' - '.$formatPrice((int) $maxPrice))
         : 'не объявлена';
     $extractYoutubeId = static function (?string $value): ?string {
@@ -109,50 +110,62 @@
 
 @section('content')
 <div class="block_price">
-    <div id="block_price1">
-        <div class="block_PN_1">
-            <div class="data_price"><div class="dp1">Официальные данные от {{ $now->format('d.m.Y') }}</div></div>
-            <div class="block_PN_H1"><h1>{{ $pageH1 ?? $car->name }}</h1></div>
-
-            <div class="block_PN_1_a">
-                <div class="block_PN_1_b">
-                    <div class="PN_1">
-                        <div class="PN_1_div1">Цена</div>
-                        <div class="PN_1_div2"><a href="#price_new">{{ $priceRangeText }}</a></div>
-                    </div>
-
-                    <div class="PN_2">
-                        <div class="PN_2_div1">Комплектации</div>
-                        <div class="PN_2_div2"><a href="#price_new">{{ $configurationGroups->count() }}</a></div>
-                    </div>
-
-                    <div class="PN_3">
-                        <div class="PN_3_div1">Модификации</div>
-                        <div class="PN_3_div2"><a href="#block_price3">{{ $configurations->count() }}</a></div>
-                    </div>
-
-                    <div class="PN_4">
-                        <div class="PN_4_div1">Дизайн новой модели</div>
-                        <div class="PN_4_div2"><a href="{{ $carPath }}/photo/">Фото</a></div>
-                    </div>
-                </div>
-            </div>
+    @php
+        $heroPhotos = $photos->take(4)->values();
+        $heroMain = $heroPhotos->first();
+        $heroThumbs = $heroPhotos->slice(1)->values();
+    @endphp
+    <div id="block_price1" class="car-hero">
+        <div class="car-hero__media">
+            <a href="{{ $carPath }}/photo/" class="car-hero__gallery" aria-label="Все фотографии {{ $car->name }}">
+                <span class="car-hero__main">
+                    <img src="{{ $heroMain?->url() ?: $car->coverUrl() }}" alt="{{ $car->name }}" data-car-image="true" loading="eager">
+                    <span class="car-hero__badge">Все фото</span>
+                </span>
+                @if ($heroThumbs->isNotEmpty())
+                    <span class="car-hero__thumbs">
+                        @foreach ($heroThumbs as $thumb)
+                            <img src="{{ $thumb->url() }}" alt="{{ $car->name }}" data-car-image="true" loading="lazy">
+                        @endforeach
+                    </span>
+                @endif
+            </a>
         </div>
 
-        <div class="block_PN_2">
-            <div class="preview">
-                <a href="{{ $carPath }}/photo/">
-                    @forelse ($photos->take(4) as $photo)
-                                <img src="{{ $photo->url() }}">
-                    @empty
-                        <img src="{{ $car->coverUrl() }}">
-                    @endforelse
+        <div class="car-hero__info">
+            <p class="car-hero__date">Официальные данные от {{ $now->format('d.m.Y') }}</p>
+            <h1 class="car-hero__title">{{ $pageH1 ?? $car->name }}</h1>
+
+            <a href="#price_new" class="car-hero__price">
+                <span class="car-hero__price-label">Цена в России</span>
+                <span class="car-hero__price-value">{{ $priceRangeText }}@if ($hasPrice) <span class="car-hero__price-unit">₽</span>@endif</span>
+            </a>
+
+            <div class="car-hero__stats">
+                <a href="#price_new_title" class="car-hero__stat">
+                    <span class="car-hero__stat-value">{{ $configurationGroups->count() }}</span>
+                    <span class="car-hero__stat-label">Комплектаций</span>
                 </a>
+                <a href="#block_price3" class="car-hero__stat">
+                    <span class="car-hero__stat-value">{{ $configurations->count() }}</span>
+                    <span class="car-hero__stat-label">Модификаций</span>
+                </a>
+            </div>
+            <div class="car-hero__quick-links">
+                @if ($car->reviews->isNotEmpty())
+                    <a href="{{ $carPath }}/reviews/" class="car-hero__quick-link">Отзывы</a>
+                @endif
+                @if ($car->crashTest)
+                    <a href="{{ $carPath }}/crash-test/" class="car-hero__quick-link">Краш-тест</a>
+                @endif
+                @if ($car->testDrives->isNotEmpty())
+                    <a href="{{ $carPath }}/test-drive/" class="car-hero__quick-link">Тест-драйвы</a>
+                @endif
             </div>
         </div>
     </div>
 
-    <div class="price_H2"><h2>{{ $car->name }} › Цены и комплектации</h2></div>
+    <div class="price_H2" id="price_new_title"><h2>{{ $car->name }} › Цены и комплектации</h2></div>
 
     <div class="price_new_text">
         В России цена {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} рублей,
@@ -168,7 +181,8 @@
         от выбранной комплектации и дополнительных опций. <a target="_self" href="#block_city">Найти дилера</a>.
     </div>
 
-    <div id="price_new">
+    <div class="price_new_margin">
+        <div id="price_new">
         <div class="price_car_0">
             <div class="pc_price">Цена</div>
             <div class="pc_1">Двигатель</div>
@@ -217,10 +231,11 @@
                 <div class="pc_name">Комплектации пока не добавлены</div>
             </div>
         @endforelse
+        </div>
     </div>
 
     @if ($car->reviews->isNotEmpty())
-    <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+    <div id="block_reviews" class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
     @endif
     <div style="width: 100%; margin:10px 0 15px;"></div>
 
@@ -290,7 +305,7 @@
 
 <div class="block_video">
     @if ($car->crashTest)
-        <div class="crashtest_div">
+        <div id="block_crash_test" class="crashtest_div">
             <a href="{{ $carPath }}/crash-test/">
                 <div class="crashtest_h">Краш-тест</div>
                 <div class="crashtest_a">
@@ -303,7 +318,7 @@
     @endif
 
     @if ($car->testDrives->isNotEmpty())
-        <div class="testdrive_div">
+        <div id="block_test_drives" class="testdrive_div">
             <a href="{{ $carPath }}/test-drive/">
                 <div class="testdrive_h">Тест-драйв</div>
                 <div class="testdrive_a">

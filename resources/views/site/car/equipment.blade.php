@@ -2,6 +2,7 @@
 
 @php
     $carPath = '/'.$brand->slug.'/'.$car->slug;
+    $equipmentVisibleItemsLimit = 5;
 
     $configurationGroups = $car->configurationGroups
         ->sortBy([
@@ -63,13 +64,34 @@
     $extensionItems = $selectedConfigurationCategories
         ->flatMap(function ($category) {
             return $category->items
-                ->sortBy([
-                    ['import_index', 'asc'],
-                    ['id', 'asc'],
-                ])
                 ->where('is_extension', true)
                 ->filter(fn ($item) => filled($item->value))
                 ->values();
+        })
+        ->sort(function ($leftItem, $rightItem) {
+            $leftPrice = filled($leftItem->price) ? (int) $leftItem->price : null;
+            $rightPrice = filled($rightItem->price) ? (int) $rightItem->price : null;
+
+            if ($leftPrice === null && $rightPrice !== null) {
+                return 1;
+            }
+
+            if ($leftPrice !== null && $rightPrice === null) {
+                return -1;
+            }
+
+            if ($leftPrice !== $rightPrice) {
+                return $rightPrice <=> $leftPrice;
+            }
+
+            $leftImportIndex = $leftItem->import_index ?? PHP_INT_MAX;
+            $rightImportIndex = $rightItem->import_index ?? PHP_INT_MAX;
+
+            if ($leftImportIndex !== $rightImportIndex) {
+                return $leftImportIndex <=> $rightImportIndex;
+            }
+
+            return $leftItem->id <=> $rightItem->id;
         })
         ->values();
 
@@ -148,7 +170,7 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">
+    <h1>
         <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
     </h1>
 
@@ -186,11 +208,31 @@
         <div class="new_eq2">
             @forelse ($standardCategories as $category)
                 <div class="{{ $loop->index === 0 ? 'block_eq1' : ($loop->index === 1 ? 'block_eq2' : 'block_eq3') }}">
-                    <ul class="komplektatsiya">
-                        <li class="reto">{{ $category->name }}</li>
-                        @foreach ($category->items as $item)
+                    <ul class="komplektatsiya" data-expandable-list>
+                        <li class="reto">
+                            <div class="equipment_heading">
+                                <span>{{ $category->name }}</span>
+                                <span class="equipment_count">{{ $category->items->count() }}</span>
+                            </div>
+                        </li>
+                        @foreach ($category->items->take($equipmentVisibleItemsLimit) as $item)
                             <li class="ok">{{ $item->value }}</li>
                         @endforeach
+                        @if ($category->items->count() > $equipmentVisibleItemsLimit)
+                            @foreach ($category->items->slice($equipmentVisibleItemsLimit) as $item)
+                                <li class="ok" data-expandable-item hidden>{{ $item->value }}</li>
+                            @endforeach
+                            <li class="komplektatsiya_toggle">
+                                <button
+                                    type="button"
+                                    class="dop_a"
+                                    data-expand-toggle
+                                    data-collapsed-label="Все пункты"
+                                    data-expanded-label="Скрыть"
+                                    aria-expanded="false"
+                                >Все пункты</button>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             @empty
@@ -210,29 +252,36 @@
 
         @if ($extensionItems->isNotEmpty())
             <div class="block_eq4">
-                <ul class="komplektatsiya">
-                    <li class="reto">Дополнительное оборудование и опции</li>
-                    @foreach ($extensionItems->take(10) as $item)
+                <ul class="komplektatsiya" data-expandable-list>
+                    <li class="reto">
+                        <div class="equipment_heading">
+                            <span>Дополнительное оборудование и опции</span>
+                            <span class="equipment_count">{{ $extensionItems->count() }}</span>
+                        </div>
+                    </li>
+                    @foreach ($extensionItems->take($equipmentVisibleItemsLimit) as $item)
                         <li class="dop">
                             <span class="dop_obor">{{ $item->value }}</span>
                             <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
                         </li>
                     @endforeach
-                    @if ($extensionItems->count() > 10)
-                        <li class="dop">
-                            <a
-                                class="dop_a"
-                                href="#"
-                                data-dop-toggle
-                                aria-expanded="false"
-                            >Все допы</a>
-                        </li>
-                        @foreach ($extensionItems->slice(10) as $item)
-                            <li class="dop" data-dop-item hidden>
+                    @if ($extensionItems->count() > $equipmentVisibleItemsLimit)
+                        @foreach ($extensionItems->slice($equipmentVisibleItemsLimit) as $item)
+                            <li class="dop" data-expandable-item hidden>
                                 <span class="dop_obor">{{ $item->value }}</span>
                                 <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
                             </li>
                         @endforeach
+                        <li class="komplektatsiya_toggle">
+                            <button
+                                type="button"
+                                class="dop_a"
+                                data-expand-toggle
+                                data-collapsed-label="Все допы"
+                                data-expanded-label="Скрыть допы"
+                                aria-expanded="false"
+                            >Все допы</button>
+                        </li>
                     @endif
                 </ul>
             </div>
@@ -300,7 +349,7 @@
     'galleryBlockId' => 'equipment-gallery',
 ])
 
-<div style="padding:75px 12px 10px 20px;" class="tito-new"><h2>Комплектации и цены <br>{{ $car->name }}</h2></div>
+<div class="tito-new"><h2>Комплектации и цены <br>{{ $car->name }}</h2></div>
 <div class="price_new_margin">
     <div id="price_new">
         <div class="price_car_0">
@@ -425,28 +474,35 @@
     <div class="brand_model_new_title"><div class="brand_model_new_title_2"><a href="/new-cars-{{ $currentYear }}/">Все новые авто {{ $currentYear }}</a></div></div>
 </div>
 
-@if ($extensionItems->count() > 10)
+@if ($standardCategories->contains(fn ($category) => $category->items->count() > $equipmentVisibleItemsLimit) || $extensionItems->count() > $equipmentVisibleItemsLimit)
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            var toggle = document.querySelector('[data-dop-toggle]');
-            var items = document.querySelectorAll('[data-dop-item]');
+            document.querySelectorAll('[data-expand-toggle]').forEach(function (toggle) {
+                var list = toggle.closest('[data-expandable-list]');
 
-            if (!toggle || !items.length) {
-                return;
-            }
+                if (!list) {
+                    return;
+                }
 
-            toggle.addEventListener('click', function (event) {
-                event.preventDefault();
+                var items = list.querySelectorAll('[data-expandable-item]');
 
-                var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-                var nextExpandedState = !isExpanded;
+                if (!items.length) {
+                    return;
+                }
 
-                items.forEach(function (item) {
-                    item.hidden = !nextExpandedState;
+                toggle.addEventListener('click', function () {
+                    var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                    var nextExpandedState = !isExpanded;
+
+                    items.forEach(function (item) {
+                        item.hidden = !nextExpandedState;
+                    });
+
+                    toggle.setAttribute('aria-expanded', nextExpandedState ? 'true' : 'false');
+                    toggle.textContent = nextExpandedState
+                        ? toggle.getAttribute('data-expanded-label')
+                        : toggle.getAttribute('data-collapsed-label');
                 });
-
-                toggle.setAttribute('aria-expanded', nextExpandedState ? 'true' : 'false');
-                toggle.textContent = nextExpandedState ? 'Скрыть допы' : 'Все допы';
             });
         });
     </script>

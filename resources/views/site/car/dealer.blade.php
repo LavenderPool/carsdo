@@ -7,7 +7,6 @@
         ->filter(fn ($photo) => filled($photo->photo_path))
         ->unique(fn ($photo) => $photo->id)
         ->values();
-    $mainPhoto = $photos->first()?->url() ?: $car->coverUrl();
     $configurations = $car->configurations
         ->sortBy([
             ['car_configuration_group_id', 'asc'],
@@ -86,7 +85,7 @@
 @section('content')
 <div class="block1">
     <div class="block_moscow">
-        <h1 style="padding-left:20px;">
+        <h1>
             @if (filled($pageH1 ?? null))
                 {{ $pageH1 }}
             @else
@@ -95,14 +94,13 @@
         </h1>
 
         <p>
-            Где купить новый {{ $car->name }} у оффициального диллера в {{ $cityInPrepositional }}. Ознакомиться с актуальными ценами,
-            скидками и другими специальными предложениями на {{ $currentYear }} год можно по ссылке "Смотреть цены" на оффициальном сайте автосалона.
-            Также вы можете посмотреть <a style="text-decoration:underline;" href="{{ $carPath }}/">комплектации и цены</a>
-            Также вы можете посмотреть <a style="text-decoration:underline;" href="{{ $carPath }}/">официальные комплектации и цены</a> и <a style="text-decoration:underline;" href="{{ $carPath }}/photo/">фото {{ $car->name }}</a> новой модели.
+            Где купить новый {{ $car->name }} у официального дилера в {{ $cityInPrepositional }}. Ознакомиться с актуальными ценами,
+            скидками и другими специальными предложениями на {{ $currentYear }} год можно по ссылке "Смотреть цены" на официальном сайте автосалона.
+            Также вы можете посмотреть <a href="{{ $carPath }}/">официальные комплектации и цены</a> и <a href="{{ $carPath }}/photo/">фото {{ $car->name }}</a> новой модели.
         </p>
     </div>
 
-    <h2 style="margin:70px 15px 20px 20px;">Где купить {{ $car->name }} в {{ $cityInPrepositional }}</h2>
+    <h2>Где купить {{ $car->name }} в {{ $cityInPrepositional }}</h2>
     <div class="start_salon">
         <ul class="salon_new">
             @foreach ($cityDealers as $cityDealer)
@@ -143,19 +141,13 @@
 @if ($car->reviews->isNotEmpty())
 <div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
 @endif
-<div id="car-gallery">
-    <div class="photo_title">Новый {{ $car->name }}. Сейчас в продаже</div>
-</div>
-<div><img class="preview_photo" src="{{ $mainPhoto }}"></div>
-<div class="preview_photo_mini">
-    @forelse ($photos->take(6) as $photo)
-        <img src="{{ $photo->url() }}">
-    @empty
-        <img src="{{ $car->coverUrl() }}">
-    @endforelse
-</div>
-<div class="dop_photo"><a href="{{ $carPath }}/photo/">ФОТОГАЛЕРЕЯ</a></div>
-<div><script type="text/javascript">$('.preview_photo_mini').delegate('img','click', function(){$('.preview_photo').attr('src',$(this).attr('src').replace('thumb','large'));});</script></div>
+@include('site.car.partials.galery', [
+    'brand' => $brand,
+    'car' => $car,
+    'carPath' => $carPath,
+    'photos' => $photos,
+    'galleryBlockId' => 'car-gallery-dealer',
+])
 
 <div class="block_video">
     @if ($car->crashTest)

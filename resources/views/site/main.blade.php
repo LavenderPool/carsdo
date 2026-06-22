@@ -7,15 +7,18 @@
 
 
     <div class="homepage_bloсk1">
-    <h1 style="padding:0 20px;">{{ $pageH1 ?? 'Новые автомобили в России' }}</h1>
-    <div class="homepage_p">Последние новинки 2025. Официальные комплектации и цены на новые авто в России.</div>
+    <x-site.home-section-heading
+        :title="$pageH1 ?? 'Новые автомобили в России'"
+        subtitle="Последние новинки 2025. Официальные комплектации и цены на новые авто в России."
+        level="h1"
+    />
     <div class="newhome">
     <ul class="nch">
     @foreach ($newCars as $car)
         <li>
             <a href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
                 <span class="home-top-card">
-                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}" data-car-image="true">
                     <span class="home-top-card__overlay"></span>
                     <span class="home-top-card__title">{{ $car->name }}</span>
                 </span>
@@ -27,15 +30,17 @@
     </div>
     
     <div class="homepage_bloсk6">
-    <h2 style="padding-left:13px;">Скоро на дорогах</h2>
-    <div class="homepage_p">Будущие новинки автопрома 2026 в новом кузове.</div>
+    <x-site.home-section-heading
+        title="Скоро на дорогах"
+        subtitle="Будущие новинки автопрома 2026 в новом кузове."
+    />
     <div class="newhome">
     <ul class="nch">
     @foreach ($soonCars as $car)
         <li>
             <a href="/{{ $car->brand->slug }}/{{ $car->slug }}/">
                 <span class="home-top-card">
-                    <img alt="{{ $car->name }} Новый кузов" src="{{ $car->coverUrl() }}">
+                    <img alt="{{ $car->name }} Новый кузов" src="{{ $car->coverUrl() }}" data-car-image="true">
                     <span class="home-top-card__overlay"></span>
                     <span class="home-top-card__title">{{ $car->name }}</span>
                 </span>
@@ -48,8 +53,10 @@
     
     
     <div class="homepage_bloсk2">
-    <h2 style="padding-left:13px;">Краш-тесты</h2>
-    <div class="homepage_p">Независимая оценка безопасности вашего будущего автомобиля.</div>
+    <x-site.home-section-heading
+        title="Краш-тесты"
+        subtitle="Независимая оценка безопасности вашего будущего автомобиля."
+    />
     <div class="homecrash">
     <ul class="ctc">
     @foreach ($crashTests as $crashTest)
@@ -63,7 +70,7 @@
         <li>
             <a href="/{{ $cardBrand->slug }}/{{ $car->slug }}/crash-test/">
                 <span class="crash-test-card">
-                    <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="Краш-тест {{ $car->name }}" src="{{ $car->coverUrl() }}" data-car-image="true">
                     <span class="crash-test-card__overlay"></span>
                     <span class="crash-test-card__content">
                         <span class="crash-test-card__title">{{ $car->name }}</span>
@@ -89,8 +96,10 @@
     
     
     <div class="homepage_bloсk3">
-    <h2 style="padding-left:13px;">Тест-драйвы</h2>
-    <div class="homepage_p">Лучшие обзоры новых машин, наша подборка.</div>
+    <x-site.home-section-heading
+        title="Тест-драйвы"
+        subtitle="Лучшие обзоры новых машин, наша подборка."
+    />
     <div class="homecrash">
     <ul class="ctc">
     @foreach ($testDrives as $testDrive)
@@ -102,7 +111,7 @@
         <li>
             <a href="/{{ $cardBrand->slug }}/{{ $car->slug }}/test-drive/">
                 <span class="test-drive-card">
-                    <img alt="Тест-драйв {{ $car->name }}" src="{{ $car->coverUrl() }}">
+                    <img alt="Тест-драйв {{ $car->name }}" src="{{ $car->coverUrl() }}" data-car-image="true">
                     <span class="test-drive-card__overlay"></span>
                     <span class="test-drive-card__title">{{ $car->name }}</span>
                 </span>
@@ -115,14 +124,50 @@
     
     
     <div class="homepage_bloсk5">
-    <h2 style="padding-left:13px;">Популярные модели</h2>
-    <div class="homepage_p">Автомобили, которыми интересуются больше всего на сайте.</div>
-    <ul class="spc">
+    @php
+        $formatPriceValue = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : '';
+        $formatPriceRange = static function ($car) use ($formatPriceValue): string {
+            $startPrice = $car->start_price;
+            $endPrice = $car->end_price;
+
+            if (filled($startPrice) && filled($endPrice)) {
+                return (int) $startPrice === (int) $endPrice
+                    ? $formatPriceValue((int) $startPrice)
+                    : $formatPriceValue((int) $startPrice).' - '.$formatPriceValue((int) $endPrice);
+            }
+
+            if (filled($startPrice)) {
+                return $formatPriceValue((int) $startPrice);
+            }
+
+            if (filled($endPrice)) {
+                return $formatPriceValue((int) $endPrice);
+            }
+
+            return 'не объявлена';
+        };
+    @endphp
+    <x-site.home-section-heading
+        title="Популярные модели"
+        subtitle="Автомобили, которыми интересуются больше всего на сайте."
+    />
+    <ul class="modeli popular-cars-grid">
     @foreach ($popularCars as $car)
-        <li>
-            <a href="/{{ $car->brand->slug }}/{{ $car->slug }}/">{{ $car->name }}</a>
-        </li>
+        <x-site.car-card
+            :href="'/'.$car->brand->slug.'/'.$car->slug.'/'"
+            :name="$car->name"
+            :image="$car->coverUrl()"
+            :price-text="$formatPriceRange($car)"
+            :is-new="$car->is_soon"
+            :year="$car->year"
+            :is-electric="$car->is_electric_car"
+        />
     @endforeach
+        <li class="popular-cars-more-item">
+            <a class="popular-cars-more-card" href="/popular-cars/">
+                <span class="popular-cars-more-card__media">Смотреть ещё</span>
+            </a>
+        </li>
     </ul>
     </div>
     

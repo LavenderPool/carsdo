@@ -20,14 +20,16 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1 style="padding-left:20px;">{{ $pageH1 ?? ($car->name . ' › Отзывы владельцев (плюсы и минусы)') }}</h1>
+    <h1>
+        <a href="{{ $carPath }}/">{{ $car->name }}</a> › Отзывы владельцев (плюсы и минусы)
+    </h1>
 
     <div class="p_test_drive">
         Преимущества и недостатки {{ $car->name }}: оценка потребительских качеств автомобиля,
         основанная на опыте эксплуатации реальных владельцев.
     </div>
 
-    <div class="new_eq">
+    <div class="new_eq reviews-prc">
         <div class="new_eq2">
             <div class="block_eq1">
                 <ul class="komplektatsiya">

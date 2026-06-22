@@ -9,26 +9,11 @@
         </h1>
 
         <div class="test_page_div">
-            <ul class="test_page">
-                <li>
-                    <a
-                        style="{{ $selectedPhotoBrand ? '' : 'color:#ff0000; font-weight:bold;' }}"
-                        href="/cars-photo/"
-                    >
-                        Последние
-                    </a>
-                </li>
-                @foreach ($photoBrands as $photoBrand)
-                    <li>
-                        <a
-                            style="{{ $selectedPhotoBrand?->id === $photoBrand->id ? 'color:#ff0000; font-weight:bold;' : '' }}"
-                            href="/cars-photo/{{ $photoBrand->slug }}/"
-                        >
-                            {{ $photoBrand->name }}
-                        </a>
-                    </li>
-                @endforeach
-            </ul>
+            <x-site.brand-filter-select
+                base-url="/cars-photo/"
+                :brands="$photoBrands"
+                :selected-brand="$selectedPhotoBrand"
+            />
         </div>
 
         @if ($carsWithPhotos->isEmpty())
@@ -40,15 +25,14 @@
                         $cardBrand = $car->brand;
                     @endphp
                     @continue(!$cardBrand)
-                    <li>
-                        <a class="model_auto_a" href="/{{ $cardBrand->slug }}/{{ $car->slug }}/photo">
-                            <span class="model_auto_photo">
-                                <img alt="{{ $car->name }}" src="{{ $car->coverUrl() }}">
-                            </span>
-                            <h3 class="model_auto_name">{{ $car->name }}</h3>
-                            <div class="model_auto_price"></div>
-                        </a>
-                    </li>
+                    <x-site.car-card
+                        :href="'/'.$cardBrand->slug.'/'.$car->slug.'/photo'"
+                        :name="$car->name"
+                        :image="$car->coverUrl()"
+                        :is-new="$car->is_soon"
+                        :year="$car->year"
+                        :is-electric="$car->is_electric_car"
+                    />
                 @endforeach
             </ul>
         @endif

@@ -28,6 +28,8 @@ use App\Http\Controllers\Site\CrashTestController;
 use App\Http\Controllers\Site\ElectricCarController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\NewCarController;
+use App\Http\Controllers\Site\PopularCarController;
+use App\Http\Controllers\Site\SearchController;
 use App\Http\Controllers\Site\TestDriveController;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Support\Facades\Route;
@@ -115,9 +117,14 @@ Route::get('/new-cars-{year}/', NewCarController::class)
     ->name('new-cars');
 
 Route::get('/electric-cars/', ElectricCarController::class)->name('electric-cars');
+Route::get('/popular-cars/', PopularCarController::class)->name('popular-cars');
 
 Route::get('/cars-photo/', [CarPhotoGalleryController::class, 'index'])->name('cars-photo.index');
 Route::get('/cars-photo/{brand:slug}/', [CarPhotoGalleryController::class, 'brand'])->name('cars-photo.brand');
+
+Route::get('/brands/', [SiteBrandController::class, 'index'])->name('brands.index');
+Route::get('/search/', [SearchController::class, 'index'])->name('search');
+Route::get('/search/suggest/', [SearchController::class, 'suggest'])->name('search.suggest');
 
 Route::get('/{brand:slug}', [SiteBrandController::class, 'show'])->name('brand.show');
 
