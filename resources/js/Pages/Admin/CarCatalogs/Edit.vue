@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import CarCatalogForm from '@/Components/Admin/CarCatalogForm.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import type { PageProps } from '@/types';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 
 interface OptionBrand {
     id: number;
@@ -68,6 +70,9 @@ const form = useForm({
     seo_robots: props.catalog.seo_robots ?? '',
 });
 
+const page = usePage<PageProps<{ flash?: { success?: string } }>>();
+const flashSuccess = computed(() => page.props.flash?.success);
+
 const submit = () => {
     form.put(route('admin.car-catalogs.update', props.catalog.id));
 };
@@ -99,10 +104,10 @@ const submit = () => {
         <div class="py-12">
             <div class="mx-auto max-w-5xl space-y-6 sm:px-6 lg:px-8">
                 <div
-                    v-if="$page.props.flash?.success"
+                    v-if="flashSuccess"
                     class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
                 >
-                    {{ $page.props.flash.success }}
+                    {{ flashSuccess }}
                 </div>
 
                 <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
