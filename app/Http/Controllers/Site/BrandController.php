@@ -54,9 +54,10 @@ class BrandController extends Controller
             $brand->incrementQuietly('views_count');
         }
 
-        $groups = SiteCache::remember("brand:{$brand->id}:page", static function () use ($brand): array {
+        $groups = SiteCache::remember("brand:{$brand->id}:page:v2", static function () use ($brand): array {
             $cars = $brand->cars()
                 ->select('id', 'brand_id', 'name', 'slug', 'cover_path', 'start_price', 'end_price', 'is_soon', 'is_another_models', 'year', 'is_electric_car')
+                ->with(['configurations:id,car_id,price,currency'])
                 ->orderBy('name')
                 ->get();
 

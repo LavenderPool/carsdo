@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateCarPhotoRequest;
 use App\Models\Car;
 use App\Models\CarPhoto;
 use App\Support\Media\CarMediaStorage;
+use App\Support\Media\MediaVariantService;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -75,10 +76,11 @@ class CarPhotoController extends Controller
         $data = $request->validated();
         abort_unless($car->photoGroups()->whereKey($data['car_photo_group_id'])->exists(), 422);
 
-        $car->photos()->create([
+        $photo = $car->photos()->create([
             'car_photo_group_id' => $data['car_photo_group_id'],
             'photo_path' => $this->storeUploadedPhoto($request, $car),
         ]);
+        app(MediaVariantService::class)->ensureWebpVariant($photo->photo_path, CarPhoto::class, $photo->id);
 
         return redirect()
             ->route('admin.cars.photos.index', $car)
@@ -127,6 +129,7 @@ class CarPhotoController extends Controller
         }
 
         $photo->update($attributes);
+        app(MediaVariantService::class)->ensureWebpVariant($photo->photo_path, CarPhoto::class, $photo->id);
 
         return redirect()
             ->route('admin.cars.photos.index', $car)

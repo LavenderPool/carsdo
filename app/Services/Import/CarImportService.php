@@ -16,6 +16,9 @@ use App\Models\CarReview;
 use App\Models\CarTestDrive;
 use App\Models\City;
 use App\Models\Dealer;
+use App\Models\Engine;
+use App\Support\Media\MediaPath;
+use App\Support\Media\MediaVariantService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
@@ -157,6 +160,7 @@ class CarImportService
      * @param  array<int, array<string, mixed>>  $carsPayload
      * @return array{
      *     brandsBySlug: array<string, Brand>,
+     *     enginesByKey: array<string, Engine>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
      *     carsByKey: array<string, Car>
@@ -165,6 +169,7 @@ class CarImportService
     private function buildChunkContext(array $carsPayload): array
     {
         $brandSlugs = [];
+        $engineSlugs = [];
         $citySlugs = [];
         $dealerNames = [];
         $carSlugs = [];
@@ -179,6 +184,24 @@ class CarImportService
 
             if ($carSlug !== null) {
                 $carSlugs[] = $carSlug;
+            }
+
+            foreach (($carPayload['groups'] ?? []) as $groupPayload) {
+                if (!is_array($groupPayload)) {
+                    continue;
+                }
+
+                foreach (($groupPayload['items'] ?? []) as $configurationPayload) {
+                    if (!is_array($configurationPayload)) {
+                        continue;
+                    }
+
+                    $engineSlug = $this->normalizeString($configurationPayload['engine_slug'] ?? null);
+
+                    if ($brandSlug !== null && $engineSlug !== null) {
+                        $engineSlugs[] = $this->engineKeyBySlug($brandSlug, $engineSlug);
+                    }
+                }
             }
 
             foreach (($carPayload['dealers'] ?? []) as $dealerPayload) {
@@ -203,6 +226,31 @@ class CarImportService
             ->whereIn('slug', array_values(array_unique($brandSlugs)), 'and', false)
             ->get()
             ->keyBy('slug')
+            ->all();
+
+        $engineBrandIds = [];
+        $engineSlugsOnly = [];
+
+        foreach (array_values(array_unique($engineSlugs)) as $engineLookupKey) {
+            [$brandSlug, $engineSlug] = explode('|', $engineLookupKey, 2);
+            $brand = $brandsBySlug[$brandSlug] ?? null;
+
+            if (!$brand instanceof Brand) {
+                continue;
+            }
+
+            $engineBrandIds[] = $brand->id;
+            $engineSlugsOnly[] = $engineSlug;
+        }
+
+        /** @var array<string, Engine> $enginesByKey */
+        $enginesByKey = Engine::query()
+            ->whereIn('brand_id', array_values(array_unique($engineBrandIds)), 'and', false)
+            ->whereIn('slug', array_values(array_unique($engineSlugsOnly)), 'and', false)
+            ->get()
+            ->mapWithKeys(fn (Engine $engine): array => [
+                $this->engineKey($engine->brand_id, $engine->slug) => $engine,
+            ])
             ->all();
 
         $citiesBySlug = City::query()
@@ -247,6 +295,7 @@ class CarImportService
 
         return [
             'brandsBySlug' => $brandsBySlug,
+            'enginesByKey' => $enginesByKey,
             'citiesBySlug' => $citiesBySlug,
             'dealersByName' => $dealersByName,
             'carsByKey' => $carsByKey,
@@ -381,6 +430,7 @@ class CarImportService
 
         /** @var Car $car */
         $car = $this->syncImportedCar($car, $brand->id, $slug, $attributes, $stats);
+        $this->syncCoverAlias($car);
         $this->initializeCarRelations($car);
         $this->cacheCar($chunkContext, $car);
 
@@ -393,7 +443,7 @@ class CarImportService
 
         $this->syncPhotoGroups($car, $payload['photo_groups'] ?? [], $stats);
         $this->syncDealers($car, $payload['dealers'] ?? [], $stats, $chunkContext);
-        $this->syncConfigurationGroups($car, $payload['groups'] ?? [], $stats);
+        $this->syncConfigurationGroups($car, $payload['groups'] ?? [], $stats, $chunkContext);
 
         return $car;
     }
@@ -607,7 +657,7 @@ class CarImportService
      * @param  array<int, array<string, mixed>>  $payload
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
-    private function syncConfigurationGroups(Car $car, array $payload, array &$stats): void
+    private function syncConfigurationGroups(Car $car, array $payload, array &$stats, array &$chunkContext): void
     {
         /** @var EloquentCollection<int, CarConfigurationGroup> $configurationGroups */
         $configurationGroups = $car->getRelation('configurationGroups');
@@ -630,7 +680,7 @@ class CarImportService
                 $configurationGroups->push($group);
             }
 
-            $this->syncConfigurations($car, $group, $groupPayload['items'] ?? [], $stats);
+            $this->syncConfigurations($car, $group, $groupPayload['items'] ?? [], $stats, $chunkContext);
         }
     }
 
@@ -638,7 +688,13 @@ class CarImportService
      * @param  array<int, array<string, mixed>>  $payload
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
-    private function syncConfigurations(Car $car, CarConfigurationGroup $group, array $payload, array &$stats): void
+    private function syncConfigurations(
+        Car $car,
+        CarConfigurationGroup $group,
+        array $payload,
+        array &$stats,
+        array &$chunkContext
+    ): void
     {
         /** @var EloquentCollection<int, CarConfiguration> $configurations */
         $configurations = $group->getRelation('configurations');
@@ -647,6 +703,9 @@ class CarImportService
             /** @var CarConfiguration|null $configuration */
             $configuration = $configurations->firstWhere('import_index', $configurationIndex);
             $wasMissing = $configuration === null;
+
+            /** @var CarConfiguration $configuration */
+            $engineAttributes = $this->resolveConfigurationEngineAttributes($car, $configurationPayload, $chunkContext);
 
             /** @var CarConfiguration $configuration */
             $configuration = $this->syncModel($configuration, CarConfiguration::class, [
@@ -658,7 +717,8 @@ class CarImportService
                     : ($configuration?->have_page ?? true),
                 'import_index' => $configurationIndex,
                 'price' => $this->normalizeInteger($configurationPayload['price'] ?? null),
-                'engine_type' => $this->normalizeString($configurationPayload['engine_type'] ?? null),
+                'engine_id' => $engineAttributes['engine_id'],
+                'engine_type' => $engineAttributes['engine_type'],
                 'engine_capacity' => $this->normalizeDecimal($configurationPayload['engine_capacity'] ?? null, 2),
                 'horsepower' => $this->normalizeInteger($configurationPayload['horsepower'] ?? null),
                 'transmission' => $this->normalizeString($configurationPayload['transmission'] ?? null),
@@ -814,9 +874,56 @@ class CarImportService
         ];
     }
 
+    /**
+     * @param  array{
+     *     brandsBySlug: array<string, Brand>,
+     *     enginesByKey: array<string, Engine>,
+     *     citiesBySlug: array<string, City>,
+     *     dealersByName: array<string, Dealer>,
+     *     carsByKey: array<string, Car>
+     * }  $chunkContext
+     * @return array{engine_id: int|null, engine_type: string|null}
+     */
+    private function resolveConfigurationEngineAttributes(Car $car, array $payload, array $chunkContext): array
+    {
+        $engineType = $this->normalizeString($payload['engine_type'] ?? null);
+        $engineSlug = $this->normalizeString($payload['engine_slug'] ?? null);
+
+        if ($engineSlug === null) {
+            return [
+                'engine_id' => null,
+                'engine_type' => $engineType,
+            ];
+        }
+
+        $engine = $chunkContext['enginesByKey'][$this->engineKey($car->brand_id, $engineSlug)] ?? null;
+
+        if (!$engine instanceof Engine) {
+            return [
+                'engine_id' => null,
+                'engine_type' => $engineType,
+            ];
+        }
+
+        return [
+            'engine_id' => $engine->id,
+            'engine_type' => $engine->engine_type ?? $engineType ?? $engine->name,
+        ];
+    }
+
     private function carKey(int $brandId, string $slug): string
     {
         return $brandId.'|'.mb_strtolower($slug);
+    }
+
+    private function engineKey(int $brandId, string $slug): string
+    {
+        return $brandId.'|'.mb_strtolower($slug);
+    }
+
+    private function engineKeyBySlug(string $brandSlug, string $engineSlug): string
+    {
+        return mb_strtolower($brandSlug).'|'.mb_strtolower($engineSlug);
     }
 
     /**
@@ -888,6 +995,7 @@ class CarImportService
     /**
      * @param  array{
      *     brandsBySlug: array<string, Brand>,
+     *     enginesByKey: array<string, Engine>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
      *     carsByKey: array<string, Car>
@@ -944,6 +1052,7 @@ class CarImportService
     /**
      * @param  array{
      *     brandsBySlug: array<string, Brand>,
+     *     enginesByKey: array<string, Engine>,
      *     citiesBySlug: array<string, City>,
      *     dealersByName: array<string, Dealer>,
      *     carsByKey: array<string, Car>
@@ -1138,5 +1247,16 @@ class CarImportService
         }
 
         return $normalized === '' ? null : $normalized;
+    }
+
+    private function syncCoverAlias(Car $car): void
+    {
+        app(MediaVariantService::class)->deleteVariantsForOwner(Car::class, $car->id);
+
+        if (!is_string($car->cover_path) || $car->cover_path === '' || MediaPath::isExternal($car->cover_path)) {
+            return;
+        }
+
+        app(MediaVariantService::class)->ensureWebpVariant($car->cover_path, Car::class, $car->id);
     }
 }

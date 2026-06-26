@@ -3,6 +3,7 @@
     'name',
     'image',
     'priceText' => null,
+    'priceCurrency' => 'руб.',
     'isNew' => false,
     'year' => null,
     'isElectric' => false,
@@ -10,9 +11,10 @@
 
 @php
     $normalizedPriceText = is_string($priceText) ? trim($priceText) : '';
+    $normalizedPriceCurrency = is_string($priceCurrency) ? trim($priceCurrency) : '';
     $hasPrice = $normalizedPriceText !== '' && mb_strtolower($normalizedPriceText) !== 'не объявлена';
     $priceLabel = $hasPrice
-        ? (str_contains(mb_strtolower($normalizedPriceText), 'руб') ? $normalizedPriceText : $normalizedPriceText.' руб.')
+        ? $normalizedPriceText.' '.($normalizedPriceCurrency !== '' ? $normalizedPriceCurrency : 'руб.')
         : ($normalizedPriceText !== '' ? $normalizedPriceText : null);
 
     $badgeText = null;

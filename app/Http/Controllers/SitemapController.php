@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarCatalog;
 use App\Models\CarCrashTest;
 use App\Models\CarPhoto;
 use App\Models\CarTestDrive;
@@ -28,6 +30,16 @@ class SitemapController extends Controller
             ->whereHas('car', static fn ($query) => $query->where('is_electric_car', true))
             ->max('updated_at')));
         $urls->push($this->entry(url('/cars-photo/'), CarPhoto::query()->max('updated_at')));
+        $urls->push($this->entry(url('/blog/'), Article::query()->published()->max('updated_at')));
+
+        Article::query()
+            ->published()
+            ->select(['slug', 'updated_at'])
+            ->orderByDesc('published_at')
+            ->get()
+            ->each(function (Article $article) use ($urls): void {
+                $urls->push($this->entry(url("/blog/{$article->slug}/"), $article->updated_at));
+            });
 
         $this->newCarYears()
             ->each(function (string $year) use ($urls): void {
@@ -37,6 +49,20 @@ class SitemapController extends Controller
                     ->max('updated_at');
 
                 $urls->push($this->entry(url("/new-cars-{$year}/"), $lastmod));
+            });
+
+        CarCatalog::query()
+            ->where('is_published', true)
+            ->select(['id', 'slug', 'updated_at'])
+            ->with(['cars:id,updated_at'])
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get()
+            ->each(function (CarCatalog $catalog) use ($urls): void {
+                $urls->push($this->entry(
+                    url("/catalogs/{$catalog->slug}/"),
+                    $this->latestUpdatedAt([$catalog, $catalog->cars]),
+                ));
             });
 
         Brand::query()

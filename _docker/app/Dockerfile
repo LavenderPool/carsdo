@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
       apt-utils \
       libpq-dev \
       libpng-dev \
+      libwebp-dev \
       libzip-dev \
       libicu-dev \
       libfreetype6-dev \
@@ -14,6 +15,7 @@ RUN apt-get update && apt-get install -y \
       nodejs \
       pkg-config && \
     # Устанавливаем PHP-расширения
+    docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp && \
     docker-php-ext-install pdo_mysql bcmath gd zip intl && \
     # Очищаем кеш apt для уменьшения размера образа
     apt-get clean && \

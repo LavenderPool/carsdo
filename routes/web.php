@@ -2,12 +2,14 @@
 
 use App\Http\Controllers\Admin\BrandController;
 use App\Http\Controllers\Admin\CarDealerController;
+use App\Http\Controllers\Admin\ArticleController;
 use App\Http\Controllers\Admin\CarPageSeoController;
 use App\Http\Controllers\Admin\CarConfigurationController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentCategoryController;
 use App\Http\Controllers\Admin\CarConfigurationEquipmentController;
 use App\Http\Controllers\Admin\CarConfigurationGroupController;
 use App\Http\Controllers\Admin\CarController;
+use App\Http\Controllers\Admin\CarCatalogController;
 use App\Http\Controllers\Admin\CarCrashTestController;
 use App\Http\Controllers\Admin\CarPhotoController;
 use App\Http\Controllers\Admin\CarPhotoGroupController;
@@ -16,11 +18,16 @@ use App\Http\Controllers\Admin\CarTestDriveController;
 use App\Http\Controllers\Admin\DangerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\DealerController;
+use App\Http\Controllers\Admin\EngineController;
+use App\Http\Controllers\Admin\EngineImportController;
 use App\Http\Controllers\Admin\ImportController;
+use App\Http\Controllers\Admin\PageController as AdminPageController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\Site\BrandController as SiteBrandController;
+use App\Http\Controllers\Site\BlogController;
+use App\Http\Controllers\Site\CatalogController as SiteCatalogController;
 use App\Http\Controllers\Site\CarController as SiteCarController;
 use App\Http\Controllers\Site\CarPhotoGalleryController;
 use App\Http\Controllers\Site\CoverController;
@@ -28,6 +35,7 @@ use App\Http\Controllers\Site\CrashTestController;
 use App\Http\Controllers\Site\ElectricCarController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\NewCarController;
+use App\Http\Controllers\Site\PageController as SitePageController;
 use App\Http\Controllers\Site\PopularCarController;
 use App\Http\Controllers\Site\SearchController;
 use App\Http\Controllers\Site\TestDriveController;
@@ -40,11 +48,22 @@ Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::resource('brands', BrandController::class)
             ->except(['show']);
+        Route::resource('engines', EngineController::class)
+            ->except(['show']);
+        Route::get('engines/import', [EngineImportController::class, 'index'])->name('engines.import.index');
+        Route::post('engines/import', [EngineImportController::class, 'store'])->name('engines.import.store');
+        Route::get('engines/import/{engineImportRun}', [EngineImportController::class, 'status'])->name('engines.import.status');
+        Route::resource('articles', ArticleController::class)
+            ->except(['show']);
+        Route::resource('pages', AdminPageController::class)
+            ->except(['show']);
         Route::resource('dealers', DealerController::class)
             ->except(['show']);
         Route::resource('car-dealers', CarDealerController::class)
             ->except(['show']);
         Route::resource('cars', CarController::class)
+            ->except(['show']);
+        Route::resource('car-catalogs', CarCatalogController::class)
             ->except(['show']);
         Route::get('car-page-seos', [CarPageSeoController::class, 'index'])->name('car-page-seos.index');
         Route::get('car-page-seos/{pageKey}', [CarPageSeoController::class, 'edit'])->name('car-page-seos.edit');
@@ -80,9 +99,14 @@ Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
         Route::post('/import', [ImportController::class, 'store'])->name('import.store');
         Route::get('/import/{importRun}', [ImportController::class, 'status'])->name('import.status');
         Route::post('/import/{importRun}/stop', [ImportController::class, 'stop'])->name('import.stop');
+        Route::post('/danger/clear-cache', [DangerController::class, 'clearCache'])->name('danger.clear-cache');
         Route::get('/danger/full-clear', [DangerController::class, 'fullClear'])->name('danger.full-clear');
         Route::get('/danger/set-local-ids', [DangerController::class, 'setLocalIds'])->name('danger.set-local-ids');
         Route::post('/danger/set-local-ids', [DangerController::class, 'applySetLocalIds'])->name('danger.set-local-ids.apply');
+        Route::get('/danger/webp-convert', [DangerController::class, 'webpConvert'])->name('danger.webp-convert');
+        Route::post('/danger/webp-convert', [DangerController::class, 'applyWebpConvert'])->name('danger.webp-convert.apply');
+        Route::get('/danger/convert', [DangerController::class, 'convert'])->name('danger.convert');
+        Route::post('/danger/convert', [DangerController::class, 'applyConvert'])->name('danger.convert.apply');
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
     });
@@ -118,6 +142,12 @@ Route::get('/new-cars-{year}/', NewCarController::class)
 
 Route::get('/electric-cars/', ElectricCarController::class)->name('electric-cars');
 Route::get('/popular-cars/', PopularCarController::class)->name('popular-cars');
+Route::get('/blog/', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{article:slug}/', [BlogController::class, 'show'])->name('blog.show');
+Route::get('/privacy-policy/', [SitePageController::class, 'privacy'])->name('pages.privacy');
+Route::get('/cookie-policy/', [SitePageController::class, 'cookie'])->name('pages.cookie');
+Route::get('/contacts/', [SitePageController::class, 'contacts'])->name('pages.contacts');
+Route::get('/pages/{slug}/', [SitePageController::class, 'show'])->name('pages.show');
 
 Route::get('/cars-photo/', [CarPhotoGalleryController::class, 'index'])->name('cars-photo.index');
 Route::get('/cars-photo/{brand:slug}/', [CarPhotoGalleryController::class, 'brand'])->name('cars-photo.brand');
@@ -125,6 +155,7 @@ Route::get('/cars-photo/{brand:slug}/', [CarPhotoGalleryController::class, 'bran
 Route::get('/brands/', [SiteBrandController::class, 'index'])->name('brands.index');
 Route::get('/search/', [SearchController::class, 'index'])->name('search');
 Route::get('/search/suggest/', [SearchController::class, 'suggest'])->name('search.suggest');
+Route::get('/catalogs/{catalog:slug}/', SiteCatalogController::class)->name('catalog.show');
 
 Route::get('/{brand:slug}', [SiteBrandController::class, 'show'])->name('brand.show');
 

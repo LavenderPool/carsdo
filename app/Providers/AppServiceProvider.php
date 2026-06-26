@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\Brand;
+use App\Models\Page;
 use App\Models\Setting;
+use App\Support\Assets\CssAssetService;
 use App\Support\Cache\SiteCache;
 use App\Support\Seo\AdminSeoFields;
 use App\Support\Seo\PageSeoFactory;
@@ -32,10 +34,12 @@ class AppServiceProvider extends ServiceProvider
         $setting = new Setting(['brand_name' => 'carsDo']);
         $brands = collect();
         $headerBrands = collect();
+        $footerStaticPages = collect();
 
         try {
             $hasSettingsTable = Schema::hasTable('settings');
             $hasBrandsTable = Schema::hasTable('brands');
+            $hasPagesTable = Schema::hasTable('pages');
 
             $setting = $hasSettingsTable
                 ? Setting::query()->firstOrCreate(
@@ -58,6 +62,18 @@ class AppServiceProvider extends ServiceProvider
                     ->limit(15)
                     ->get())
                 : $headerBrands;
+            $footerStaticPages = $hasPagesTable
+                ? SiteCache::remember('footer:static-pages', static fn () => Page::query()
+                    ->published()
+                    ->where(function ($query): void {
+                        $query
+                            ->where('slug', 'privacy-policy')
+                            ->orWhere('slug', 'cookie-policy')
+                            ->orWhere('slug', 'contacts');
+                    })
+                    ->orderBy('sort_order')
+                    ->get(['title', 'slug']))
+                : $footerStaticPages;
         } catch (\Throwable) {
             // CLI build steps (e.g. Wayfinder generation) may run without DB access.
         }
@@ -67,6 +83,7 @@ class AppServiceProvider extends ServiceProvider
             ? '/storage/'.ltrim((string) $setting->favicon_path, '/')
             : '/favicon.ico';
         $currentYear = now()->year;
+        $cssAssetService = app(CssAssetService::class);
 
         config([
             'seo.site_name' => $siteBrandName,
@@ -84,9 +101,17 @@ class AppServiceProvider extends ServiceProvider
         View::share([
             'siteBrandName' => $siteBrandName,
             'siteFaviconUrl' => asset(ltrim($siteFaviconPath, '/')),
+            'siteGlobalStylesUrl' => $cssAssetService->versionedUrl('assets/global-styles.css'),
+            'siteNewCssUrl' => $cssAssetService->versionedUrl('new.css'),
             'footerBrandsActive' => $brands->where('leave_from_russian', false)->values(),
             'footerBrandsLeft' => $brands->where('leave_from_russian', true)->values(),
             'headerPopularBrands' => $headerBrands,
+            'footerStaticPages' => $footerStaticPages->mapWithKeys(fn (Page $page): array => [
+                $page->slug => [
+                    'title' => $page->title,
+                    'url' => $this->staticPageUrl($page->slug),
+                ],
+            ]),
             'catalogYear' => $currentYear,
             'catalogPrevYear' => $currentYear - 1,
             'catalogPrevTwoYear' => $currentYear - 2,
@@ -121,5 +146,15 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return $pages;
+    }
+
+    private function staticPageUrl(string $slug): string
+    {
+        return match ($slug) {
+            'privacy-policy' => '/privacy-policy/',
+            'cookie-policy' => '/cookie-policy/',
+            'contacts' => '/contacts/',
+            default => "/pages/{$slug}/",
+        };
     }
 }

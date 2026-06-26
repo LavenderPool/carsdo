@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../wayfinder'
 /**
 * @see \App\Http\Controllers\Site\BrandController::show
-* @see app/Http/Controllers/Site/BrandController.php:13
+* @see app/Http/Controllers/Site/BrandController.php:51
 * @route '/{brand}'
 */
 export const show = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\BrandController::show
-* @see app/Http/Controllers/Site/BrandController.php:13
+* @see app/Http/Controllers/Site/BrandController.php:51
 * @route '/{brand}'
 */
 show.url = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
@@ -49,7 +49,7 @@ show.url = (args: { brand: string | { slug: string } } | [brand: string | { slug
 
 /**
 * @see \App\Http\Controllers\Site\BrandController::show
-* @see app/Http/Controllers/Site/BrandController.php:13
+* @see app/Http/Controllers/Site/BrandController.php:51
 * @route '/{brand}'
 */
 show.get = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -59,7 +59,7 @@ show.get = (args: { brand: string | { slug: string } } | [brand: string | { slug
 
 /**
 * @see \App\Http\Controllers\Site\BrandController::show
-* @see app/Http/Controllers/Site/BrandController.php:13
+* @see app/Http/Controllers/Site/BrandController.php:51
 * @route '/{brand}'
 */
 show.head = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({

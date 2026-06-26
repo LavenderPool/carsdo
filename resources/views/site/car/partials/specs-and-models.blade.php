@@ -42,11 +42,15 @@
     $currentYear = now()->year;
 
     $formatPrice = static function (?int $price): string {
-        return filled($price) ? number_format((int) $price, 0, ',', ' ').' ₽' : 'Цена не указана';
+        return filled($price) ? number_format((int) $price, 0, ',', ' ') : 'Цена не указана';
     };
 
     $formatNumber = static function (mixed $value): string {
         return filled($value) ? (string) $value : '-';
+    };
+
+    $currencyLabel = static function ($configuration): string {
+        return $configuration && filled($configuration->currency) ? $configuration->currency : 'руб.';
     };
 @endphp
 
@@ -79,7 +83,7 @@
                 </div>
                 @foreach ($groupConfigurations as $configuration)
                     <div class="price_modific">
-                        <div class="pc_price">{{ filled($configuration->price) ? number_format((int) $configuration->price, 0, ',', ' ') : '-' }} <span class="des">руб.</span></div>
+                        <div class="pc_price">{{ filled($configuration->price) ? number_format((int) $configuration->price, 0, ',', ' ') : '-' }} <span class="des">{{ $currencyLabel($configuration) }}</span></div>
                         <div class="pc_1">
                             {{ $formatNumber($configuration->engine_type) }}
                             @if (filled($configuration->engine_capacity))
@@ -119,7 +123,7 @@
                 <div class="{{ $rowClass }}">
                     <a class="brand_model_row_link" href="/{{ $brand->slug }}/{{ $mainCar->slug }}/">
                         <div class="brand_model_car">{{ $mainCar->name }}</div>
-                        <div class="brand_model_price">{{ $formatPrice($mainCar->start_price) }}</div>
+                        <div class="brand_model_price">{{ $formatPrice($mainCar->start_price) }}@if (filled($mainCar->start_price)) {{ $mainCar->resolvedPriceCurrency('₽') }}@endif</div>
                     </a>
                 </div>
             @endforeach

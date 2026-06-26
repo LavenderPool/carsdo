@@ -2,14 +2,18 @@
 
 namespace App\Support\Seo;
 
+use App\Models\Article;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\CarCatalog;
 use App\Models\CarPageSeo;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
 use App\Models\CarTestDrive;
 use App\Models\City;
+use App\Models\Page;
+use App\Support\Articles\ArticleBodyRenderer;
 use Carbon\CarbonInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -57,6 +61,9 @@ class PageSeoFactory
                     $this->toCollection($data['soonElectricCars'] ?? null),
                 )
                 : null,
+            'site.catalog' => isset($data['catalog'], $data['cars'])
+                ? $this->forCatalog($data['catalog'], $data['cars'])
+                : null,
             'site.crash-trests' => $this->forCrashTests(
                 $this->toCollection($data['crashTests'] ?? null),
                 $data['selectedCrashTestBrand'] ?? null,
@@ -71,6 +78,15 @@ class PageSeoFactory
                 $this->toCollection($data['carsWithPhotos'] ?? null),
                 $data['selectedPhotoBrand'] ?? null,
             ),
+            'site.blog.index' => isset($data['articles'])
+                ? $this->forBlogIndex($data['articles'])
+                : null,
+            'site.blog.show' => isset($data['article'])
+                ? $this->forBlogShow($data['article'])
+                : null,
+            'site.pages.show' => isset($data['page'])
+                ? $this->forPageShow($data['page'])
+                : null,
             'site.car.index' => isset($data['brand'], $data['car'])
                 ? $this->forCarIndex($data['brand'], $data['car'])
                 : null,
@@ -289,6 +305,46 @@ class PageSeoFactory
         );
     }
 
+    private function forCatalog(CarCatalog $catalog, LengthAwarePaginator $cars): ResolvedPageSeo
+    {
+        $items = collect($cars->items());
+        $defaultTitle = $this->withPageNumber("{$catalog->name}: каталог автомобилей");
+        $defaultDescription = $this->limitDescription(
+            "Подборка автомобилей {$catalog->name}. На странице {$items->count()} моделей из {$cars->total()}."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $this->firstCarImage($items) ?? $this->fallbackImage(),
+                'h1' => $catalog->name,
+            ],
+            overrides: $this->modelSeoOverrides($catalog),
+            context: array_merge($this->baseContext(), [
+                'catalog' => $catalog->name,
+                'items_count' => $items->count(),
+                'total_count' => $cars->total(),
+                'page' => $cars->currentPage(),
+            ]),
+            modifiedTime: $this->latestUpdatedAt([$catalog, $items]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => $catalog->name, 'url' => $this->absoluteUrl("/catalogs/{$catalog->slug}/")],
+                ],
+                array_filter([
+                    $this->itemListSchema(
+                        $catalog->name,
+                        $items
+                            ->map(fn (Car $car): array => $this->carListItem($car))
+                            ->all(),
+                    ),
+                ]),
+            ),
+        );
+    }
+
     private function forCrashTests(Collection $crashTests, ?Brand $brand, bool $isElectricOnly): ResolvedPageSeo
     {
         $baseTitle = match (true) {
@@ -468,6 +524,123 @@ class PageSeoFactory
         );
     }
 
+    private function forBlogIndex(LengthAwarePaginator $articles): ResolvedPageSeo
+    {
+        $items = collect($articles->items());
+        $defaultTitle = $this->withPageNumber('Блог об автомобилях: новости, обзоры и аналитика');
+        $defaultDescription = $this->limitDescription(
+            "Блог CarsDo: новости автомобильного рынка, обзоры, аналитика и полезные материалы. "
+            ."На странице {$items->count()} публикаций из {$articles->total()}."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $items->first()?->coverUrl() ?? $this->fallbackImage(),
+                'h1' => 'Блог',
+            ],
+            overrides: $this->sitePageOverrides('blog'),
+            context: array_merge($this->baseContext(), [
+                'items_count' => $items->count(),
+                'total_count' => $articles->total(),
+                'page' => $articles->currentPage(),
+            ]),
+            modifiedTime: $this->latestUpdatedAt($items),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => 'Блог', 'url' => $this->absoluteUrl('/blog/')],
+                ],
+                array_filter([
+                    $this->itemListSchema(
+                        'Блог',
+                        $items
+                            ->map(fn (Article $article): array => [
+                                'name' => $article->title,
+                                'url' => $this->articleUrl($article),
+                            ])
+                            ->all(),
+                    ),
+                ]),
+            ),
+        );
+    }
+
+    private function forBlogShow(Article $article): ResolvedPageSeo
+    {
+        $defaultTitle = $article->title;
+        $articleBodyText = $article->body_json !== null
+            ? app(ArticleBodyRenderer::class)->toPlainText($article->body_json)
+            : strip_tags((string) $article->body);
+        $defaultDescription = $this->limitDescription(
+            filled($article->excerpt)
+                ? (string) $article->excerpt
+                : $articleBodyText
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $article->coverUrl(),
+                'h1' => $article->title,
+            ],
+            overrides: $this->modelSeoOverrides($article),
+            context: array_merge($this->baseContext(), [
+                'article' => $article->title,
+                'published_at' => $article->published_at?->toDateString() ?? '',
+            ]),
+            modifiedTime: $this->latestUpdatedAt($article),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => 'Блог', 'url' => $this->absoluteUrl('/blog/')],
+                    ['name' => $article->title, 'url' => $this->articleUrl($article)],
+                ],
+                array_filter([
+                    $this->blogPostingSchema($article, $defaultDescription),
+                ]),
+            ),
+        );
+    }
+
+    private function forPageShow(Page $page): ResolvedPageSeo
+    {
+        $defaultTitle = $page->title;
+        $defaultDescription = $this->limitDescription(
+            filled($page->excerpt)
+                ? (string) $page->excerpt
+                : ($page->body_json !== null
+                    ? app(ArticleBodyRenderer::class)->toPlainText($page->body_json)
+                    : strip_tags((string) $page->body))
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $this->fallbackImage(),
+                'h1' => $page->title,
+            ],
+            overrides: $this->modelSeoOverrides($page),
+            context: array_merge($this->baseContext(), [
+                'content_page' => $page->title,
+                'published_at' => $page->published_at?->toDateString() ?? '',
+            ]),
+            modifiedTime: $this->latestUpdatedAt($page),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => $page->title, 'url' => $this->pageUrl($page)],
+                ],
+                array_filter([
+                    $this->webPageSchema($page, $defaultDescription),
+                ]),
+            ),
+        );
+    }
+
     private function forCarIndex(Brand $brand, Car $car): ResolvedPageSeo
     {
         $configurations = $this->toCollection($car->configurations);
@@ -483,7 +656,7 @@ class PageSeoFactory
             defaults: [
                 'title' => $defaultTitle,
                 'description' => $defaultDescription,
-                'image' => $car->coverUrl(),
+                'image' => $car->coverUrl(false),
                 'h1' => $car->name,
             ],
             overrides: $this->layeredOverrides(
@@ -503,7 +676,7 @@ class PageSeoFactory
                     ['name' => "{$brand->name} {$car->name}", 'url' => $this->carUrl($brand, $car)],
                 ],
                 array_filter([
-                    $this->carProductSchema($brand, $car, $configurations),
+                    $this->carProductSchema($brand, $car, $configurations, generateIfMissing: false),
                 ]),
             ),
         );
@@ -905,6 +1078,7 @@ class PageSeoFactory
         Collection $configurations,
         mixed $selectedConfiguration = null,
         ?CarConfigurationGroup $selectedGroup = null,
+        bool $generateIfMissing = true,
     ): array {
         $schema = [
             '@context' => 'https://schema.org',
@@ -912,7 +1086,7 @@ class PageSeoFactory
             'additionalType' => 'https://schema.org/Car',
             'name' => "{$brand->name} {$car->name}",
             'url' => $selectedGroup !== null ? $this->canonicalUrl() : $this->carUrl($brand, $car),
-            'image' => $this->absoluteUrl($car->coverUrl()),
+            'image' => $this->absoluteUrl($car->coverUrl($generateIfMissing)),
             'brand' => [
                 '@type' => 'Brand',
                 'name' => $brand->name,
@@ -950,27 +1124,30 @@ class PageSeoFactory
         if ($selectedConfiguration instanceof CarConfiguration && filled($selectedConfiguration->price)) {
             return [
                 '@type' => 'Offer',
-                'priceCurrency' => 'RUB',
+                'priceCurrency' => $this->currencyCode($selectedConfiguration->currency),
                 'price' => (int) $selectedConfiguration->price,
                 'availability' => $car->is_soon ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
                 'url' => $this->canonicalUrl(),
             ];
         }
 
-        $prices = $configurations
-            ->pluck('price')
-            ->filter(fn ($price): bool => filled($price))
-            ->map(fn ($price): int => (int) $price)
+        $pricedConfigurations = $configurations
+            ->filter(fn ($configuration): bool => filled($configuration->price ?? null))
+            ->values();
+
+        $prices = $pricedConfigurations
+            ->map(fn ($configuration): int => (int) $configuration->price)
             ->values();
 
         if ($prices->isNotEmpty()) {
             $lowPrice = (int) $prices->min();
             $highPrice = (int) $prices->max();
+            $currencyCode = $this->configurationsCurrencyCode($pricedConfigurations);
 
             if ($lowPrice === $highPrice) {
                 return [
                     '@type' => 'Offer',
-                    'priceCurrency' => 'RUB',
+                    'priceCurrency' => $currencyCode,
                     'price' => $lowPrice,
                     'availability' => $car->is_soon ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
                     'url' => $this->canonicalUrl(),
@@ -979,7 +1156,7 @@ class PageSeoFactory
 
             return [
                 '@type' => 'AggregateOffer',
-                'priceCurrency' => 'RUB',
+                'priceCurrency' => $currencyCode,
                 'lowPrice' => $lowPrice,
                 'highPrice' => $highPrice,
                 'offerCount' => $prices->count(),
@@ -1014,6 +1191,29 @@ class PageSeoFactory
         }
 
         return null;
+    }
+
+    private function configurationsCurrencyCode(Collection $configurations): string
+    {
+        $currencies = $configurations
+            ->pluck('currency')
+            ->filter(fn ($currency): bool => filled($currency))
+            ->unique()
+            ->values();
+
+        if ($currencies->count() === 1) {
+            return $this->currencyCode($currencies->first());
+        }
+
+        return 'RUB';
+    }
+
+    private function currencyCode(?string $currency): string
+    {
+        return match (trim((string) $currency)) {
+            '$', 'USD' => 'USD',
+            default => 'RUB',
+        };
     }
 
     private function configurationProperties(mixed $configuration): array
@@ -1081,6 +1281,62 @@ class PageSeoFactory
         return $schema;
     }
 
+    private function blogPostingSchema(Article $article, string $description): array
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BlogPosting',
+            'headline' => $article->title,
+            'description' => $description,
+            'url' => $this->articleUrl($article),
+            'mainEntityOfPage' => $this->articleUrl($article),
+            'image' => [$this->absoluteUrl($article->coverUrl())],
+            'author' => [
+                '@type' => 'Organization',
+                'name' => $this->siteName(),
+            ],
+            'publisher' => [
+                '@type' => 'Organization',
+                'name' => $this->siteName(),
+                'logo' => [
+                    '@type' => 'ImageObject',
+                    'url' => $this->absoluteUrl('/assets/img/logo.png'),
+                ],
+            ],
+        ];
+
+        if ($article->published_at !== null) {
+            $schema['datePublished'] = $article->published_at->toAtomString();
+        }
+
+        if ($article->updated_at !== null) {
+            $schema['dateModified'] = $article->updated_at->toAtomString();
+        }
+
+        return $schema;
+    }
+
+    private function webPageSchema(Page $page, string $description): array
+    {
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            'name' => $page->title,
+            'description' => $description,
+            'url' => $this->pageUrl($page),
+        ];
+
+        if ($page->published_at !== null) {
+            $schema['datePublished'] = $page->published_at->toAtomString();
+        }
+
+        if ($page->updated_at !== null) {
+            $schema['dateModified'] = $page->updated_at->toAtomString();
+        }
+
+        return $schema;
+    }
+
     private function crashTestBreadcrumbs(?Brand $brand, bool $isElectricOnly): array
     {
         return array_values(array_filter([
@@ -1121,6 +1377,21 @@ class PageSeoFactory
         }
 
         return $this->absoluteUrl($this->carPath($brand, $car));
+    }
+
+    private function articleUrl(Article $article): string
+    {
+        return $this->absoluteUrl("/blog/{$article->slug}/");
+    }
+
+    private function pageUrl(Page $page): string
+    {
+        return match ($page->slug) {
+            'privacy-policy' => $this->absoluteUrl('/privacy-policy/'),
+            'cookie-policy' => $this->absoluteUrl('/cookie-policy/'),
+            'contacts' => $this->absoluteUrl('/contacts/'),
+            default => $this->absoluteUrl("/pages/{$page->slug}/"),
+        };
     }
 
     private function carPath(Brand $brand, Car $car): string

@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Site\CoverController::__invoke
-* @see app/Http/Controllers/Site/CoverController.php:10
+* @see app/Http/Controllers/Site/CoverController.php:12
 * @route '/covers/{brand_slug}/{car_slug}/cover.jpg'
 */
 const CoverController = (args: { brand_slug: string | number, car_slug: string | number } | [brand_slug: string | number, car_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ CoverController.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\CoverController::__invoke
-* @see app/Http/Controllers/Site/CoverController.php:10
+* @see app/Http/Controllers/Site/CoverController.php:12
 * @route '/covers/{brand_slug}/{car_slug}/cover.jpg'
 */
 CoverController.url = (args: { brand_slug: string | number, car_slug: string | number } | [brand_slug: string | number, car_slug: string | number ], options?: RouteQueryOptions) => {
@@ -42,7 +42,7 @@ CoverController.url = (args: { brand_slug: string | number, car_slug: string | n
 
 /**
 * @see \App\Http\Controllers\Site\CoverController::__invoke
-* @see app/Http/Controllers/Site/CoverController.php:10
+* @see app/Http/Controllers/Site/CoverController.php:12
 * @route '/covers/{brand_slug}/{car_slug}/cover.jpg'
 */
 CoverController.get = (args: { brand_slug: string | number, car_slug: string | number } | [brand_slug: string | number, car_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -52,7 +52,7 @@ CoverController.get = (args: { brand_slug: string | number, car_slug: string | n
 
 /**
 * @see \App\Http\Controllers\Site\CoverController::__invoke
-* @see app/Http/Controllers/Site/CoverController.php:10
+* @see app/Http/Controllers/Site/CoverController.php:12
 * @route '/covers/{brand_slug}/{car_slug}/cover.jpg'
 */
 CoverController.head = (args: { brand_slug: string | number, car_slug: string | number } | [brand_slug: string | number, car_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({

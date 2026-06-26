@@ -26,6 +26,7 @@ final class AdminSeoFields
         'crash_tests',
         'test_drives',
         'cars_photo',
+        'blog',
     ];
 
     /**
@@ -56,6 +57,22 @@ final class AdminSeoFields
      * @return list<string>
      */
     public static function brandFields(): array
+    {
+        return self::fieldsForPrefix('seo');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function articleFields(): array
+    {
+        return self::fieldsForPrefix('seo');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function pageFields(): array
     {
         return self::fieldsForPrefix('seo');
     }

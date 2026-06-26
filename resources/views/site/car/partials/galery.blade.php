@@ -8,6 +8,7 @@
     $galleryImageClass = isset($galleryImageClass) && is_string($galleryImageClass) && $galleryImageClass !== ''
         ? $galleryImageClass
         : 'preview_photo';
+    $generateIfMissing = isset($generateIfMissing) ? (bool) $generateIfMissing : true;
     $galleryPhotos = isset($photos) && $photos instanceof \Illuminate\Support\Collection
         ? $photos
         : $car->photos
@@ -29,7 +30,7 @@
                     <div class="car-gallery-slider__track" data-gallery-track>
                         @foreach ($gallerySliderPhotos as $index => $photo)
                             <div class="car-gallery-slider__slide" data-gallery-slide data-gallery-index="{{ $index }}">
-                                <img class="{{ $galleryImageClass }}" src="{{ $photo->url() }}" data-car-image="true">
+                                <img class="{{ $galleryImageClass }}" src="{{ $photo->url($generateIfMissing) }}" data-car-image="true">
                             </div>
                         @endforeach
                     </div>

@@ -29,7 +29,7 @@
         ->filter(fn ($photo) => filled($photo->photo_path))
         ->unique(fn ($photo) => $photo->id)
         ->values();
-    $mainPhoto = $photos->first()?->url() ?: $car->coverUrl();
+    $mainPhoto = $photos->first()?->url(false) ?: $car->coverUrl(false);
     $now = now();
     $currentYear = $now->year;
     $mainCars = $brand->cars
@@ -44,6 +44,9 @@
     $minPrice = $configurations->whereNotNull('price')->min('price') ?? $car->start_price;
     $maxPrice = $configurations->whereNotNull('price')->max('price') ?? $car->end_price ?? $car->start_price;
     $formatPrice = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : 'не объявлена';
+    $currencyLabel = static fn ($configuration, string $fallback = 'руб.'): string => $configuration && filled($configuration->currency) ? $configuration->currency : $fallback;
+    $heroCurrency = $car->resolvedPriceCurrency('₽');
+    $heroTextCurrency = $car->resolvedPriceCurrency();
     $hasPrice = filled($minPrice) && filled($maxPrice);
     $priceRangeText = $hasPrice
         ? ($minPrice === $maxPrice ? $formatPrice((int) $minPrice) : $formatPrice((int) $minPrice).' - '.$formatPrice((int) $maxPrice))
@@ -97,13 +100,13 @@
     $crashTestYoutubeId = $extractYoutubeId($car->crashTest?->video_path);
     $crashTestPreview = filled($crashTestYoutubeId)
         ? 'https://i.ytimg.com/vi/'.$crashTestYoutubeId.'/hqdefault.jpg'
-        : $car->coverUrl();
+        : $car->coverUrl(false);
 
     $firstTestDriveVideoPath = $car->testDrives->first()?->video_path;
     $testDriveYoutubeId = $extractYoutubeId($firstTestDriveVideoPath);
     $testDrivePreview = filled($testDriveYoutubeId)
         ? 'https://i.ytimg.com/vi/'.$testDriveYoutubeId.'/hqdefault.jpg'
-        : $car->coverUrl();
+        : $car->coverUrl(false);
 @endphp
 
 @section('title', 'Модельный ряд ' . $car->name)
@@ -119,13 +122,13 @@
         <div class="car-hero__media">
             <a href="{{ $carPath }}/photo/" class="car-hero__gallery" aria-label="Все фотографии {{ $car->name }}">
                 <span class="car-hero__main">
-                    <img src="{{ $heroMain?->url() ?: $car->coverUrl() }}" alt="{{ $car->name }}" data-car-image="true" loading="eager">
+                    <img src="{{ $heroMain?->url(false) ?: $car->coverUrl(false) }}" alt="{{ $car->name }}" data-car-image="true" loading="eager">
                     <span class="car-hero__badge">Все фото</span>
                 </span>
                 @if ($heroThumbs->isNotEmpty())
                     <span class="car-hero__thumbs">
                         @foreach ($heroThumbs as $thumb)
-                            <img src="{{ $thumb->url() }}" alt="{{ $car->name }}" data-car-image="true" loading="lazy">
+                            <img src="{{ $thumb->url(false) }}" alt="{{ $car->name }}" data-car-image="true" loading="lazy">
                         @endforeach
                     </span>
                 @endif
@@ -138,7 +141,7 @@
 
             <a href="#price_new" class="car-hero__price">
                 <span class="car-hero__price-label">Цена в России</span>
-                <span class="car-hero__price-value">{{ $priceRangeText }}@if ($hasPrice) <span class="car-hero__price-unit">₽</span>@endif</span>
+                <span class="car-hero__price-value">{{ $priceRangeText }}@if ($hasPrice) <span class="car-hero__price-unit">{{ $heroCurrency }}</span>@endif</span>
             </a>
 
             <div class="car-hero__stats">
@@ -168,7 +171,7 @@
     <div class="price_H2" id="price_new_title"><h2>{{ $car->name }} › Цены и комплектации</h2></div>
 
     <div class="price_new_text">
-        В России цена {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} рублей,
+        В России цена {{ $car->name }} в новом кузове составляет {{ $priceRangeText }} {{ $heroTextCurrency }},
         автомобиль продается в {{ $configurationGroups->count() }} комплектациях
         (официальный сайт
         @if (filled($car->official_site))
@@ -208,7 +211,7 @@
                 </div>
                 @forelse ($groupConfigurations as $configuration)
                     <div class="price_modific">
-                        <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">руб.</span></div>
+                        <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">{{ $currencyLabel($configuration) }}</span></div>
                         <div class="pc_1">
                             {{ $configuration->engine_type ?: '-' }}
                             <span class="motor">{{ $configuration->engine_capacity ?: '-' }} л.</span>
@@ -258,7 +261,7 @@
                                     {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                                     {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                                 </span>
-                                <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                                <span class="clt3">{{ $formatPrice($configuration->price) }} {{ $currencyLabel($configuration) }}</span>
                             </a>
                         @else
                             <span class="clt1">{{ $group->name }}</span>
@@ -266,7 +269,7 @@
                                 {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                                 {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                             </span>
-                            <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                            <span class="clt3">{{ $formatPrice($configuration->price) }} {{ $currencyLabel($configuration) }}</span>
                         @endif
                     </li>
                 @empty
@@ -300,6 +303,7 @@
         'carPath' => $carPath,
         'photos' => $photos,
         'galleryBlockId' => 'car-gallery',
+        'generateIfMissing' => false,
     ])
 </div>
 
@@ -339,7 +343,7 @@
         @forelse ($mainCars as $brandCar)
             <div class="{{ $loop->odd ? 'brand_model_1' : 'brand_model_2' }}">
                 <div class="brand_model_car"><a href="/{{ $brand->slug }}/{{ $brandCar->slug }}/">{{ $brandCar->name }}</a></div>
-                <div class="brand_model_price">{{ $formatPrice($brandCar->start_price) }} ₽</div>
+                <div class="brand_model_price">{{ $formatPrice($brandCar->start_price) }}@if (filled($brandCar->start_price)) {{ $brandCar->resolvedPriceCurrency('₽') }}@endif</div>
             </div>
         @empty
             <div class="brand_model_1">

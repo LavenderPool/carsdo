@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreCarConfigurationRequest;
 use App\Http\Requests\Admin\UpdateCarConfigurationRequest;
 use App\Models\Car;
 use App\Models\CarConfiguration;
+use App\Models\Engine;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -64,6 +65,7 @@ class CarConfigurationController extends Controller
                 'car_configuration_group_id' => null,
                 'import_index' => null,
                 'price' => null,
+                'engine_id' => null,
                 'engine_type' => '',
                 'engine_capacity' => null,
                 'horsepower' => null,
@@ -79,6 +81,7 @@ class CarConfigurationController extends Controller
                 ['name' => 'car_configuration_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
                 ['name' => 'import_index', 'label' => 'Import index', 'type' => 'number'],
                 ['name' => 'price', 'label' => 'Цена', 'type' => 'number'],
+                ['name' => 'engine_id', 'label' => 'Двигатель из справочника', 'type' => 'select', 'options' => $this->engineOptions($car)],
                 ['name' => 'engine_type', 'label' => 'Тип двигателя', 'type' => 'text'],
                 ['name' => 'engine_capacity', 'label' => 'Объем двигателя', 'type' => 'number'],
                 ['name' => 'horsepower', 'label' => 'Л.с.', 'type' => 'number'],
@@ -97,6 +100,7 @@ class CarConfigurationController extends Controller
     {
         $data = $request->validated();
         abort_unless($car->configurationGroups()->whereKey($data['car_configuration_group_id'])->exists(), 422);
+        $data = $this->syncEngineSelection($car, $data);
 
         $car->configurations()->create($data);
 
@@ -122,6 +126,7 @@ class CarConfigurationController extends Controller
                 'car_configuration_group_id' => $configuration->car_configuration_group_id,
                 'import_index' => $configuration->import_index,
                 'price' => $configuration->price,
+                'engine_id' => $configuration->engine_id,
                 'engine_type' => $configuration->engine_type,
                 'engine_capacity' => $configuration->engine_capacity,
                 'horsepower' => $configuration->horsepower,
@@ -137,6 +142,7 @@ class CarConfigurationController extends Controller
                 ['name' => 'car_configuration_group_id', 'label' => 'Группа', 'type' => 'select', 'required' => true, 'options' => $this->groupOptions($car)],
                 ['name' => 'import_index', 'label' => 'Import index', 'type' => 'number'],
                 ['name' => 'price', 'label' => 'Цена', 'type' => 'number'],
+                ['name' => 'engine_id', 'label' => 'Двигатель из справочника', 'type' => 'select', 'options' => $this->engineOptions($car)],
                 ['name' => 'engine_type', 'label' => 'Тип двигателя', 'type' => 'text'],
                 ['name' => 'engine_capacity', 'label' => 'Объем двигателя', 'type' => 'number'],
                 ['name' => 'horsepower', 'label' => 'Л.с.', 'type' => 'number'],
@@ -159,6 +165,7 @@ class CarConfigurationController extends Controller
         abort_unless($configuration->car_id === $car->id, 404);
         $data = $request->validated();
         abort_unless($car->configurationGroups()->whereKey($data['car_configuration_group_id'])->exists(), 422);
+        $data = $this->syncEngineSelection($car, $data);
         $configuration->update($data);
 
         return redirect()
@@ -186,5 +193,46 @@ class CarConfigurationController extends Controller
             ->get(['id', 'name'])
             ->map(fn ($group) => ['value' => $group->id, 'label' => $group->name ?? "Group #{$group->id}"])
             ->all();
+    }
+
+    /**
+     * @return array<int, array{value: int, label: string}>
+     */
+    private function engineOptions(Car $car): array
+    {
+        return Engine::query()
+            ->where('brand_id', $car->brand_id)
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug'])
+            ->map(fn (Engine $engine) => [
+                'value' => $engine->id,
+                'label' => "{$engine->name} ({$engine->slug})",
+            ])
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function syncEngineSelection(Car $car, array $data): array
+    {
+        $engineId = $data['engine_id'] ?? null;
+
+        if ($engineId === null) {
+            return $data;
+        }
+
+        $engine = Engine::query()
+            ->whereKey($engineId)
+            ->where('brand_id', $car->brand_id)
+            ->first();
+
+        abort_unless($engine instanceof Engine, 422);
+
+        $data['engine_id'] = $engine->id;
+        $data['engine_type'] = $engine->engine_type ?? $data['engine_type'] ?? null;
+
+        return $data;
     }
 }

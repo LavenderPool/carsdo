@@ -15,8 +15,11 @@ class ElectricCarController extends Controller
     {
         $page = max(1, (int) $request->integer('page', 1));
 
-        $electricCars = SiteCache::remember("electric-cars:page:{$page}", static fn () => Car::query()
-            ->with(['brand:id,name,slug'])
+        $electricCars = SiteCache::remember("electric-cars:page:{$page}:v2", static fn () => Car::query()
+            ->with([
+                'brand:id,name,slug',
+                'configurations:id,car_id,price,currency',
+            ])
             ->whereHas('brand')
             ->where('is_electric_car', true)
             ->where('is_soon', false)
@@ -24,8 +27,11 @@ class ElectricCarController extends Controller
             ->paginate(30));
 
         $soonElectricCars = $electricCars->currentPage() === 1
-            ? SiteCache::remember('electric-cars:soon', static fn () => Car::query()
-                ->with(['brand:id,name,slug'])
+            ? SiteCache::remember('electric-cars:soon:v2', static fn () => Car::query()
+                ->with([
+                    'brand:id,name,slug',
+                    'configurations:id,car_id,price,currency',
+                ])
                 ->whereHas('brand')
                 ->where('is_electric_car', true)
                 ->where('is_soon', true)

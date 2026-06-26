@@ -14,8 +14,11 @@ class NewCarController extends Controller
     {
         $page = max(1, (int) $request->integer('page', 1));
 
-        $newCars = SiteCache::remember("new-cars:{$year}:page:{$page}", static fn () => Car::query()
-            ->with(['brand:id,name,slug'])
+        $newCars = SiteCache::remember("new-cars:{$year}:page:{$page}:v2", static fn () => Car::query()
+            ->with([
+                'brand:id,name,slug',
+                'configurations:id,car_id,price,currency',
+            ])
             ->whereHas('brand')
             ->where('year', $year)
             ->where('is_soon', false)

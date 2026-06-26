@@ -15,6 +15,9 @@ class CarMediaStorage
         if ($path !== null) {
             Storage::disk('public')->delete($path);
         }
+
+        app(MediaVariantService::class)->deleteVariants($photo->photo_path);
+        app(MediaVariantService::class)->deleteVariantsForOwner(CarPhoto::class, $photo->id);
     }
 
     /**
@@ -38,6 +41,7 @@ class CarMediaStorage
             return;
         }
 
+        app(MediaVariantService::class)->deleteVariantsForOwner(Car::class, $car->id);
         Storage::disk('public')->deleteDirectory("images/{$brandSlug}/{$carSlug}");
         Storage::disk('public')->deleteDirectory("covers/{$brandSlug}/{$carSlug}");
     }

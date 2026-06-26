@@ -49,5 +49,11 @@ class Setting extends Model
         'cars_photo_seo_og_image',
         'cars_photo_seo_canonical_url',
         'cars_photo_seo_robots',
+        'blog_seo_title',
+        'blog_seo_description',
+        'blog_seo_h1',
+        'blog_seo_og_image',
+        'blog_seo_canonical_url',
+        'blog_seo_robots',
     ];
 }

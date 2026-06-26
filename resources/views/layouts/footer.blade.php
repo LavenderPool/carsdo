@@ -35,6 +35,27 @@
                         <tr>
                             <td><a href="/sitemap.xml">Sitemap XML</a></td>
                         </tr>
+                        @if (($footerStaticPages['privacy-policy'] ?? null) || ($footerStaticPages['cookie-policy'] ?? null) || ($footerStaticPages['contacts'] ?? null))
+                            <tr>
+                                <td style="font-family:arial;">
+                                    @if ($footerStaticPages['privacy-policy'] ?? null)
+                                        <a href="{{ $footerStaticPages['privacy-policy']['url'] }}">Политика конфиденциальности</a>
+                                    @endif
+                                    @if (($footerStaticPages['privacy-policy'] ?? null) && (($footerStaticPages['cookie-policy'] ?? null) || ($footerStaticPages['contacts'] ?? null)))
+                                        ·
+                                    @endif
+                                    @if ($footerStaticPages['cookie-policy'] ?? null)
+                                        <a href="{{ $footerStaticPages['cookie-policy']['url'] }}">Политика cookie</a>
+                                    @endif
+                                    @if (($footerStaticPages['cookie-policy'] ?? null) && ($footerStaticPages['contacts'] ?? null))
+                                        ·
+                                    @endif
+                                    @if ($footerStaticPages['contacts'] ?? null)
+                                        <a href="{{ $footerStaticPages['contacts']['url'] }}">Контакты</a>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endif
 
                         <tr>
                             <td colspan="2">

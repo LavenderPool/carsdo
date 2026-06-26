@@ -26,6 +26,7 @@ class StoreCarConfigurationRequest extends FormRequest
             'car_configuration_group_id' => ['required', 'integer', 'exists:car_configuration_groups,id'],
             'import_index' => ['nullable', 'integer', 'min:0'],
             'price' => ['nullable', 'integer', 'min:0'],
+            'engine_id' => ['nullable', 'integer', 'exists:engines,id'],
             'engine_type' => ['nullable', 'string', 'max:255'],
             'engine_capacity' => ['nullable', 'numeric', 'min:0'],
             'horsepower' => ['nullable', 'integer', 'min:0'],

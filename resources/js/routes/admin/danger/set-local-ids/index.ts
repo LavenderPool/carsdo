@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Admin\DangerController::apply
-* @see app/Http/Controllers/Admin/DangerController.php:40
+* @see app/Http/Controllers/Admin/DangerController.php:53
 * @route '/admin/danger/set-local-ids'
 */
 export const apply = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -16,7 +16,7 @@ apply.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\DangerController::apply
-* @see app/Http/Controllers/Admin/DangerController.php:40
+* @see app/Http/Controllers/Admin/DangerController.php:53
 * @route '/admin/danger/set-local-ids'
 */
 apply.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ apply.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Admin\DangerController::apply
-* @see app/Http/Controllers/Admin/DangerController.php:40
+* @see app/Http/Controllers/Admin/DangerController.php:53
 * @route '/admin/danger/set-local-ids'
 */
 apply.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({

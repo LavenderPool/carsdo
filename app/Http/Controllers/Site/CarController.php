@@ -20,7 +20,7 @@ class CarController extends Controller
             $car->incrementQuietly('views_count');
         }
 
-        $car = SiteCache::remember("car:{$car->id}:show", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:show:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
@@ -28,7 +28,7 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -53,13 +53,13 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:test-drive", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:test-drive:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'testDrives:id,car_id,import_index,author,video_path',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'reviews:id,car_id,import_index,type,value',
                 'crashTest:id,car_id,year,rating,video_path',
                 'photoGroups:id,car_id,name',
@@ -80,14 +80,14 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:crash-test", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:crash-test:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'crashTest:id,car_id,year,rating,video_path',
                 'testDrives:id,car_id,import_index,author,video_path',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'reviews:id,car_id,import_index,type,value',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
@@ -107,13 +107,13 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:reviews", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:reviews:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -132,7 +132,7 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:photo", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:photo:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
@@ -140,7 +140,7 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -162,7 +162,7 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:equipment", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:equipment:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
@@ -170,7 +170,7 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'configurations.equipmentCategories:id,car_configuration_id,name,import_index',
                 'configurations.equipmentCategories.items:id,car_configuration_id,car_configuration_equipment_category_id,import_index,value,is_extension,price',
                 'photoGroups:id,car_id,name',
@@ -223,7 +223,7 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:dealer", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:dealer:v2", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
@@ -231,7 +231,7 @@ class CarController extends Controller
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
                 'configurationGroups:id,car_id,name,order,import_index',
-                'configurations:id,car_id,car_configuration_group_id,import_index,price,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
+                'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
                 'photoGroups.photos:id,car_id,car_photo_group_id,photo_path',
                 'photos:id,car_id,car_photo_group_id,photo_path',
@@ -263,8 +263,9 @@ class CarController extends Controller
 
     private function brandWithSidebar(Brand $brand): Brand
     {
-        $cars = SiteCache::remember("brand:{$brand->id}:sidebar", static fn () => $brand->cars()
+        $cars = SiteCache::remember("brand:{$brand->id}:sidebar:v2", static fn () => $brand->cars()
             ->select('id', 'brand_id', 'name', 'slug', 'start_price', 'is_soon', 'is_another_models')
+            ->with(['configurations:id,car_id,price,currency'])
             ->orderBy('name')
             ->get());
 

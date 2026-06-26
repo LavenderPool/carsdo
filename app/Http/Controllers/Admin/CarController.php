@@ -8,6 +8,8 @@ use App\Http\Requests\Admin\UpdateCarRequest;
 use App\Models\Brand;
 use App\Models\Car;
 use App\Support\Media\CarMediaStorage;
+use App\Support\Media\MediaPath;
+use App\Support\Media\MediaVariantService;
 use App\Support\Seo\AdminSeoFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -86,7 +88,8 @@ class CarController extends Controller
      */
     public function store(StoreCarRequest $request): RedirectResponse
     {
-        Car::query()->create($request->validated());
+        $car = Car::query()->create($request->validated());
+        $this->syncCoverAlias($car);
 
         return redirect()
             ->route('admin.cars.index')
@@ -136,6 +139,7 @@ class CarController extends Controller
     public function update(UpdateCarRequest $request, Car $car): RedirectResponse
     {
         $car->update($request->validated());
+        $this->syncCoverAlias($car);
 
         return redirect()
             ->route('admin.cars.index')
@@ -188,5 +192,16 @@ class CarController extends Controller
         return redirect()
             ->route('admin.cars.index')
             ->with('success', 'Автомобиль удален.');
+    }
+
+    private function syncCoverAlias(Car $car): void
+    {
+        app(MediaVariantService::class)->deleteVariantsForOwner(Car::class, $car->id);
+
+        if (!is_string($car->cover_path) || $car->cover_path === '' || MediaPath::isExternal($car->cover_path)) {
+            return;
+        }
+
+        app(MediaVariantService::class)->ensureWebpVariant($car->cover_path, Car::class, $car->id);
     }
 }

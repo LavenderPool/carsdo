@@ -97,6 +97,7 @@
 
     $formatPrice = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : '-';
     $formatValue = static fn ($value): string => filled($value) ? (string) $value : '-';
+    $currencyLabel = static fn ($configuration, string $fallback = 'руб.'): string => $configuration && filled($configuration->currency) ? $configuration->currency : $fallback;
 
     $extractYoutubeId = static function (?string $value): ?string {
         if (! is_string($value)) {
@@ -170,9 +171,7 @@
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
 
-    <h1>
-        <a href="{{ $carPath }}/">{{ $car->name }}</a> › {{ $selectedGroup->name }}
-    </h1>
+    <h1>{{ $pageH1 ?? ($car->name.' › '.$selectedGroup->name) }}</h1>
 
     @if ($selectedConfiguration)
         <div class="characteristics_eq">
@@ -182,7 +181,7 @@
             {{ $formatValue($selectedConfiguration->drive_type) }}
             {{ $formatValue($selectedConfiguration->engine_type) }}
         </div>
-        <div class="EQ_price">от {{ $formatPrice($selectedConfiguration->price) }} руб.</div>
+        <div class="EQ_price">от {{ $formatPrice($selectedConfiguration->price) }} {{ $currencyLabel($selectedConfiguration) }}</div>
     @endif
 
     <div class="EQ_TM_a"><a href="#block_price3">Выбрать комплектацию</a></div>
@@ -247,7 +246,7 @@
 
         <div class="price_kompl">
             <a href="{{ $carPath }}/">Цена {{ $car->name }}</a> <br>в этой комплектации:
-            <br><span class="price_kompl_cena">{{ $selectedConfiguration ? $formatPrice($selectedConfiguration->price).' ₽' : 'не указана' }}</span>
+            <br><span class="price_kompl_cena">{{ $selectedConfiguration ? $formatPrice($selectedConfiguration->price).' '.$currencyLabel($selectedConfiguration) : 'не указана' }}</span>
         </div>
 
         @if ($extensionItems->isNotEmpty())
@@ -262,14 +261,14 @@
                     @foreach ($extensionItems->take($equipmentVisibleItemsLimit) as $item)
                         <li class="dop">
                             <span class="dop_obor">{{ $item->value }}</span>
-                            <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
+                            <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' '.$currencyLabel($selectedConfiguration) : '-' }}</span>
                         </li>
                     @endforeach
                     @if ($extensionItems->count() > $equipmentVisibleItemsLimit)
                         @foreach ($extensionItems->slice($equipmentVisibleItemsLimit) as $item)
                             <li class="dop" data-expandable-item hidden>
                                 <span class="dop_obor">{{ $item->value }}</span>
-                                <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' ₽' : '-' }}</span>
+                                <span class="dop_price">{{ filled($item->price) ? $formatPrice($item->price).' '.$currencyLabel($selectedConfiguration) : '-' }}</span>
                             </li>
                         @endforeach
                         <li class="komplektatsiya_toggle">
@@ -307,7 +306,7 @@
                                 {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                                 {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                             </span>
-                            <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                            <span class="clt3">{{ $formatPrice($configuration->price) }} {{ $currencyLabel($configuration) }}</span>
                         </a>
                     @else
                         <span class="clt1">{{ $group->name }}</span>
@@ -315,7 +314,7 @@
                             {{ $configuration->engine_capacity ?: '-' }} л ({{ $configuration->horsepower ?: '-' }} л.с.)
                             {{ $configuration->transmission ?: '-' }} {{ $configuration->drive_type ?: '-' }} {{ $configuration->engine_type ?: '-' }}
                         </span>
-                        <span class="clt3">{{ $formatPrice($configuration->price) }} руб.</span>
+                        <span class="clt3">{{ $formatPrice($configuration->price) }} {{ $currencyLabel($configuration) }}</span>
                     @endif
                 </li>
             @empty
@@ -377,7 +376,7 @@
                 </div>
                 @forelse ($groupConfigurations as $configuration)
                     <div class="price_modific">
-                        <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">руб.</span></div>
+                        <div class="pc_price">{{ $formatPrice($configuration->price) }} <span class="des">{{ $currencyLabel($configuration) }}</span></div>
                         <div class="pc_1">
                             {{ $configuration->engine_type ?: '-' }}
                             <span class="motor">{{ $configuration->engine_capacity ?: '-' }} л.</span>
@@ -441,7 +440,7 @@
                 @php $rowClass = $mainCarIndex % 2 === 0 ? 'brand_model_1' : 'brand_model_2'; @endphp
                 <div class="{{ $rowClass }}">
                     <div class="brand_model_car"><a href="/{{ $brand->slug }}/{{ $mainCar->slug }}/">{{ $mainCar->name }}</a></div>
-                    <div class="brand_model_price">{{ filled($mainCar->start_price) ? number_format((int) $mainCar->start_price, 0, ',', ' ').' ₽' : 'Цена не указана' }}</div>
+                    <div class="brand_model_price">{{ filled($mainCar->start_price) ? number_format((int) $mainCar->start_price, 0, ',', ' ').' '.$mainCar->resolvedPriceCurrency('₽') : 'Цена не указана' }}</div>
                 </div>
             @endforeach
         </div>

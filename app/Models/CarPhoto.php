@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Observers\PublicContentObserver;
+use App\Support\Media\MediaPath;
+use App\Support\Media\MediaVariantService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 #[ObservedBy([PublicContentObserver::class])]
 #[Fillable(['car_id', 'car_photo_group_id', 'photo_path'])]
@@ -22,45 +25,52 @@ class CarPhoto extends Model
         return $this->belongsTo(CarPhotoGroup::class, 'car_photo_group_id');
     }
 
-    public function url(): string
+    public function mediaAliases(): MorphMany
+    {
+        return $this->morphMany(MediaAlias::class, 'owner');
+    }
+
+    public function url(bool $generateIfMissing = true): string
     {
         $path = (string) $this->photo_path;
+        $fallbackUrl = $this->resolveMediaUrl($path);
 
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+        if ($fallbackUrl === null) {
             return $path;
         }
 
-        if (str_starts_with($path, '/storage/')) {
-            return $path;
-        }
+        return app(MediaVariantService::class)->resolvePreferredUrl(
+            $this->photo_path,
+            $fallbackUrl,
+            $generateIfMissing,
+            self::class,
+            $this->id,
+        ) ?? $fallbackUrl;
+    }
 
-        if (str_starts_with($path, '/')) {
-            return $path;
-        }
+    public function originalUrl(): string
+    {
+        $path = (string) $this->photo_path;
+        $fallbackUrl = $this->resolveMediaUrl($path);
 
-        return '/storage/'.ltrim($path, '/');
+        return $fallbackUrl ?? $path;
     }
 
     public function publicDiskPath(): ?string
     {
-        $path = trim((string) $this->photo_path);
+        return MediaPath::publicDiskPath($this->photo_path);
+    }
 
-        if ($path === '') {
-            return null;
-        }
-
-        if (str_starts_with($path, '/storage/')) {
-            return ltrim(substr($path, strlen('/storage/')), '/');
-        }
-
-        if (str_starts_with($path, 'storage/')) {
-            return ltrim(substr($path, strlen('storage/')), '/');
+    private function resolveMediaUrl(string $path): ?string
+    {
+        if (MediaPath::isExternal($path)) {
+            return $path;
         }
 
         if (str_starts_with($path, '/')) {
-            return null;
+            return $path;
         }
 
-        return ltrim($path, '/');
+        return MediaPath::publicUrl($path);
     }
 }

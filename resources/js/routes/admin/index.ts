@@ -1,8 +1,12 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../wayfinder'
 import brands from './brands'
+import engines from './engines'
+import articles from './articles'
+import pages from './pages'
 import dealers from './dealers'
 import carDealers from './car-dealers'
 import cars from './cars'
+import carCatalogs from './car-catalogs'
 import carPageSeos from './car-page-seos'
 import importMethod from './import'
 import danger from './danger'
@@ -54,9 +58,13 @@ dashboard.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 const admin = {
     dashboard: Object.assign(dashboard, dashboard),
     brands: Object.assign(brands, brands),
+    engines: Object.assign(engines, engines),
+    articles: Object.assign(articles, articles),
+    pages: Object.assign(pages, pages),
     dealers: Object.assign(dealers, dealers),
     carDealers: Object.assign(carDealers, carDealers),
     cars: Object.assign(cars, cars),
+    carCatalogs: Object.assign(carCatalogs, carCatalogs),
     carPageSeos: Object.assign(carPageSeos, carPageSeos),
     import: Object.assign(importMethod, importMethod),
     danger: Object.assign(danger, danger),

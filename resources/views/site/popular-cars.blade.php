@@ -41,6 +41,7 @@
                         :name="$car->name"
                         :image="$car->coverUrl()"
                         :price-text="$formatPriceRange($car)"
+                        :price-currency="$car->resolvedPriceCurrency()"
                         :is-new="$car->is_soon"
                         :year="$car->year"
                         :is-electric="$car->is_electric_car"

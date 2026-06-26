@@ -13,20 +13,26 @@ class HomeController extends Controller
 {
     public function __invoke(): View
     {
-        $data = SiteCache::remember('home:v2', static function (): array {
+        $data = SiteCache::remember('home:v3', static function (): array {
             $latestTestDriveIds = CarTestDrive::query()
                 ->selectRaw('MAX(id)', [])
                 ->groupBy('car_id');
 
             return [
                 'newCars' => Car::query()
-                    ->with(['brand:id,name,slug'])
+                    ->with([
+                        'brand:id,name,slug',
+                        'configurations:id,car_id,price,currency',
+                    ])
                     ->whereHas('brand')
                     ->latest()
                     ->limit(12)
                     ->get(),
                 'soonCars' => Car::query()
-                    ->with(['brand:id,name,slug'])
+                    ->with([
+                        'brand:id,name,slug',
+                        'configurations:id,car_id,price,currency',
+                    ])
                     ->whereHas('brand')
                     ->where('is_soon', true)
                     ->latest()
@@ -46,7 +52,10 @@ class HomeController extends Controller
                     ->limit(12)
                     ->get(),
                 'popularCars' => Car::query()
-                    ->with(['brand:id,name,slug'])
+                    ->with([
+                        'brand:id,name,slug',
+                        'configurations:id,car_id,price,currency',
+                    ])
                     ->whereHas('brand')
                     ->popular()
                     ->limit(11)

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Observers\PublicContentObserver;
+use App\Support\Media\MediaPath;
+use App\Support\Media\MediaVariantService;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
@@ -12,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Collection;
 
 #[ObservedBy([PublicContentObserver::class])]
 #[Fillable([
@@ -123,6 +126,13 @@ class Car extends Model
         return $this->hasMany(CarConfiguration::class);
     }
 
+    public function resolvedPriceCurrency(string $fallback = 'руб.'): string
+    {
+        $currencies = $this->pricedConfigurationCurrencies($fallback);
+
+        return $currencies->count() === 1 ? $currencies->first() : $fallback;
+    }
+
     public function photoGroups(): HasMany
     {
         return $this->hasMany(CarPhotoGroup::class);
@@ -150,7 +160,46 @@ class Car extends Model
         return $this->belongsToMany(City::class, 'car_dealers');
     }
 
-    public function coverUrl(): string
+    public function catalogs(): BelongsToMany
+    {
+        return $this->belongsToMany(CarCatalog::class, 'car_catalog_car')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
+
+    public function coverUrl(bool $generateIfMissing = true): string
+    {
+        if (is_string($this->cover_path) && $this->cover_path !== '') {
+            $fallbackUrl = $this->resolveMediaUrl($this->cover_path);
+
+            return app(MediaVariantService::class)->resolvePreferredUrl(
+                $this->cover_path,
+                $fallbackUrl,
+                !MediaPath::isExternal($this->cover_path) && $generateIfMissing,
+                self::class,
+                $this->id,
+            ) ?? $fallbackUrl;
+        }
+
+        $brandSlug = $this->brand?->slug;
+
+        if (is_string($brandSlug) && $brandSlug !== '' && $this->slug !== '') {
+            $sourcePath = "covers/{$brandSlug}/{$this->slug}/cover.jpg";
+            $fallbackUrl = "/covers/{$brandSlug}/{$this->slug}/cover.jpg";
+
+            return app(MediaVariantService::class)->resolvePreferredUrl(
+                $sourcePath,
+                $fallbackUrl,
+                $generateIfMissing,
+                self::class,
+                $this->id,
+            ) ?? $fallbackUrl;
+        }
+
+        return '/assets/img/start.png';
+    }
+
+    public function coverOriginalUrl(): string
     {
         if (is_string($this->cover_path) && $this->cover_path !== '') {
             return $this->resolveMediaUrl($this->cover_path);
@@ -167,11 +216,7 @@ class Car extends Model
 
     private function resolveMediaUrl(string $path): string
     {
-        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
-            return $path;
-        }
-
-        if (str_starts_with($path, '/storage/')) {
+        if (MediaPath::isExternal($path)) {
             return $path;
         }
 
@@ -179,6 +224,24 @@ class Car extends Model
             return $path;
         }
 
-        return '/storage/'.ltrim($path, '/');
+        return MediaPath::publicUrl($path) ?? $path;
+    }
+
+    private function pricedConfigurationCurrencies(string $fallback): Collection
+    {
+        $configurations = $this->relationLoaded('configurations')
+            ? $this->configurations
+            : $this->configurations()
+                ->get(['car_id', 'price', 'currency']);
+
+        return $configurations
+            ->filter(fn (CarConfiguration $configuration): bool => filled($configuration->price))
+            ->map(static function (CarConfiguration $configuration) use ($fallback): string {
+                $currency = trim((string) $configuration->currency);
+
+                return $currency !== '' ? $currency : $fallback;
+            })
+            ->unique()
+            ->values();
     }
 }

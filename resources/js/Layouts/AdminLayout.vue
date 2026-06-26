@@ -202,6 +202,18 @@ const navigationItems: NavigationItem[] = [
         icon: TagIcon,
     },
     {
+        label: 'Двигатели',
+        routeName: 'admin.engines.index',
+        activePattern: 'admin.engines.*',
+        icon: TagIcon,
+    },
+    {
+        label: 'Импорт моторов',
+        routeName: 'admin.engines.import.index',
+        activePattern: 'admin.engines.import.*',
+        icon: ArrowUpTrayIcon,
+    },
+    {
         label: 'Дилеры',
         routeName: 'admin.dealers.index',
         activePattern: 'admin.dealers.*',
@@ -218,6 +230,24 @@ const navigationItems: NavigationItem[] = [
         routeName: 'admin.cars.index',
         activePattern: 'admin.cars.*',
         icon: CarIcon,
+    },
+    {
+        label: 'LSI каталоги',
+        routeName: 'admin.car-catalogs.index',
+        activePattern: 'admin.car-catalogs.*',
+        icon: DocumentTextIcon,
+    },
+    {
+        label: 'Блог',
+        routeName: 'admin.articles.index',
+        activePattern: 'admin.articles.*',
+        icon: DocumentTextIcon,
+    },
+    {
+        label: 'Страницы',
+        routeName: 'admin.pages.index',
+        activePattern: 'admin.pages.*',
+        icon: DocumentTextIcon,
     },
     {
         label: 'SEO авто-страниц',
@@ -282,7 +312,7 @@ watch(sidebarCollapsed, (value) => {
 <template>
     <div class="min-h-screen overflow-x-hidden bg-gray-100 lg:flex">
         <aside
-            class="hidden lg:flex lg:flex-col lg:border-r lg:border-gray-200 lg:bg-white lg:transition-[width] lg:duration-200"
+            class="hidden lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col lg:overflow-hidden lg:border-r lg:border-gray-200 lg:bg-white lg:transition-[width] lg:duration-200"
             :class="sidebarWidthClasses"
         >
             <div
@@ -311,8 +341,8 @@ watch(sidebarCollapsed, (value) => {
                 </button>
             </div>
 
-            <div class="flex flex-1 flex-col justify-between px-4 py-6">
-                <nav class="space-y-2">
+            <div class="flex min-h-0 flex-1 flex-col px-4 py-6">
+                <nav class="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
                     <Link
                         v-for="item in navigationItems"
                         :key="item.routeName"
@@ -328,13 +358,24 @@ watch(sidebarCollapsed, (value) => {
                     </Link>
                 </nav>
 
-                <div class="space-y-3">
+                <div class="mt-6 space-y-3">
                     <Link
+                        :href="route('admin.danger.clear-cache')"
+                        method="post"
+                        as="button"
+                        class="inline-flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
+                    >
+                        Очистить кеш
+                    </Link>
+
+                    <a
                         href="/"
+                        target="_blank"
+                        rel="noopener noreferrer"
                         class="inline-flex w-full items-center justify-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:text-gray-900"
                     >
                         На сайт
-                    </Link>
+                    </a>
 
                     <Dropdown
                         :placement="sidebarCollapsed ? 'right' : 'bottom-end'"
@@ -443,9 +484,21 @@ watch(sidebarCollapsed, (value) => {
                     class="border-t border-gray-200 lg:hidden"
                 >
                     <div class="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink href="/">
-                            На сайт
+                        <ResponsiveNavLink
+                            :href="route('admin.danger.clear-cache')"
+                            method="post"
+                            as="button"
+                        >
+                            Очистить кеш
                         </ResponsiveNavLink>
+                        <a
+                            href="/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="block w-full border-l-4 border-transparent ps-3 pe-4 py-2 text-start text-base font-medium text-gray-600 transition duration-150 ease-in-out hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 focus:bg-gray-50 focus:outline-none focus:text-gray-800 focus:border-gray-300"
+                        >
+                            На сайт
+                        </a>
                         <ResponsiveNavLink
                             v-for="item in navigationItems"
                             :key="item.routeName"

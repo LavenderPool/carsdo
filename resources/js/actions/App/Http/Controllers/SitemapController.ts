@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\SitemapController::__invoke
-* @see app/Http/Controllers/SitemapController.php:16
+* @see app/Http/Controllers/SitemapController.php:18
 * @route '/sitemap.xml'
 */
 const SitemapController = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ SitemapController.definition = {
 
 /**
 * @see \App\Http\Controllers\SitemapController::__invoke
-* @see app/Http/Controllers/SitemapController.php:16
+* @see app/Http/Controllers/SitemapController.php:18
 * @route '/sitemap.xml'
 */
 SitemapController.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ SitemapController.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\SitemapController::__invoke
-* @see app/Http/Controllers/SitemapController.php:16
+* @see app/Http/Controllers/SitemapController.php:18
 * @route '/sitemap.xml'
 */
 SitemapController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ SitemapController.get = (options?: RouteQueryOptions): RouteDefinition<'get'> =>
 
 /**
 * @see \App\Http\Controllers\SitemapController::__invoke
-* @see app/Http/Controllers/SitemapController.php:16
+* @see app/Http/Controllers/SitemapController.php:18
 * @route '/sitemap.xml'
 */
 SitemapController.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

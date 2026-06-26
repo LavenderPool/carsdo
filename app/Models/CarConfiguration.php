@@ -17,7 +17,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'have_page',
     'import_index',
     'price',
+    'currency',
     'engine_type',
+    'engine_id',
     'engine_capacity',
     'horsepower',
     'transmission',
@@ -38,6 +40,7 @@ class CarConfiguration extends Model
         'have_page' => 'boolean',
         'import_index' => 'integer',
         'price' => 'integer',
+        'engine_id' => 'integer',
         'engine_capacity' => 'decimal:2',
         'horsepower' => 'integer',
         'fuel_city' => 'decimal:1',
@@ -55,6 +58,11 @@ class CarConfiguration extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(CarConfigurationGroup::class, 'car_configuration_group_id');
+    }
+
+    public function engine(): BelongsTo
+    {
+        return $this->belongsTo(Engine::class);
     }
 
     public function equipmentCategories(): HasMany

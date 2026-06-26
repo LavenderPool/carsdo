@@ -271,3 +271,91 @@ electricCars.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     method: 'head',
 })
 
+/**
+* @see \App\Http\Controllers\Site\PopularCarController::__invoke
+* @see app/Http/Controllers/Site/PopularCarController.php:12
+* @route '/popular-cars'
+*/
+export const popularCars = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: popularCars.url(options),
+    method: 'get',
+})
+
+popularCars.definition = {
+    methods: ["get","head"],
+    url: '/popular-cars',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Site\PopularCarController::__invoke
+* @see app/Http/Controllers/Site/PopularCarController.php:12
+* @route '/popular-cars'
+*/
+popularCars.url = (options?: RouteQueryOptions) => {
+    return popularCars.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Site\PopularCarController::__invoke
+* @see app/Http/Controllers/Site/PopularCarController.php:12
+* @route '/popular-cars'
+*/
+popularCars.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: popularCars.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Site\PopularCarController::__invoke
+* @see app/Http/Controllers/Site/PopularCarController.php:12
+* @route '/popular-cars'
+*/
+popularCars.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: popularCars.url(options),
+    method: 'head',
+})
+
+/**
+* @see \App\Http\Controllers\Site\SearchController::search
+* @see app/Http/Controllers/Site/SearchController.php:35
+* @route '/search'
+*/
+export const search = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: search.url(options),
+    method: 'get',
+})
+
+search.definition = {
+    methods: ["get","head"],
+    url: '/search',
+} satisfies RouteDefinition<["get","head"]>
+
+/**
+* @see \App\Http\Controllers\Site\SearchController::search
+* @see app/Http/Controllers/Site/SearchController.php:35
+* @route '/search'
+*/
+search.url = (options?: RouteQueryOptions) => {
+    return search.definition.url + queryParams(options)
+}
+
+/**
+* @see \App\Http\Controllers\Site\SearchController::search
+* @see app/Http/Controllers/Site/SearchController.php:35
+* @route '/search'
+*/
+search.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: search.url(options),
+    method: 'get',
+})
+
+/**
+* @see \App\Http\Controllers\Site\SearchController::search
+* @see app/Http/Controllers/Site/SearchController.php:35
+* @route '/search'
+*/
+search.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: search.url(options),
+    method: 'head',
+})
+

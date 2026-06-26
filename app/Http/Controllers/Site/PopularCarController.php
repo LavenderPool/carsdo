@@ -11,8 +11,11 @@ class PopularCarController extends Controller
 {
     public function __invoke(): View
     {
-        $popularCars = SiteCache::remember('popular-cars', static fn () => Car::query()
-            ->with(['brand:id,name,slug'])
+        $popularCars = SiteCache::remember('popular-cars:v2', static fn () => Car::query()
+            ->with([
+                'brand:id,name,slug',
+                'configurations:id,car_id,price,currency',
+            ])
             ->whereHas('brand')
             ->popular()
             ->limit(40)

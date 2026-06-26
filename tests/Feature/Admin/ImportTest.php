@@ -16,6 +16,7 @@ use App\Models\CarPhotoGroup;
 use App\Models\CarReview;
 use App\Models\City;
 use App\Models\Dealer;
+use App\Models\Engine;
 use App\Models\ImportRun;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -432,6 +433,46 @@ class ImportTest extends TestCase
 
         $this->assertDatabaseCount('brands', 1);
         $this->assertDatabaseCount('cars', 1);
+    }
+
+    public function test_import_links_configuration_to_existing_engine_by_engine_slug(): void
+    {
+        Storage::fake('local');
+        config(['queue.default' => 'sync']);
+
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Brand $brand */
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => true,
+        ]);
+        /** @var Engine $engine */
+        $engine = Engine::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Long Range',
+            'slug' => 'model-y-long-range',
+            'engine_type' => 'electric',
+        ]);
+
+        $payload = $this->payload();
+        unset($payload['brands']);
+        unset($payload['cars'][0]['groups'][0]['items'][0]['engine_type']);
+        $payload['cars'][0]['groups'][0]['items'][0]['engine_slug'] = $engine->slug;
+
+        $response = $this->actingAs($user)->post(route('admin.import.store'), [
+            'file' => $this->jsonFile($payload, 'import-with-engine-slug.json'),
+        ]);
+
+        $response
+            ->assertAccepted()
+            ->assertJsonPath('run.status', 'succeeded');
+
+        $configuration = CarConfiguration::query()->firstOrFail();
+
+        $this->assertSame($engine->id, $configuration->engine_id);
+        $this->assertSame('electric', $configuration->engine_type);
     }
 
     public function test_import_status_is_available_only_to_owner(): void

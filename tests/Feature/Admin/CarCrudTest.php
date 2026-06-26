@@ -16,6 +16,7 @@ use App\Models\CarReview;
 use App\Models\CarTestDrive;
 use App\Models\City;
 use App\Models\Dealer;
+use App\Models\MediaAlias;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -242,6 +243,10 @@ class CarCrudTest extends TestCase
 
     public function test_authenticated_user_can_upload_replace_and_delete_car_photo_files(): void
     {
+        if (!$this->supportsWebpEncoding()) {
+            $this->markTestSkipped('WebP encoder is unavailable.');
+        }
+
         Storage::fake('public');
 
         /** @var User $user */
@@ -276,6 +281,20 @@ class CarCrudTest extends TestCase
         $originalPath = $photo->photo_path;
 
         $this->assertTrue(Storage::disk('public')->exists($originalPath));
+        $this->assertDatabaseHas('media_aliases', [
+            'owner_type' => CarPhoto::class,
+            'owner_id' => $photo->id,
+            'source_path' => $originalPath,
+            'variant' => 'webp',
+        ]);
+
+        $firstAliasPath = MediaAlias::query()
+            ->where('owner_type', CarPhoto::class)
+            ->where('owner_id', $photo->id)
+            ->value('alias_path');
+
+        $this->assertNotNull($firstAliasPath);
+        $this->assertTrue(Storage::disk('public')->exists($firstAliasPath));
 
         $this->actingAs($user)
             ->put(route('admin.cars.photos.update', [$car, $photo]), [
@@ -289,15 +308,193 @@ class CarCrudTest extends TestCase
         $this->assertNotSame($originalPath, $photo->photo_path);
         $this->assertFalse(Storage::disk('public')->exists($originalPath));
         $this->assertTrue(Storage::disk('public')->exists($photo->photo_path));
+        $this->assertFalse(Storage::disk('public')->exists((string) $firstAliasPath));
+        $this->assertDatabaseHas('media_aliases', [
+            'owner_type' => CarPhoto::class,
+            'owner_id' => $photo->id,
+            'source_path' => $photo->photo_path,
+            'variant' => 'webp',
+        ]);
 
         $newPath = $photo->photo_path;
+        $newAliasPath = MediaAlias::query()
+            ->where('owner_type', CarPhoto::class)
+            ->where('owner_id', $photo->id)
+            ->value('alias_path');
+
+        $this->assertNotNull($newAliasPath);
+        $this->assertTrue(Storage::disk('public')->exists($newAliasPath));
 
         $this->actingAs($user)
             ->delete(route('admin.cars.photos.destroy', [$car, $photo]))
             ->assertRedirect(route('admin.cars.photos.index', $car));
 
         $this->assertFalse(Storage::disk('public')->exists($newPath));
+        $this->assertFalse(Storage::disk('public')->exists((string) $newAliasPath));
         $this->assertDatabaseCount('car_photos', 0);
+        $this->assertDatabaseCount('media_aliases', 0);
+    }
+
+    public function test_car_cover_url_prefers_generated_webp_alias_for_local_cover(): void
+    {
+        if (!$this->supportsWebpEncoding()) {
+            $this->markTestSkipped('WebP encoder is unavailable.');
+        }
+
+        Storage::fake('public');
+
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Model Y',
+            'slug' => 'model-y',
+            'year' => '2025',
+            'cover_path' => 'covers/tesla/model-y/cover.jpg',
+        ]);
+
+        Storage::disk('public')->put('covers/tesla/model-y/cover.jpg', $this->fakeImageBinary());
+
+        $url = $car->fresh()->coverUrl();
+
+        $this->assertStringContainsString('/storage/covers/tesla/model-y/variants/cover-', $url);
+        $this->assertStringEndsWith('.webp', $url);
+        $this->assertDatabaseHas('media_aliases', [
+            'owner_type' => Car::class,
+            'owner_id' => $car->id,
+            'source_path' => 'covers/tesla/model-y/cover.jpg',
+            'variant' => 'webp',
+        ]);
+    }
+
+    public function test_car_photo_url_lazily_generates_webp_alias_for_existing_local_file(): void
+    {
+        if (!$this->supportsWebpEncoding()) {
+            $this->markTestSkipped('WebP encoder is unavailable.');
+        }
+
+        Storage::fake('public');
+
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Model S',
+            'slug' => 'model-s',
+            'year' => '2025',
+        ]);
+        $group = CarPhotoGroup::query()->create([
+            'car_id' => $car->id,
+            'name' => 'Gallery',
+        ]);
+        $photo = CarPhoto::query()->create([
+            'car_id' => $car->id,
+            'car_photo_group_id' => $group->id,
+            'photo_path' => 'images/tesla/model-s/front.png',
+        ]);
+
+        Storage::disk('public')->put($photo->photo_path, $this->fakeImageBinary());
+
+        $url = $photo->url();
+
+        $this->assertStringContainsString('/storage/images/tesla/model-s/variants/front-', $url);
+        $this->assertStringEndsWith('.webp', $url);
+        $this->assertDatabaseHas('media_aliases', [
+            'owner_type' => CarPhoto::class,
+            'owner_id' => $photo->id,
+            'source_path' => 'images/tesla/model-s/front.png',
+            'variant' => 'webp',
+        ]);
+    }
+
+    public function test_cover_controller_uses_existing_webp_alias_when_present(): void
+    {
+        if (!$this->supportsWebpEncoding()) {
+            $this->markTestSkipped('WebP encoder is unavailable.');
+        }
+
+        Storage::fake('public');
+        Storage::disk('public')->put('covers/tesla/model-x/cover.jpg', $this->fakeImageBinary());
+        app(\App\Support\Media\MediaVariantService::class)->ensureWebpVariant('covers/tesla/model-x/cover.jpg');
+
+        $this->get('/covers/tesla/model-x/cover.jpg')
+            ->assertOk()
+            ->assertHeader('content-type', 'image/webp');
+
+        $this->assertDatabaseHas('media_aliases', [
+            'source_path' => 'covers/tesla/model-x/cover.jpg',
+            'variant' => 'webp',
+        ]);
+    }
+
+    public function test_cover_controller_falls_back_to_original_cover_without_creating_alias(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('covers/tesla/model-x/cover.jpg', $this->fakeImageBinary());
+
+        $this->get('/covers/tesla/model-x/cover.jpg')
+            ->assertOk();
+
+        $this->assertDatabaseMissing('media_aliases', [
+            'source_path' => 'covers/tesla/model-x/cover.jpg',
+            'variant' => 'webp',
+        ]);
+    }
+
+    public function test_car_cover_url_falls_back_to_external_source_without_creating_alias(): void
+    {
+        Storage::fake('public');
+
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Roadster',
+            'slug' => 'roadster',
+            'year' => '2025',
+            'cover_path' => 'https://cdn.example.com/cars/roadster.jpg',
+        ]);
+
+        $this->assertSame('https://cdn.example.com/cars/roadster.jpg', $car->coverUrl());
+        $this->assertDatabaseCount('media_aliases', 0);
+    }
+
+    public function test_car_photo_url_falls_back_to_original_path_when_local_file_is_missing(): void
+    {
+        Storage::fake('public');
+
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+        $car = Car::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Model 3',
+            'slug' => 'model-3',
+            'year' => '2025',
+        ]);
+        $group = CarPhotoGroup::query()->create([
+            'car_id' => $car->id,
+            'name' => 'Gallery',
+        ]);
+        $photo = CarPhoto::query()->create([
+            'car_id' => $car->id,
+            'car_photo_group_id' => $group->id,
+            'photo_path' => 'images/tesla/model-3/missing.png',
+        ]);
+
+        $this->assertSame('/storage/images/tesla/model-3/missing.png', $photo->url());
+        $this->assertDatabaseCount('media_aliases', 0);
     }
 
     public function test_car_destroy_cascades_to_all_related_records(): void
@@ -383,10 +580,20 @@ class CarCrudTest extends TestCase
     {
         return UploadedFile::fake()->createWithContent(
             $name,
-            base64_decode(
-                'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wn8yKkAAAAASUVORK5CYII=',
-                true,
-            ) ?: '',
+            $this->fakeImageBinary(),
         );
+    }
+
+    private function fakeImageBinary(): string
+    {
+        return base64_decode(
+            'iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAIAAAAmkwkpAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAAEElEQVQImWP8z4AATAxEcQAz0QEH1mUzKgAAAABJRU5ErkJggg==',
+            true,
+        ) ?: '';
+    }
+
+    private function supportsWebpEncoding(): bool
+    {
+        return function_exists('imagewebp') || class_exists('\\Imagick');
     }
 }

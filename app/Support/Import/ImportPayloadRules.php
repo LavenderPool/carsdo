@@ -90,6 +90,7 @@ class ImportPayloadRules
             'groups.*.items.*.local_id' => ['nullable', 'integer', 'min:0'],
             'groups.*.items.*.have_page' => ['nullable', 'boolean'],
             'groups.*.items.*.price' => ['nullable', 'numeric'],
+            'groups.*.items.*.engine_slug' => ['nullable', 'string', 'max:255'],
             'groups.*.items.*.engine_type' => ['nullable', 'string', 'max:255'],
             'groups.*.items.*.engine_capacity' => ['nullable', 'numeric'],
             'groups.*.items.*.horsepower' => ['nullable', 'integer', 'min:0'],

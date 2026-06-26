@@ -52,6 +52,12 @@ const props = defineProps<{
         cars_photo_seo_og_image: string | null;
         cars_photo_seo_canonical_url: string | null;
         cars_photo_seo_robots: string | null;
+        blog_seo_title: string | null;
+        blog_seo_description: string | null;
+        blog_seo_h1: string | null;
+        blog_seo_og_image: string | null;
+        blog_seo_canonical_url: string | null;
+        blog_seo_robots: string | null;
     };
     flash?: {
         success?: string | null;
@@ -101,6 +107,12 @@ const form = useForm({
     cars_photo_seo_og_image: props.setting.cars_photo_seo_og_image ?? '',
     cars_photo_seo_canonical_url: props.setting.cars_photo_seo_canonical_url ?? '',
     cars_photo_seo_robots: props.setting.cars_photo_seo_robots ?? '',
+    blog_seo_title: props.setting.blog_seo_title ?? '',
+    blog_seo_description: props.setting.blog_seo_description ?? '',
+    blog_seo_h1: props.setting.blog_seo_h1 ?? '',
+    blog_seo_og_image: props.setting.blog_seo_og_image ?? '',
+    blog_seo_canonical_url: props.setting.blog_seo_canonical_url ?? '',
+    blog_seo_robots: props.setting.blog_seo_robots ?? '',
 });
 
 const selectedFaviconName = ref<string | null>(null);
@@ -302,6 +314,15 @@ const submit = () => {
                             title="Страницы фото автомобилей"
                             description="Общий шаблон для общей страницы и фильтра по бренду."
                             placeholders-hint="Плейсхолдеры: {site_name}, {brand}, {items_count}, {page}."
+                            :fallback-image="form.seo_default_og_image || null"
+                        />
+
+                        <SeoFieldsSection
+                            :form="form"
+                            prefix="blog_seo"
+                            title="Страница блога"
+                            description="SEO для `/blog/`."
+                            placeholders-hint="Плейсхолдеры: {site_name}, {items_count}, {total_count}, {page}."
                             :fallback-image="form.seo_default_og_image || null"
                         />
 
