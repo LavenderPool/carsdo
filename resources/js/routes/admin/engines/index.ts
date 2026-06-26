@@ -192,7 +192,7 @@ edit.head = (args: { engine: number | { id: number } } | [engine: number | { id:
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::update
-* @see app/Http/Controllers/Admin/EngineController.php:91
+* @see app/Http/Controllers/Admin/EngineController.php:86
 * @route '/admin/engines/{engine}'
 */
 export const update = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -207,7 +207,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::update
-* @see app/Http/Controllers/Admin/EngineController.php:91
+* @see app/Http/Controllers/Admin/EngineController.php:86
 * @route '/admin/engines/{engine}'
 */
 update.url = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -240,7 +240,7 @@ update.url = (args: { engine: number | { id: number } } | [engine: number | { id
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::update
-* @see app/Http/Controllers/Admin/EngineController.php:91
+* @see app/Http/Controllers/Admin/EngineController.php:86
 * @route '/admin/engines/{engine}'
 */
 update.put = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -250,7 +250,7 @@ update.put = (args: { engine: number | { id: number } } | [engine: number | { id
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::update
-* @see app/Http/Controllers/Admin/EngineController.php:91
+* @see app/Http/Controllers/Admin/EngineController.php:86
 * @route '/admin/engines/{engine}'
 */
 update.patch = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -260,7 +260,7 @@ update.patch = (args: { engine: number | { id: number } } | [engine: number | { 
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::destroy
-* @see app/Http/Controllers/Admin/EngineController.php:100
+* @see app/Http/Controllers/Admin/EngineController.php:95
 * @route '/admin/engines/{engine}'
 */
 export const destroy = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -275,7 +275,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::destroy
-* @see app/Http/Controllers/Admin/EngineController.php:100
+* @see app/Http/Controllers/Admin/EngineController.php:95
 * @route '/admin/engines/{engine}'
 */
 destroy.url = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -308,7 +308,7 @@ destroy.url = (args: { engine: number | { id: number } } | [engine: number | { i
 
 /**
 * @see \App\Http\Controllers\Admin\EngineController::destroy
-* @see app/Http/Controllers/Admin/EngineController.php:100
+* @see app/Http/Controllers/Admin/EngineController.php:95
 * @route '/admin/engines/{engine}'
 */
 destroy.delete = (args: { engine: number | { id: number } } | [engine: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({

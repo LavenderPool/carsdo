@@ -78,12 +78,7 @@ class EngineController extends Controller
     public function edit(Engine $engine): Response
     {
         return Inertia::render('Admin/Engines/Edit', [
-            'engine' => [
-                'id' => $engine->id,
-                'brand_id' => $engine->brand_id,
-                'name' => $engine->name,
-                'slug' => $engine->slug,
-            ],
+            'engine' => $this->enginePayload($engine),
             'brands' => $this->brandOptions(),
         ]);
     }
@@ -120,5 +115,35 @@ class EngineController extends Controller
                 'slug' => $brand->slug,
             ])
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function enginePayload(Engine $engine): array
+    {
+        return [
+            'id' => $engine->id,
+            'brand_id' => $engine->brand_id,
+            'name' => $engine->name,
+            'slug' => $engine->slug,
+            'engine_url' => $engine->engine_url,
+            'engine_type' => $engine->engine_type,
+            'displacement_cc' => $engine->displacement_cc,
+            'max_horsepower' => $engine->max_horsepower,
+            'max_power_output_at_rpm' => $engine->max_power_output_at_rpm,
+            'max_torque_at_rpm' => $engine->max_torque_at_rpm,
+            'valves_per_cylinder' => $engine->valves_per_cylinder,
+            'compression_ratio' => $engine->compression_ratio,
+            'cylinder_bore_mm' => $engine->cylinder_bore_mm,
+            'piston_stroke_mm' => $engine->piston_stroke_mm,
+            'valvetrain' => $engine->valvetrain,
+            'recommended_fuel_type' => $engine->recommended_fuel_type,
+            'fuel_consumption_l_per_100_km' => $engine->fuel_consumption_l_per_100_km,
+            'co2_emissions_g_per_km' => $engine->co2_emissions_g_per_km,
+            'has_start_stop_system' => $engine->has_start_stop_system,
+            'engine_notes' => $engine->engine_notes,
+            'page_text' => $engine->page_text,
+        ];
     }
 }

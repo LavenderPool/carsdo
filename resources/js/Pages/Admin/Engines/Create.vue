@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import EngineForm from '@/Components/Admin/EngineForm.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { createEngineFormData } from '@/Pages/Admin/Engines/form';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -11,11 +12,7 @@ const props = defineProps<{
     }>;
 }>();
 
-const form = useForm({
-    brand_id: null as number | null,
-    name: '',
-    slug: '',
-});
+const form = useForm(createEngineFormData());
 
 const submit = () => {
     form.post(route('admin.engines.store'));
@@ -42,7 +39,7 @@ const submit = () => {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <EngineForm
                         :form="form"

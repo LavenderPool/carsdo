@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import EngineForm from '@/Components/Admin/EngineForm.vue';
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import { createEngineFormData, type EngineFormSource } from '@/Pages/Admin/Engines/form';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
-    engine: {
+    engine: EngineFormSource & {
         id: number;
-        brand_id: number;
-        name: string;
-        slug: string;
     };
     brands: Array<{
         id: number;
@@ -17,11 +15,7 @@ const props = defineProps<{
     }>;
 }>();
 
-const form = useForm({
-    brand_id: props.engine.brand_id,
-    name: props.engine.name,
-    slug: props.engine.slug,
-});
+const form = useForm(createEngineFormData(props.engine));
 
 const submit = () => {
     form.put(route('admin.engines.update', props.engine.id));
@@ -48,7 +42,7 @@ const submit = () => {
         </template>
 
         <div class="py-12">
-            <div class="mx-auto max-w-3xl sm:px-6 lg:px-8">
+            <div class="mx-auto max-w-5xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <EngineForm
                         :form="form"
