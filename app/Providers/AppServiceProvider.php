@@ -63,7 +63,7 @@ class AppServiceProvider extends ServiceProvider
                     ->get())
                 : $headerBrands;
             $footerStaticPages = $hasPagesTable
-                ? SiteCache::remember('footer:static-pages', static fn () => Page::query()
+                ? SiteCache::remember('footer:static-pages:v2', static fn () => Page::query()
                     ->published()
                     ->where(function ($query): void {
                         $query
@@ -94,14 +94,12 @@ class AppServiceProvider extends ServiceProvider
                 $slug = match (true) {
                     $page instanceof Page => $page->slug,
                     is_array($page) => $page['slug'] ?? null,
-                    is_object($page) => $page->slug ?? null,
                     default => null,
                 };
 
                 $title = match (true) {
                     $page instanceof Page => $page->title,
                     is_array($page) => $page['title'] ?? null,
-                    is_object($page) => $page->title ?? null,
                     default => null,
                 };
 
