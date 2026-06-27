@@ -72,7 +72,12 @@ class AppServiceProvider extends ServiceProvider
                             ->orWhere('slug', 'contacts');
                     })
                     ->orderBy('sort_order')
-                    ->get(['title', 'slug']))
+                    ->get(['title', 'slug'])
+                    ->map(static fn (Page $page): array => [
+                        'title' => $page->title,
+                        'slug' => $page->slug,
+                    ])
+                    ->all())
                 : $footerStaticPages;
         } catch (\Throwable) {
             // CLI build steps (e.g. Wayfinder generation) may run without DB access.
@@ -84,6 +89,32 @@ class AppServiceProvider extends ServiceProvider
             : '/favicon.ico';
         $currentYear = now()->year;
         $cssAssetService = app(CssAssetService::class);
+        $footerStaticPages = collect($footerStaticPages)
+            ->map(static function (mixed $page): ?array {
+                $slug = match (true) {
+                    $page instanceof Page => $page->slug,
+                    is_array($page) => $page['slug'] ?? null,
+                    is_object($page) => $page->slug ?? null,
+                    default => null,
+                };
+
+                $title = match (true) {
+                    $page instanceof Page => $page->title,
+                    is_array($page) => $page['title'] ?? null,
+                    is_object($page) => $page->title ?? null,
+                    default => null,
+                };
+
+                if (! is_string($slug) || $slug === '' || ! is_string($title) || $title === '') {
+                    return null;
+                }
+
+                return [
+                    'slug' => $slug,
+                    'title' => $title,
+                ];
+            })
+            ->filter();
 
         config([
             'seo.site_name' => $siteBrandName,
@@ -106,10 +137,10 @@ class AppServiceProvider extends ServiceProvider
             'footerBrandsActive' => $brands->where('leave_from_russian', false)->values(),
             'footerBrandsLeft' => $brands->where('leave_from_russian', true)->values(),
             'headerPopularBrands' => $headerBrands,
-            'footerStaticPages' => $footerStaticPages->mapWithKeys(fn (Page $page): array => [
-                $page->slug => [
-                    'title' => $page->title,
-                    'url' => $this->staticPageUrl($page->slug),
+            'footerStaticPages' => $footerStaticPages->mapWithKeys(fn (array $page): array => [
+                $page['slug'] => [
+                    'title' => $page['title'],
+                    'url' => $this->staticPageUrl($page['slug']),
                 ],
             ]),
             'catalogYear' => $currentYear,
