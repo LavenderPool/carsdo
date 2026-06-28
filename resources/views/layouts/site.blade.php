@@ -7,11 +7,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     {!! seo($SEOData ?? null) !!}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Open+Sans:wght@400;600;700&family=Roboto+Condensed:wght@400;700&display=swap"
-        rel="stylesheet">
+    <link rel="preload" href="{{ asset('assets/fonts/open-sans-cyrillic.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="{{ asset('assets/fonts/roboto-condensed-cyrillic.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="{{ $siteFontsStylesUrl }}">
     <link rel="stylesheet" href="{{ $siteGlobalStylesUrl }}">
     <link rel="stylesheet" href="{{ $siteNewCssUrl }}">
     @stack('head')

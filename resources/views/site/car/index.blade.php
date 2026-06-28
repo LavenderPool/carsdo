@@ -107,6 +107,7 @@
     $testDrivePreview = filled($testDriveYoutubeId)
         ? 'https://i.ytimg.com/vi/'.$testDriveYoutubeId.'/hqdefault.jpg'
         : $car->coverUrl(false);
+    $reviewsPageCount = $car->reviews->count() + $car->ownerReviews->count();
 @endphp
 
 @section('title', 'Модельный ряд ' . $car->name)
@@ -123,7 +124,7 @@
             <a href="{{ $carPath }}/photo/" class="car-hero__gallery" aria-label="Все фотографии {{ $car->name }}">
                 <span class="car-hero__main">
                     <img src="{{ $heroMain?->url(false) ?: $car->coverUrl(false) }}" alt="{{ $car->name }}" data-car-image="true" loading="eager">
-                    <span class="car-hero__badge">Все фото</span>
+                    <span class="car-hero__badge">ВСЕ ФОТО</span>
                 </span>
                 @if ($heroThumbs->isNotEmpty())
                     <span class="car-hero__thumbs">
@@ -155,7 +156,7 @@
                 </a>
             </div>
             <div class="car-hero__quick-links">
-                @if ($car->reviews->isNotEmpty())
+                @if ($reviewsPageCount > 0)
                     <a href="{{ $carPath }}/reviews/" class="car-hero__quick-link">Отзывы</a>
                 @endif
                 @if ($car->crashTest)
@@ -237,8 +238,8 @@
         </div>
     </div>
 
-    @if ($car->reviews->isNotEmpty())
-    <div id="block_reviews" class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+    @if ($reviewsPageCount > 0)
+    <div id="block_reviews" class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $reviewsPageCount }})</a></div>
     @endif
     <div style="width: 100%; margin:10px 0 15px;"></div>
 

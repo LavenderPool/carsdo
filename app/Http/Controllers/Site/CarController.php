@@ -20,13 +20,14 @@ class CarController extends Controller
             $car->incrementQuietly('views_count');
         }
 
-        $car = SiteCache::remember("car:{$car->id}:show:v2", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:show:v3", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'crashTest:car_id,year,rating,video_path',
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
+                'ownerReviews:id,car_id',
                 'configurationGroups:id,car_id,name,order,import_index',
                 'configurations:id,car_id,car_configuration_group_id,local_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
@@ -107,11 +108,12 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:reviews:v2", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:reviews:v3", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'reviews:id,car_id,import_index,type,value',
+                'ownerReviews:id,car_id,import_index,rating,full_name,photo_path,text',
                 'configurationGroups:id,car_id,name,order,import_index',
                 'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
@@ -120,7 +122,7 @@ class CarController extends Controller
             ])
             ->firstOrFail());
 
-        abort_unless($car->reviews->isNotEmpty(), 404);
+        abort_unless($car->reviews->isNotEmpty() || $car->ownerReviews->isNotEmpty(), 404);
 
         return view('site.car.reviews', [
             'brand' => $this->brandWithSidebar($brand),
@@ -132,13 +134,14 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:photo:v2", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:photo:v3", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'crashTest:id,car_id,year,rating,video_path',
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
+                'ownerReviews:id,car_id',
                 'configurationGroups:id,car_id,name,order,import_index',
                 'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',
@@ -223,13 +226,14 @@ class CarController extends Controller
     {
         abort_if($car->brand_id !== $brand->id, 404);
 
-        $car = SiteCache::remember("car:{$car->id}:dealer:v2", static fn () => Car::query()
+        $car = SiteCache::remember("car:{$car->id}:dealer:v3", static fn () => Car::query()
             ->whereKey($car->id)
             ->with([
                 'brand:id,name,slug',
                 'crashTest:id,car_id,year,rating,video_path',
                 'testDrives:id,car_id,import_index,author,video_path',
                 'reviews:id,car_id,import_index,type,value',
+                'ownerReviews:id,car_id',
                 'configurationGroups:id,car_id,name,order,import_index',
                 'configurations:id,car_id,car_configuration_group_id,import_index,price,currency,engine_type,engine_capacity,horsepower,transmission,drive_type,fuel_city,fuel_highway,fuel_combined,acceleration,speed',
                 'photoGroups:id,car_id,name',

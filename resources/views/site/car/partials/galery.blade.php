@@ -34,7 +34,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <a class="car-gallery-slider__cta" href="{{ $carPath }}/photo/">Перейти в галерею</a>
+                    <a class="car-gallery-slider__cta" href="{{ $carPath }}/photo/">ВСЕ ФОТО</a>
                 </div>
                 <button class="car-gallery-slider__control car-gallery-slider__control_next" type="button" data-gallery-next aria-label="Следующее фото">&#10095;</button>
             </div>

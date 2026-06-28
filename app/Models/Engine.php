@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -36,8 +37,14 @@ class Engine extends Model
 
     protected $casts = [
         'brand_id' => 'integer',
+        'views_count' => 'integer',
         'has_start_stop_system' => 'boolean',
     ];
+
+    public function scopePopular(Builder $query): Builder
+    {
+        return $query->orderByDesc('views_count');
+    }
 
     public function brand(): BelongsTo
     {

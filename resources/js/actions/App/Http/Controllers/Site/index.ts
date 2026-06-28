@@ -8,6 +8,7 @@ import PopularCarController from './PopularCarController'
 import BlogController from './BlogController'
 import PageController from './PageController'
 import CarPhotoGalleryController from './CarPhotoGalleryController'
+import EngineController from './EngineController'
 import BrandController from './BrandController'
 import SearchController from './SearchController'
 import CatalogController from './CatalogController'
@@ -24,6 +25,7 @@ const Site = {
     BlogController: Object.assign(BlogController, BlogController),
     PageController: Object.assign(PageController, PageController),
     CarPhotoGalleryController: Object.assign(CarPhotoGalleryController, CarPhotoGalleryController),
+    EngineController: Object.assign(EngineController, EngineController),
     BrandController: Object.assign(BrandController, BrandController),
     SearchController: Object.assign(SearchController, SearchController),
     CatalogController: Object.assign(CatalogController, CatalogController),

@@ -130,6 +130,7 @@ class AppServiceProvider extends ServiceProvider
         View::share([
             'siteBrandName' => $siteBrandName,
             'siteFaviconUrl' => asset(ltrim($siteFaviconPath, '/')),
+            'siteFontsStylesUrl' => $cssAssetService->versionedUrl('assets/fonts/site-fonts.css'),
             'siteGlobalStylesUrl' => $cssAssetService->versionedUrl('assets/global-styles.css'),
             'siteNewCssUrl' => $cssAssetService->versionedUrl('new.css'),
             'footerBrandsActive' => $brands->where('leave_from_russian', false)->values(),

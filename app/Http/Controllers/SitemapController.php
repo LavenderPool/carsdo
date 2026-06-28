@@ -9,6 +9,7 @@ use App\Models\CarCatalog;
 use App\Models\CarCrashTest;
 use App\Models\CarPhoto;
 use App\Models\CarTestDrive;
+use App\Models\Engine;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
@@ -31,6 +32,7 @@ class SitemapController extends Controller
             ->max('updated_at')));
         $urls->push($this->entry(url('/cars-photo/'), CarPhoto::query()->max('updated_at')));
         $urls->push($this->entry(url('/blog/'), Article::query()->published()->max('updated_at')));
+        $urls->push($this->entry(url('/engine/'), Engine::query()->max('updated_at')));
 
         Article::query()
             ->published()
@@ -63,6 +65,26 @@ class SitemapController extends Controller
                     url("/catalogs/{$catalog->slug}/"),
                     $this->latestUpdatedAt([$catalog, $catalog->cars]),
                 ));
+            });
+
+        Brand::query()
+            ->select(['id', 'name', 'slug', 'updated_at'])
+            ->whereHas('engines')
+            ->with(['engines:id,brand_id,slug,updated_at'])
+            ->orderBy('name')
+            ->get()
+            ->each(function (Brand $brand) use ($urls): void {
+                $urls->push($this->entry(
+                    url("/engine/{$brand->slug}/"),
+                    $this->latestUpdatedAt([$brand, $brand->engines]),
+                ));
+
+                $brand->engines->each(function (Engine $engine) use ($brand, $urls): void {
+                    $urls->push($this->entry(
+                        url("/engine/{$brand->slug}/{$engine->slug}/"),
+                        $this->latestUpdatedAt([$brand, $engine]),
+                    ));
+                });
             });
 
         Brand::query()

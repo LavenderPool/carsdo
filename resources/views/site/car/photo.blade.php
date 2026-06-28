@@ -104,6 +104,10 @@
 
 @section('title', $car->name . ' - фото салона, новый кузов')
 
+@push('head')
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
+@endpush
+
 @section('content')
 <div class="block1">
     <div class="hleb"><a href="/{{ $brand->slug }}/">Автомобили {{ $brand->name }}</a></div>
@@ -118,7 +122,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css">
 
     <div class="photo_gallery_bg">
         <div><div class="photo_text"><a href="{{ $carPath }}/">Новые комплектации и цены {{ $car->name }}</a></div></div>
@@ -175,8 +178,9 @@
 
 <script src="/job/CarsDo/js/fancybox_setup.js"></script>
 
-@if ($car->reviews->isNotEmpty())
-<div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+@php($reviewsPageCount = $car->reviews->count() + $car->ownerReviews->count())
+@if ($reviewsPageCount > 0)
+<div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $reviewsPageCount }})</a></div>
 @endif
 
 @include('site.car.partials.specs-and-models', [

@@ -10,6 +10,7 @@ use App\Models\CarConfigurationEquipment;
 use App\Models\CarConfigurationEquipmentCategory;
 use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
+use App\Models\CarOwnerReview;
 use App\Models\CarPhoto;
 use App\Models\CarPhotoGroup;
 use App\Models\CarReview;
@@ -171,6 +172,15 @@ class CarCrudTest extends TestCase
             ->assertRedirect(route('admin.cars.reviews.index', $car));
 
         $this->actingAs($user)
+            ->post(route('admin.cars.owner-reviews.store', $car), [
+                'import_index' => 1,
+                'rating' => 5,
+                'full_name' => 'Иван Петров',
+                'text' => 'Очень доволен автомобилем.',
+            ])
+            ->assertRedirect(route('admin.cars.owner-reviews.index', $car));
+
+        $this->actingAs($user)
             ->post(route('admin.cars.configuration-groups.store', $car), [
                 'name' => 'Premium',
                 'order' => 1,
@@ -233,6 +243,7 @@ class CarCrudTest extends TestCase
         $this->assertDatabaseCount('car_crash_tests', 1);
         $this->assertDatabaseCount('car_test_drives', 1);
         $this->assertDatabaseCount('car_reviews', 1);
+        $this->assertDatabaseCount('car_owner_reviews', 1);
         $this->assertDatabaseCount('car_configuration_groups', 1);
         $this->assertDatabaseCount('car_configurations', 1);
         $this->assertDatabaseCount('car_configuration_equipment_categories', 1);
@@ -523,6 +534,14 @@ class CarCrudTest extends TestCase
         CarCrashTest::query()->create(['car_id' => $car->id, 'year' => 2024, 'rating' => 5]);
         CarTestDrive::query()->create(['car_id' => $car->id, 'import_index' => 0, 'author' => 'Auto', 'video_path' => '/v/1']);
         CarReview::query()->create(['car_id' => $car->id, 'import_index' => 0, 'type' => 'good', 'value' => 'ok']);
+        CarOwnerReview::query()->create([
+            'car_id' => $car->id,
+            'import_index' => 1,
+            'rating' => 5,
+            'full_name' => 'Иван Петров',
+            'photo_path' => 'images/bmw/i5/reviews/owner.jpg',
+            'text' => 'Хорошая машина',
+        ]);
         CarDealer::query()->create([
             'car_id' => $car->id,
             'city_id' => $city->id,
@@ -555,6 +574,7 @@ class CarCrudTest extends TestCase
         CarPhoto::query()->create(['car_id' => $car->id, 'car_photo_group_id' => $photoGroup->id, 'photo_path' => 'images/bmw/i5/front.jpg']);
 
         Storage::disk('public')->put('images/bmw/i5/front.jpg', 'front');
+        Storage::disk('public')->put('images/bmw/i5/reviews/owner.jpg', 'owner');
         Storage::disk('public')->put('covers/bmw/i5/cover.jpg', 'cover');
 
         $this->actingAs($user)
@@ -565,6 +585,7 @@ class CarCrudTest extends TestCase
         $this->assertDatabaseCount('car_crash_tests', 0);
         $this->assertDatabaseCount('car_test_drives', 0);
         $this->assertDatabaseCount('car_reviews', 0);
+        $this->assertDatabaseCount('car_owner_reviews', 0);
         $this->assertDatabaseCount('car_dealers', 0);
         $this->assertDatabaseCount('car_configuration_groups', 0);
         $this->assertDatabaseCount('car_configurations', 0);
@@ -573,6 +594,7 @@ class CarCrudTest extends TestCase
         $this->assertDatabaseCount('car_photo_groups', 0);
         $this->assertDatabaseCount('car_photos', 0);
         $this->assertFalse(Storage::disk('public')->exists('images/bmw/i5/front.jpg'));
+        $this->assertFalse(Storage::disk('public')->exists('images/bmw/i5/reviews/owner.jpg'));
         $this->assertFalse(Storage::disk('public')->exists('covers/bmw/i5/cover.jpg'));
     }
 

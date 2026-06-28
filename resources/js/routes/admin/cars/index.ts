@@ -2,6 +2,7 @@ import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefa
 import crashTests from './crash-tests'
 import testDrives from './test-drives'
 import reviews from './reviews'
+import ownerReviews from './owner-reviews'
 import configurationGroups from './configuration-groups'
 import configurations from './configurations'
 import equipmentCategories from './equipment-categories'
@@ -200,7 +201,7 @@ edit.head = (args: { car: number | { id: number } } | [car: number | { id: numbe
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::update
-* @see app/Http/Controllers/Admin/CarController.php:139
+* @see app/Http/Controllers/Admin/CarController.php:140
 * @route '/admin/cars/{car}'
 */
 export const update = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -215,7 +216,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::update
-* @see app/Http/Controllers/Admin/CarController.php:139
+* @see app/Http/Controllers/Admin/CarController.php:140
 * @route '/admin/cars/{car}'
 */
 update.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -248,7 +249,7 @@ update.url = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::update
-* @see app/Http/Controllers/Admin/CarController.php:139
+* @see app/Http/Controllers/Admin/CarController.php:140
 * @route '/admin/cars/{car}'
 */
 update.put = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -258,7 +259,7 @@ update.put = (args: { car: number | { id: number } } | [car: number | { id: numb
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::update
-* @see app/Http/Controllers/Admin/CarController.php:139
+* @see app/Http/Controllers/Admin/CarController.php:140
 * @route '/admin/cars/{car}'
 */
 update.patch = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -268,7 +269,7 @@ update.patch = (args: { car: number | { id: number } } | [car: number | { id: nu
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::destroy
-* @see app/Http/Controllers/Admin/CarController.php:152
+* @see app/Http/Controllers/Admin/CarController.php:153
 * @route '/admin/cars/{car}'
 */
 export const destroy = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -283,7 +284,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::destroy
-* @see app/Http/Controllers/Admin/CarController.php:152
+* @see app/Http/Controllers/Admin/CarController.php:153
 * @route '/admin/cars/{car}'
 */
 destroy.url = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -316,7 +317,7 @@ destroy.url = (args: { car: number | { id: number } } | [car: number | { id: num
 
 /**
 * @see \App\Http\Controllers\Admin\CarController::destroy
-* @see app/Http/Controllers/Admin/CarController.php:152
+* @see app/Http/Controllers/Admin/CarController.php:153
 * @route '/admin/cars/{car}'
 */
 destroy.delete = (args: { car: number | { id: number } } | [car: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -334,6 +335,7 @@ const cars = {
     crashTests: Object.assign(crashTests, crashTests),
     testDrives: Object.assign(testDrives, testDrives),
     reviews: Object.assign(reviews, reviews),
+    ownerReviews: Object.assign(ownerReviews, ownerReviews),
     configurationGroups: Object.assign(configurationGroups, configurationGroups),
     configurations: Object.assign(configurations, configurations),
     equipmentCategories: Object.assign(equipmentCategories, equipmentCategories),

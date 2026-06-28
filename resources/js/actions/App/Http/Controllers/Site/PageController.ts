@@ -134,7 +134,7 @@ contacts.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 /**
 * @see \App\Http\Controllers\Site\PageController::show
 * @see app/Http/Controllers/Site/PageController.php:13
-* @route '/pages/{slug}'
+* @route '/{slug}'
 */
 export const show = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
@@ -143,13 +143,13 @@ export const show = (args: { slug: string | number } | [slug: string | number ] 
 
 show.definition = {
     methods: ["get","head"],
-    url: '/pages/{slug}',
+    url: '/{slug}',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
 * @see \App\Http\Controllers\Site\PageController::show
 * @see app/Http/Controllers/Site/PageController.php:13
-* @route '/pages/{slug}'
+* @route '/{slug}'
 */
 show.url = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
@@ -176,7 +176,7 @@ show.url = (args: { slug: string | number } | [slug: string | number ] | string 
 /**
 * @see \App\Http\Controllers\Site\PageController::show
 * @see app/Http/Controllers/Site/PageController.php:13
-* @route '/pages/{slug}'
+* @route '/{slug}'
 */
 show.get = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
     url: show.url(args, options),
@@ -186,7 +186,7 @@ show.get = (args: { slug: string | number } | [slug: string | number ] | string 
 /**
 * @see \App\Http\Controllers\Site\PageController::show
 * @see app/Http/Controllers/Site/PageController.php:13
-* @route '/pages/{slug}'
+* @route '/{slug}'
 */
 show.head = (args: { slug: string | number } | [slug: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     url: show.url(args, options),

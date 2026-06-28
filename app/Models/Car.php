@@ -116,6 +116,11 @@ class Car extends Model
         return $this->hasMany(CarReview::class);
     }
 
+    public function ownerReviews(): HasMany
+    {
+        return $this->hasMany(CarOwnerReview::class);
+    }
+
     public function configurationGroups(): HasMany
     {
         return $this->hasMany(CarConfigurationGroup::class);

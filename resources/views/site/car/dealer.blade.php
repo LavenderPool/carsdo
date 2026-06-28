@@ -138,8 +138,9 @@
     'dealerCitiesToggleId' => 'dealer-cities-city-page',
 ])
 
-@if ($car->reviews->isNotEmpty())
-<div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $car->reviews->count() }})</a></div>
+@php($reviewsPageCount = $car->reviews->count() + $car->ownerReviews->count())
+@if ($reviewsPageCount > 0)
+<div class="dop_photo"><a href="{{ $carPath }}/reviews/">ОТЗЫВЫ ВЛАДЕЛЬЦЕВ ({{ $reviewsPageCount }})</a></div>
 @endif
 @include('site.car.partials.galery', [
     'brand' => $brand,

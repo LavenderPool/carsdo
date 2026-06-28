@@ -151,6 +151,7 @@
                 <li><a href="/crash-test/" @class(['is-active' => $isActive(['crash-test', 'crash-test/*', '*/crash-test'])])>Краш-тесты</a></li>
                 <li><a href="/electric-cars/" @class(['is-active' => $isActive(['electric-cars', 'electric-cars/*', '*/electric-cars'])])>Электромобили</a></li>
                 <li><a href="/blog/" @class(['is-active' => $isActive(['blog', 'blog/*'])])>Блог</a></li>
+                <li><a href="/engine/" @class(['is-active' => $isActive(['engine', 'engine/*'])])>Двигатели</a></li>
             </ul>
         </div>
 

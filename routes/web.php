@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\CarCrashTestController;
 use App\Http\Controllers\Admin\CarPhotoController;
 use App\Http\Controllers\Admin\CarPhotoGroupController;
 use App\Http\Controllers\Admin\CarReviewController;
+use App\Http\Controllers\Admin\CarOwnerReviewController;
 use App\Http\Controllers\Admin\CarTestDriveController;
 use App\Http\Controllers\Admin\DangerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -33,6 +34,7 @@ use App\Http\Controllers\Site\CarPhotoGalleryController;
 use App\Http\Controllers\Site\CoverController;
 use App\Http\Controllers\Site\CrashTestController;
 use App\Http\Controllers\Site\ElectricCarController;
+use App\Http\Controllers\Site\EngineController as SiteEngineController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\NewCarController;
 use App\Http\Controllers\Site\PageController as SitePageController;
@@ -76,6 +78,9 @@ Route::middleware(['auth', HandleInertiaRequests::class])->group(function () {
             ->except(['show']);
         Route::resource('cars.reviews', CarReviewController::class)
             ->parameters(['reviews' => 'review'])
+            ->except(['show']);
+        Route::resource('cars.owner-reviews', CarOwnerReviewController::class)
+            ->parameters(['owner-reviews' => 'ownerReview'])
             ->except(['show']);
         Route::resource('cars.configuration-groups', CarConfigurationGroupController::class)
             ->parameters(['configuration-groups' => 'configurationGroup'])
@@ -147,15 +152,20 @@ Route::get('/blog/{article:slug}/', [BlogController::class, 'show'])->name('blog
 Route::get('/privacy-policy/', [SitePageController::class, 'privacy'])->name('pages.privacy');
 Route::get('/cookie-policy/', [SitePageController::class, 'cookie'])->name('pages.cookie');
 Route::get('/contacts/', [SitePageController::class, 'contacts'])->name('pages.contacts');
-Route::get('/pages/{slug}/', [SitePageController::class, 'show'])->name('pages.show');
 
 Route::get('/cars-photo/', [CarPhotoGalleryController::class, 'index'])->name('cars-photo.index');
 Route::get('/cars-photo/{brand:slug}/', [CarPhotoGalleryController::class, 'brand'])->name('cars-photo.brand');
+
+Route::get('/engine/', [SiteEngineController::class, 'index'])->name('engine.index');
+Route::get('/engine/{brand:slug}/', [SiteEngineController::class, 'brand'])->name('engine.brand');
+Route::get('/engine/{brand:slug}/{engine_slug}/', [SiteEngineController::class, 'show'])->name('engine.show');
 
 Route::get('/brands/', [SiteBrandController::class, 'index'])->name('brands.index');
 Route::get('/search/', [SearchController::class, 'index'])->name('search');
 Route::get('/search/suggest/', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::get('/catalogs/{catalog:slug}/', SiteCatalogController::class)->name('catalog.show');
+
+Route::get('/{slug}/', [SitePageController::class, 'show'])->name('pages.show');
 
 Route::get('/{brand:slug}', [SiteBrandController::class, 'show'])->name('brand.show');
 

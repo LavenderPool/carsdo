@@ -123,6 +123,7 @@ class CarController extends Controller
                 'crash_test' => route('admin.cars.crash-tests.index', $car),
                 'test_drives' => route('admin.cars.test-drives.index', $car),
                 'reviews' => route('admin.cars.reviews.index', $car),
+                'owner_reviews' => route('admin.cars.owner-reviews.index', $car),
                 'configuration_groups' => route('admin.cars.configuration-groups.index', $car),
                 'configurations' => route('admin.cars.configurations.index', $car),
                 'equipment_categories' => route('admin.cars.equipment-categories.index', $car),
@@ -152,7 +153,7 @@ class CarController extends Controller
     public function destroy(Car $car): RedirectResponse
     {
         DB::transaction(function () use ($car): void {
-            $car->load('photos');
+            $car->load(['photos', 'ownerReviews']);
             $groupIds = $car->configurationGroups()->pluck('id');
             $categoryIds = $car->configurations()
                 ->with('equipmentCategories:id,car_configuration_id')
@@ -179,6 +180,7 @@ class CarController extends Controller
             DB::table('car_crash_tests')->where('car_id', $car->id)->delete();
             DB::table('car_test_drives')->where('car_id', $car->id)->delete();
             DB::table('car_reviews')->where('car_id', $car->id)->delete();
+            DB::table('car_owner_reviews')->where('car_id', $car->id)->delete();
             DB::table('car_dealers')->where('car_id', $car->id)->delete();
             DB::table('car_photos')->where('car_id', $car->id)->delete();
             DB::table('car_photo_groups')->where('car_id', $car->id)->delete();
@@ -187,6 +189,7 @@ class CarController extends Controller
         });
 
         CarMediaStorage::deletePhotoFiles($car->photos);
+        CarMediaStorage::deleteOwnerReviewPhotos($car->ownerReviews);
         CarMediaStorage::deleteCarDirectories($car);
 
         return redirect()

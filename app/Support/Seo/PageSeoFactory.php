@@ -12,6 +12,7 @@ use App\Models\CarConfigurationGroup;
 use App\Models\CarCrashTest;
 use App\Models\CarTestDrive;
 use App\Models\City;
+use App\Models\Engine;
 use App\Models\Page;
 use App\Support\Articles\ArticleBodyRenderer;
 use Carbon\CarbonInterface;
@@ -78,6 +79,19 @@ class PageSeoFactory
                 $this->toCollection($data['carsWithPhotos'] ?? null),
                 $data['selectedPhotoBrand'] ?? null,
             ),
+            'site.engine.index' => $this->forEngineIndex(
+                $this->toCollection($data['engineBrands'] ?? null),
+                $this->toCollection($data['popularEngines'] ?? null),
+            ),
+            'site.engine.brand' => isset($data['selectedEngineBrand'])
+                ? $this->forEngineBrand(
+                    $data['selectedEngineBrand'],
+                    $this->toCollection($data['engines'] ?? null),
+                )
+                : null,
+            'site.engine.show' => isset($data['brand'], $data['engine'])
+                ? $this->forEngineShow($data['brand'], $data['engine'])
+                : null,
             'site.blog.index' => isset($data['articles'])
                 ? $this->forBlogIndex($data['articles'])
                 : null,
@@ -518,6 +532,132 @@ class PageSeoFactory
                             ->filter()
                             ->values()
                             ->all(),
+                    ),
+                ]),
+            ),
+        );
+    }
+
+    private function forEngineIndex(Collection $engineBrands, Collection $popularEngines): ResolvedPageSeo
+    {
+        $defaultTitle = 'Двигатели автомобилей: бренды и популярные моторы';
+        $defaultDescription = $this->limitDescription(
+            "Каталог двигателей автомобилей: {$engineBrands->count()} брендов и {$popularEngines->count()} популярных моторов с основными характеристиками."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $this->fallbackImage(),
+                'h1' => 'Двигатели автомобилей',
+            ],
+            overrides: [],
+            context: array_merge($this->baseContext(), [
+                'brands_count' => $engineBrands->count(),
+                'popular_engines_count' => $popularEngines->count(),
+            ]),
+            modifiedTime: $this->latestUpdatedAt([$engineBrands, $popularEngines]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => 'Двигатели', 'url' => $this->absoluteUrl('/engine/')],
+                ],
+                array_filter([
+                    $this->itemListSchema(
+                        'Популярные двигатели',
+                        $popularEngines
+                            ->map(function (Engine $engine): ?array {
+                                $brand = $engine->brand;
+
+                                if (! $brand) {
+                                    return null;
+                                }
+
+                                return $this->engineListItem($brand, $engine);
+                            })
+                            ->filter()
+                            ->values()
+                            ->all(),
+                    ),
+                ]),
+            ),
+        );
+    }
+
+    private function forEngineBrand(Brand $brand, Collection $engines): ResolvedPageSeo
+    {
+        $defaultTitle = "Двигатели {$brand->name}: характеристики и модификации";
+        $defaultDescription = $this->limitDescription(
+            "Двигатели {$brand->name}: каталог модификаций, характеристики, объем и мощность. В разделе собрано {$engines->count()} двигателей."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $this->fallbackImage(),
+                'h1' => "Двигатели {$brand->name}",
+            ],
+            overrides: [],
+            context: array_merge($this->baseContext(), [
+                'brand' => $brand->name,
+                'engines_count' => $engines->count(),
+            ]),
+            modifiedTime: $this->latestUpdatedAt([$brand, $engines]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => 'Двигатели', 'url' => $this->absoluteUrl('/engine/')],
+                    ['name' => $brand->name, 'url' => $this->engineBrandUrl($brand)],
+                ],
+                array_filter([
+                    $this->itemListSchema(
+                        "Двигатели {$brand->name}",
+                        $engines
+                            ->map(fn (Engine $engine): array => $this->engineListItem($brand, $engine))
+                            ->all(),
+                    ),
+                ]),
+            ),
+        );
+    }
+
+    private function forEngineShow(Brand $brand, Engine $engine): ResolvedPageSeo
+    {
+        $relatedCars = $this->relatedCarsFromEngine($engine);
+        $defaultTitle = "{$brand->name} {$engine->name}: характеристики двигателя, мощность и расход";
+        $defaultDescription = $this->limitDescription(
+            "{$brand->name} {$engine->name}: характеристики двигателя, объем, мощность, расход топлива и связанные конфигурации. "
+            ."На странице {$relatedCars->count()} моделей и {$this->toCollection($engine->configurations)->count()} конфигураций."
+        );
+
+        return $this->buildResolvedSeo(
+            defaults: [
+                'title' => $defaultTitle,
+                'description' => $defaultDescription,
+                'image' => $this->firstCarImage($relatedCars) ?? $this->fallbackImage(),
+                'h1' => "{$brand->name} {$engine->name}",
+            ],
+            overrides: [],
+            context: array_merge($this->baseContext(), [
+                'brand' => $brand->name,
+                'engine' => $engine->name,
+                'related_cars_count' => $relatedCars->count(),
+                'configurations_count' => $this->toCollection($engine->configurations)->count(),
+            ]),
+            modifiedTime: $this->latestUpdatedAt([$brand, $engine, $engine->configurations]),
+            schema: $this->makeSchema(
+                [
+                    ['name' => 'Главная', 'url' => $this->homeUrl()],
+                    ['name' => 'Двигатели', 'url' => $this->absoluteUrl('/engine/')],
+                    ['name' => $brand->name, 'url' => $this->engineBrandUrl($brand)],
+                    ['name' => $engine->name, 'url' => $this->engineUrl($brand, $engine)],
+                ],
+                array_filter([
+                    $this->itemListSchema(
+                        "Автомобили с двигателем {$brand->name} {$engine->name}",
+                        $relatedCars->map(fn (Car $car): array => $this->carListItem($car))->all(),
                     ),
                 ]),
             ),
@@ -1365,9 +1505,22 @@ class PageSeoFactory
         ];
     }
 
+    private function engineListItem(Brand $brand, Engine $engine): array
+    {
+        return [
+            'name' => "{$brand->name} {$engine->name}",
+            'url' => $this->engineUrl($brand, $engine),
+        ];
+    }
+
     private function brandUrl(?Brand $brand): string
     {
         return $brand ? $this->absoluteUrl("/{$brand->slug}/") : $this->homeUrl();
+    }
+
+    private function engineBrandUrl(Brand $brand): string
+    {
+        return $this->absoluteUrl("/engine/{$brand->slug}/");
     }
 
     private function carUrl(?Brand $brand, Car $car): string
@@ -1377,6 +1530,11 @@ class PageSeoFactory
         }
 
         return $this->absoluteUrl($this->carPath($brand, $car));
+    }
+
+    private function engineUrl(Brand $brand, Engine $engine): string
+    {
+        return $this->absoluteUrl("/engine/{$brand->slug}/{$engine->slug}/");
     }
 
     private function articleUrl(Article $article): string
@@ -1641,6 +1799,15 @@ class PageSeoFactory
         return $cars
             ->first(fn ($car) => $car instanceof Car && filled($car->coverUrl()))
             ?->coverUrl();
+    }
+
+    private function relatedCarsFromEngine(Engine $engine): Collection
+    {
+        return $this->toCollection($engine->configurations)
+            ->map(fn ($configuration) => $configuration->car)
+            ->filter(fn ($car): bool => $car instanceof Car && $car->brand !== null)
+            ->unique('id')
+            ->values();
     }
 
     private function firstCrashTestImage(Collection $crashTests): ?string

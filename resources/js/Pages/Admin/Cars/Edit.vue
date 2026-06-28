@@ -128,6 +128,7 @@ const nestedItems: Array<{ key: keyof typeof props.nestedLinks; label: string }>
     { key: 'crash_test', label: 'Краш-тесты' },
     { key: 'test_drives', label: 'Тест-драйвы' },
     { key: 'reviews', label: 'Отзывы' },
+    { key: 'owner_reviews', label: 'Отзывы владельцев' },
     { key: 'configuration_groups', label: 'Группы комплектаций' },
     { key: 'configurations', label: 'Комплектации' },
     { key: 'equipment_categories', label: 'Категории оснащения' },
@@ -151,10 +152,6 @@ const nestedItems: Array<{ key: keyof typeof props.nestedLinks; label: string }>
         <div class="py-12">
             <div class="mx-auto max-w-5xl space-y-6 sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
-                    <CarForm :form="form" :brands="brands" submit-label="Сохранить" @submit="submit" />
-                </div>
-
-                <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
                     <h3 class="mb-4 text-lg font-semibold text-gray-900">Подчиненные сущности</h3>
                     <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <Link
@@ -166,6 +163,10 @@ const nestedItems: Array<{ key: keyof typeof props.nestedLinks; label: string }>
                             {{ item.label }}
                         </Link>
                     </div>
+                </div>
+
+                <div class="overflow-hidden bg-white p-6 shadow-sm sm:rounded-lg">
+                    <CarForm :form="form" :brands="brands" submit-label="Сохранить" @submit="submit" />
                 </div>
             </div>
         </div>

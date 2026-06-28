@@ -3,6 +3,7 @@
 namespace App\Support\Media;
 
 use App\Models\Car;
+use App\Models\CarOwnerReview;
 use App\Models\CarPhoto;
 use Illuminate\Support\Facades\Storage;
 
@@ -27,6 +28,25 @@ class CarMediaStorage
     {
         foreach ($photos as $photo) {
             self::deletePhotoFile($photo);
+        }
+    }
+
+    public static function deleteOwnerReviewPhoto(CarOwnerReview $review): void
+    {
+        $path = $review->publicDiskPath();
+
+        if ($path !== null) {
+            Storage::disk('public')->delete($path);
+        }
+
+        app(MediaVariantService::class)->deleteVariants($review->photo_path);
+        app(MediaVariantService::class)->deleteVariantsForOwner(CarOwnerReview::class, $review->id);
+    }
+
+    public static function deleteOwnerReviewPhotos(iterable $reviews): void
+    {
+        foreach ($reviews as $review) {
+            self::deleteOwnerReviewPhoto($review);
         }
     }
 

@@ -1378,7 +1378,7 @@ input:focus-visible {
 
 .brand-select__trigger-label.is-placeholder {
     color: var(--muted);
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .brand-select__trigger svg {
@@ -1858,8 +1858,8 @@ input:focus-visible {
 }
 
 #athens {
+    margin-top: 32px;
     width: 100%;
-    margin: 0;
     padding: var(--space-5) 0 var(--space-6);
     border-top: 1px solid var(--border);
 }
@@ -2310,9 +2310,6 @@ input:focus-visible {
     .ter a {
         padding: var(--space-2) var(--space-5);
     }
-}
-
-.test_page_div_2 {
 }
 
 .test_page_2 {
@@ -3508,7 +3505,6 @@ input:focus-visible {
 .new_eq ul,
 .new_eq ol {
     margin: 0;
-    padding-left: 1.5rem !important;
     list-style-position: outside !important;
     color: var(--muted);
 }
@@ -3852,6 +3848,94 @@ input:focus-visible {
 .reviews-prc .block_eq2 .reto::before {
     content: "\2212 ";
     font-weight: 700;
+}
+
+.owner-reviews {
+    margin-top: var(--space-7);
+}
+
+.owner-reviews__title {
+    margin: 0 0 var(--space-3);
+}
+
+.owner-reviews__intro {
+    margin-top: 0;
+}
+
+.owner-reviews__list {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.owner-review-card {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+}
+
+.owner-review-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.owner-review-card__photo {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface);
+}
+
+.owner-review-card__photo--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    font-size: var(--step--1);
+}
+
+.owner-review-card__meta {
+    display: grid;
+    gap: var(--space-1);
+}
+
+.owner-review-card__name {
+    font-family: var(--font-head);
+    font-size: var(--step-1);
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.owner-review-card__stars {
+    display: flex;
+    gap: 4px;
+    color: var(--border-strong);
+    font-size: 18px;
+    line-height: 1;
+}
+
+.owner-review-card__stars .is-active {
+    color: #f2b01e;
+}
+
+.owner-review-card__text {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.7;
+    white-space: pre-line;
+}
+
+@media (max-width: 640px) {
+    .owner-review-card__head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 .start_salon {
@@ -4826,4 +4910,277 @@ input:focus-visible {
     background: var(--ink);
     color: #fff;
     transform: translateY(-1px);
+}
+
+.engine-page {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.engine-page__hero {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.engine-page__hero h1 {
+    margin: 0;
+}
+
+.engine-page__intro,
+.engine-page__summary {
+    max-width: 72ch;
+    color: var(--muted);
+    font-size: var(--step-0);
+    line-height: 1.7;
+}
+
+.engine-page__section {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.engine-page__section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.engine-page__section-head h2 {
+    margin: 0;
+}
+
+.engine-page__section-head span {
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+}
+
+.engine-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.engine-card {
+    display: grid;
+    gap: var(--space-4);
+    height: 100%;
+    padding: var(--space-5);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    color: var(--ink);
+    text-decoration: none;
+    transition:
+        border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        box-shadow 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.engine-card:hover,
+.engine-card:focus-visible {
+    border-color: var(--accent);
+    box-shadow: var(--shadow-md);
+    color: var(--ink);
+    transform: translateY(-2px);
+}
+
+.engine-card__head {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.engine-card__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.engine-card__logo,
+.engine-hero__logo {
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    object-fit: contain;
+}
+
+.engine-card__brand-name,
+.engine-hero__brand-link {
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.engine-card__title {
+    font-family: var(--font-head);
+    font-size: var(--step-2);
+    line-height: 1.2;
+}
+
+.engine-card__specs,
+.engine-card__stats,
+.engine-hero__badges,
+.engine-hero__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.engine-card__spec,
+.engine-hero__badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 var(--space-3);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    color: var(--ink);
+    font-size: var(--step--1);
+    font-weight: 600;
+}
+
+.engine-card__stats {
+    margin-top: auto;
+}
+
+.engine-card__stat,
+.engine-hero__meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 var(--space-3);
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface-raised));
+    border-radius: var(--radius-pill);
+    color: var(--muted);
+    font-size: var(--step--1);
+}
+
+.engine-card__stat strong {
+    color: var(--ink);
+}
+
+.engine-hero {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface-raised)), var(--surface-raised));
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-md);
+}
+
+.engine-hero__head {
+    display: grid;
+    gap: var(--space-4);
+}
+
+.engine-hero__brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.engine-hero__brand h1 {
+    margin: var(--space-1) 0 0;
+}
+
+.engine-specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.engine-specs__item {
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+
+.engine-specs__item dt {
+    color: var(--muted);
+    font-size: var(--step--1);
+    font-weight: 700;
+}
+
+.engine-specs__item dd {
+    margin: 0;
+    color: var(--ink);
+    font-size: var(--step-0);
+    font-weight: 600;
+}
+
+.engine-copy {
+    color: var(--ink);
+    line-height: 1.8;
+}
+
+.engine-configurations {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.engine-configurations__item {
+    display: grid;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    color: var(--ink);
+    text-decoration: none;
+    transition:
+        border-color 180ms cubic-bezier(0.22, 1, 0.36, 1),
+        transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.engine-configurations__item:hover,
+.engine-configurations__item:focus-visible {
+    border-color: var(--accent);
+    color: var(--ink);
+    transform: translateY(-1px);
+}
+
+.engine-configurations__model {
+    font-family: var(--font-head);
+    font-size: var(--step-1);
+}
+
+.engine-configurations__group,
+.engine-configurations__meta {
+    color: var(--muted);
+    font-size: var(--step--1);
+}
+
+@media (max-width: 700px) {
+    .engine-hero {
+        padding: var(--space-5);
+    }
+
+    .engine-hero__brand {
+        align-items: flex-start;
+    }
+
+    .engine-card,
+    .engine-specs__item,
+    .engine-configurations__item {
+        padding: var(--space-4);
+    }
 }
