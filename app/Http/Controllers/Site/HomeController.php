@@ -6,14 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Car;
 use App\Models\CarCrashTest;
 use App\Models\CarTestDrive;
+use App\Services\Site\SearchService;
 use App\Support\Cache\SiteCache;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private readonly SearchService $searchService,
+    ) {}
+
     public function __invoke(): View
     {
-        $data = SiteCache::remember('home:v3', static function (): array {
+        $filterMeta = $this->searchService->filterMeta();
+
+        $data = SiteCache::remember('home:v4', function () use ($filterMeta): array {
             $latestTestDriveIds = CarTestDrive::query()
                 ->selectRaw('MAX(id)', [])
                 ->groupBy('car_id');
@@ -60,6 +67,13 @@ class HomeController extends Controller
                     ->popular()
                     ->limit(11)
                     ->get(),
+                'searchFilters' => [
+                    'query' => '',
+                    'filters' => [],
+                    'filterOptions' => $filterMeta['filterOptions'],
+                    'brandOptions' => $filterMeta['brandOptions'],
+                    'rangeBounds' => $filterMeta['rangeBounds'],
+                ],
             ];
         });
 

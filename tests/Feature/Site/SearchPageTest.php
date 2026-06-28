@@ -186,6 +186,26 @@ class SearchPageTest extends TestCase
             ->assertDontSee('type="range"', false);
     }
 
+    public function test_search_page_keeps_shared_filter_form_id_for_sorting(): void
+    {
+        $brand = Brand::create([
+            'name' => 'Changan',
+            'slug' => 'changan',
+        ]);
+
+        $this->createCarWithConfiguration($brand, [
+            'name' => 'Uni-K',
+            'slug' => 'uni-k',
+        ]);
+
+        $response = $this->get(route('search'));
+
+        $response
+            ->assertOk()
+            ->assertSee('id="searchFiltersForm"', false)
+            ->assertSee('form="searchFiltersForm"', false);
+    }
+
     public function test_search_page_applies_filters_when_query_is_too_short(): void
     {
         $brand = Brand::create([

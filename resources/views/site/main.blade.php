@@ -125,6 +125,7 @@
     
     <div class="homepage_bloсk5">
     @php
+        $homeSearchFilters = is_array($searchFilters ?? null) ? $searchFilters : [];
         $formatPriceValue = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : '';
         $formatPriceRange = static function ($car) use ($formatPriceValue): string {
             $startPrice = $car->start_price;
@@ -151,6 +152,36 @@
         title="Популярные модели"
         subtitle="Автомобили, которыми интересуются больше всего на сайте."
     />
+    <section class="home-popular-filters" id="popular-models" data-filter-accordion>
+        <button
+            class="home-popular-filters__toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="homePopularFiltersPanel"
+            data-filter-accordion-toggle
+            data-collapsed-label="Показать фильтры"
+            data-expanded-label="Скрыть фильтры"
+        >
+            Показать фильтры
+        </button>
+        <div
+            class="home-popular-filters__panel"
+            id="homePopularFiltersPanel"
+            hidden
+            data-filter-accordion-panel
+        >
+            <x-site.search-filter
+                :query="$homeSearchFilters['query'] ?? ''"
+                :filters="$homeSearchFilters['filters'] ?? []"
+                :filter-options="$homeSearchFilters['filterOptions'] ?? []"
+                :range-bounds="$homeSearchFilters['rangeBounds'] ?? []"
+                :brand-options="$homeSearchFilters['brandOptions'] ?? collect()"
+                form-id="homePopularFiltersForm"
+                :action="route('search')"
+                :reset-url="route('home').'#popular-models'"
+            />
+        </div>
+    </section>
     <ul class="modeli popular-cars-grid">
     @foreach ($popularCars as $car)
         <x-site.car-card

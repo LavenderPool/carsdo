@@ -618,73 +618,32 @@
     </script>
     <script>
         (function () {
-            const filters = document.querySelector('[data-search-filters]');
+            document.querySelectorAll('[data-filter-accordion]').forEach(function (root) {
+                var toggle = root.querySelector('[data-filter-accordion-toggle]');
+                var panel = root.querySelector('[data-filter-accordion-panel]');
 
-            if (!filters) {
-                return;
-            }
-
-            const openTriggers = document.querySelectorAll('[data-search-filters-open]');
-            const closeTriggers = filters.querySelectorAll('[data-search-filters-close]');
-            const desktopQuery = window.matchMedia('(min-width: 1000px)');
-            let lastFocused = null;
-
-            function open() {
-                if (desktopQuery.matches) {
+                if (!toggle || !panel) {
                     return;
                 }
 
-                lastFocused = document.activeElement;
-                filters.classList.add('is-open');
-                document.body.style.overflow = 'hidden';
-                openTriggers.forEach(function (trigger) {
-                    trigger.setAttribute('aria-expanded', 'true');
+                toggle.addEventListener('click', function () {
+                    var isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                    var nextExpandedState = !isExpanded;
+
+                    toggle.setAttribute('aria-expanded', nextExpandedState ? 'true' : 'false');
+                    toggle.textContent = nextExpandedState
+                        ? toggle.getAttribute('data-expanded-label')
+                        : toggle.getAttribute('data-collapsed-label');
+                    panel.hidden = !nextExpandedState;
                 });
-
-                const closeButton = filters.querySelector('[data-search-filters-close]:not(.search-page__filters-backdrop)');
-                if (closeButton) {
-                    closeButton.focus();
-                }
-            }
-
-            function close() {
-                filters.classList.remove('is-open');
-                document.body.style.overflow = '';
-                openTriggers.forEach(function (trigger) {
-                    trigger.setAttribute('aria-expanded', 'false');
-                });
-
-                if (lastFocused && typeof lastFocused.focus === 'function') {
-                    lastFocused.focus();
-                }
-            }
-
-            openTriggers.forEach(function (trigger) {
-                trigger.addEventListener('click', open);
-            });
-
-            closeTriggers.forEach(function (trigger) {
-                trigger.addEventListener('click', close);
-            });
-
-            document.addEventListener('keydown', function (event) {
-                if (event.key === 'Escape' && filters.classList.contains('is-open')) {
-                    close();
-                }
-            });
-
-            desktopQuery.addEventListener('change', function (event) {
-                if (event.matches) {
-                    close();
-                }
             });
         })();
     </script>
     <script>
         (function () {
-            const form = document.querySelector('[data-search-form]');
+            const forms = Array.prototype.slice.call(document.querySelectorAll('[data-search-form]'));
 
-            if (!form) {
+            if (!forms.length) {
                 return;
             }
 
@@ -737,7 +696,11 @@
             document.addEventListener('input', function (event) {
                 const target = event.target;
 
-                if (target instanceof HTMLElement && target.form === form) {
+                if (
+                    target instanceof HTMLElement &&
+                    target.form instanceof HTMLFormElement &&
+                    forms.indexOf(target.form) !== -1
+                ) {
                     formatGroupedInput(target);
                 }
             });
@@ -745,110 +708,15 @@
             document.addEventListener('change', function (event) {
                 const target = event.target;
 
-                if (target instanceof HTMLElement && target.hasAttribute('data-search-sort')) {
-                    form.submit();
+                if (
+                    target instanceof HTMLElement &&
+                    target.hasAttribute('data-search-sort') &&
+                    target.form instanceof HTMLFormElement &&
+                    forms.indexOf(target.form) !== -1
+                ) {
+                    target.form.submit();
                 }
             });
-        })();
-    </script>
-    <script>
-        (function () {
-            const sidebar = document.querySelector('[data-search-filters]');
-
-            if (!sidebar) {
-                return;
-            }
-
-            const inner = sidebar.querySelector('.search-filter') || sidebar;
-            const desktopQuery = window.matchMedia('(min-width: 1000px)');
-
-            function readGap() {
-                const styles = window.getComputedStyle(document.documentElement);
-                const space4 = parseFloat(styles.getPropertyValue('--space-4')) || 24;
-                const headerOffset = parseFloat(styles.getPropertyValue('--header-sticky-offset')) || 0;
-                const head = document.querySelector('.search-page__head');
-                const headHeight = head ? head.offsetHeight : 0;
-                return { topGap: space4 + headerOffset + headHeight, bottomGap: space4 };
-            }
-
-            let currentTop = null;
-            let lastScrollY = window.scrollY;
-            let ticking = false;
-
-            function reset() {
-                sidebar.style.removeProperty('--sidebar-sticky-top');
-                currentTop = null;
-            }
-
-            function update() {
-                ticking = false;
-
-                if (!desktopQuery.matches) {
-                    if (currentTop !== null) {
-                        reset();
-                    }
-                    lastScrollY = window.scrollY;
-                    return;
-                }
-
-                const { topGap, bottomGap } = readGap();
-                const sidebarHeight = inner.offsetHeight;
-                const viewportHeight = window.innerHeight;
-                const scrollY = window.scrollY;
-                const delta = scrollY - lastScrollY;
-                lastScrollY = scrollY;
-
-                let nextTop;
-
-                if (sidebarHeight + topGap <= viewportHeight) {
-                    nextTop = topGap;
-                } else {
-                    const minTop = viewportHeight - sidebarHeight - bottomGap;
-                    const maxTop = topGap;
-
-                    if (currentTop === null) {
-                        currentTop = topGap;
-                    }
-
-                    nextTop = currentTop - delta;
-                    nextTop = Math.max(minTop, Math.min(maxTop, nextTop));
-                }
-
-                currentTop = nextTop;
-                sidebar.style.setProperty('--sidebar-sticky-top', nextTop + 'px');
-            }
-
-            function onScroll() {
-                if (ticking) {
-                    return;
-                }
-                ticking = true;
-                window.requestAnimationFrame(update);
-            }
-
-            window.addEventListener('scroll', onScroll, { passive: true });
-            window.addEventListener('resize', function () {
-                lastScrollY = window.scrollY;
-                update();
-            }, { passive: true });
-
-            if ('ResizeObserver' in window) {
-                new ResizeObserver(function () {
-                    lastScrollY = window.scrollY;
-                    update();
-                }).observe(inner);
-            }
-
-            desktopQuery.addEventListener('change', function (event) {
-                if (!event.matches) {
-                    reset();
-                } else {
-                    lastScrollY = window.scrollY;
-                    update();
-                }
-            });
-
-            update();
         })();
     </script>
     <script>

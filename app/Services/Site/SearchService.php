@@ -159,6 +159,16 @@ class SearchService
         return self::MIN_QUERY_LENGTH;
     }
 
+    public function filterMeta(): array
+    {
+        return [
+            'filterOptions' => $this->filterOptions(),
+            'brandOptions' => $this->brandOptions(),
+            'rangeBounds' => $this->rangeBounds(),
+            'sortOptions' => $this->sortOptions(),
+        ];
+    }
+
     private function filterOptions(): array
     {
         return [
