@@ -1,0 +1,208 @@
+@extends('layouts.site')
+
+@php
+    $formatCount = static fn ($value): string => number_format((int) $value, 0, ',', ' ');
+    $formatDisplacement = static function ($value): ?string {
+        if (! filled($value)) {
+            return null;
+        }
+
+        $normalized = trim((string) $value);
+
+        return is_numeric($normalized)
+            ? rtrim(rtrim(number_format(((float) $normalized) / 1000, 1, '.', ''), '0'), '.') . ' л'
+            : $normalized;
+    };
+    $specs = collect([
+        'Тип двигателя' => $engine->engine_type,
+        'Объем' => $formatDisplacement($engine->displacement_cc),
+        'Мощность' => filled($engine->max_horsepower) ? $engine->max_horsepower . ' л.с.' : null,
+        'Макс. мощность, об/мин' => $engine->max_power_output_at_rpm,
+        'Макс. крутящий момент' => $engine->max_torque_at_rpm,
+        'Клапанов на цилиндр' => $engine->valves_per_cylinder,
+        'Степень сжатия' => $engine->compression_ratio,
+        'Диаметр цилиндра' => filled($engine->cylinder_bore_mm) ? $engine->cylinder_bore_mm . ' мм' : null,
+        'Ход поршня' => filled($engine->piston_stroke_mm) ? $engine->piston_stroke_mm . ' мм' : null,
+        'Газораспределение' => $engine->valvetrain,
+        'Рекомендуемое топливо' => $engine->recommended_fuel_type,
+        'Расход топлива' => filled($engine->fuel_consumption_l_per_100_km) ? $engine->fuel_consumption_l_per_100_km . ' л / 100 км' : null,
+        'Выбросы CO2' => filled($engine->co2_emissions_g_per_km) ? $engine->co2_emissions_g_per_km . ' г / км' : null,
+        'Start / Stop' => $engine->has_start_stop_system === null ? null : ($engine->has_start_stop_system ? 'Есть' : 'Нет'),
+    ])->filter(fn ($value) => filled($value));
+    $configurations = $engine->configurations
+        ->filter(fn ($configuration) => $configuration->car !== null && $configuration->car->brand !== null)
+        ->sortBy([
+            ['car.name', 'asc'],
+            ['price', 'asc'],
+            ['id', 'asc'],
+        ])
+        ->values();
+    $relatedCars = $configurations
+        ->map->car
+        ->unique('id')
+        ->values();
+    $formatPriceValue = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : '';
+    $formatPriceRange = static function ($car) use ($formatPriceValue): string {
+        $startPrice = $car->start_price;
+        $endPrice = $car->end_price;
+
+        if (filled($startPrice) && filled($endPrice)) {
+            return (int) $startPrice === (int) $endPrice
+                ? $formatPriceValue((int) $startPrice)
+                : $formatPriceValue((int) $startPrice) . ' - ' . $formatPriceValue((int) $endPrice);
+        }
+
+        if (filled($startPrice)) {
+            return $formatPriceValue((int) $startPrice);
+        }
+
+        if (filled($endPrice)) {
+            return $formatPriceValue((int) $endPrice);
+        }
+
+        return 'не объявлена';
+    };
+@endphp
+
+@section('title', $brand->name . ' ' . $engine->name)
+
+@section('content')
+    <section class="engine-page engine-page--detail">
+        <div class="engine-hero">
+            <div class="engine-hero__head">
+                <div class="engine-hero__brand">
+                    <img
+                        class="engine-hero__logo"
+                        data-brand-logo
+                        data-brand-slug="{{ $brand->slug }}"
+                        alt="{{ $brand->name }}"
+                        width="52"
+                        height="52"
+                        loading="eager"
+                    >
+                    <div>
+                        <a class="engine-hero__brand-link" href="{{ route('engine.brand', ['brand' => $brand->slug]) }}">{{ $brand->name }}</a>
+                        <h1>{{ $pageH1 ?? ($brand->name . ' ' . $engine->name) }}</h1>
+                    </div>
+                </div>
+
+                <div class="engine-hero__meta">
+                    <span>{{ $formatCount($engine->views_count) }} просмотров</span>
+                    <span>{{ $formatCount($engine->configurations_count) }} конфигураций</span>
+                    <span>{{ $formatCount($relatedCars->count()) }} моделей</span>
+                </div>
+            </div>
+
+            <div class="engine-hero__badges">
+                @if (filled($engine->engine_type))
+                    <span class="engine-hero__badge">{{ $engine->engine_type }}</span>
+                @endif
+                @if ($formatDisplacement($engine->displacement_cc))
+                    <span class="engine-hero__badge">{{ $formatDisplacement($engine->displacement_cc) }}</span>
+                @endif
+                @if (filled($engine->max_horsepower))
+                    <span class="engine-hero__badge">{{ $engine->max_horsepower }} л.с.</span>
+                @endif
+            </div>
+        </div>
+
+        @if ($specs->isNotEmpty())
+            <div class="engine-page__section">
+                <div class="engine-page__section-head">
+                    <h2>Характеристики двигателя</h2>
+                    <span>{{ $specs->count() }}</span>
+                </div>
+
+                <dl class="engine-specs">
+                    @foreach ($specs as $label => $value)
+                        <div class="engine-specs__item">
+                            <dt>{{ $label }}</dt>
+                            <dd>{{ $value }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            </div>
+        @endif
+
+        @if (filled($engine->engine_notes))
+            <div class="engine-page__section">
+                <div class="engine-page__section-head">
+                    <h2>Описание</h2>
+                </div>
+
+                <div class="engine-copy">
+                    {!! nl2br(e($engine->engine_notes)) !!}
+                </div>
+            </div>
+        @endif
+
+        @if (filled($engine->page_text))
+            <div class="engine-page__section">
+                <div class="engine-page__section-head">
+                    <h2>Подробности</h2>
+                </div>
+
+                <div class="new_eq engine-copy">
+                    {!! $engine->page_text !!}
+                </div>
+            </div>
+        @endif
+
+        @if ($relatedCars->isNotEmpty())
+            <div class="engine-page__section">
+                <div class="engine-page__section-head">
+                    <h2>Автомобили с этим двигателем</h2>
+                    <span>{{ $relatedCars->count() }}</span>
+                </div>
+
+                <ul class="modeli">
+                    @foreach ($relatedCars as $car)
+                        <x-site.car-card
+                            :href="'/' . $car->brand->slug . '/' . $car->slug . '/'"
+                            :name="$car->name"
+                            :image="$car->coverUrl()"
+                            :price-text="$formatPriceRange($car)"
+                            :price-currency="$car->resolvedPriceCurrency()"
+                            :is-new="$car->is_soon"
+                            :year="$car->year"
+                            :is-electric="$car->is_electric_car"
+                        />
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        @if ($configurations->isNotEmpty())
+            <div class="engine-page__section">
+                <div class="engine-page__section-head">
+                    <h2>Конфигурации</h2>
+                    <span>{{ $configurations->count() }}</span>
+                </div>
+
+                <div class="engine-configurations">
+                    @foreach ($configurations as $configuration)
+                        @php
+                            $car = $configuration->car;
+                            $carBrand = $car?->brand;
+                            $configurationUrl = filled($configuration->local_id)
+                                ? '/' . $carBrand->slug . '/' . $car->slug . '/equipment-' . $configuration->local_id . '/'
+                                : '/' . $carBrand->slug . '/' . $car->slug . '/';
+                        @endphp
+                        <a class="engine-configurations__item" href="{{ $configurationUrl }}">
+                            <span class="engine-configurations__model">{{ $carBrand->name }} {{ $car->name }}</span>
+                            <span class="engine-configurations__group">{{ $configuration->group?->name ?: 'Конфигурация' }}</span>
+                            <span class="engine-configurations__meta">
+                                @if (filled($configuration->price))
+                                    {{ number_format((int) $configuration->price, 0, ',', ' ') }} {{ $configuration->currency ?: 'руб.' }}
+                                @else
+                                    Цена не объявлена
+                                @endif
+                            </span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+    </section>
+@endsection
