@@ -132,6 +132,7 @@ return [
     */
 
     'serializable_classes' => [
+        Illuminate\Contracts\Database\ModelIdentifier::class,
         Illuminate\Database\Eloquent\Collection::class,
         Illuminate\Pagination\LengthAwarePaginator::class,
         Illuminate\Support\Collection::class,
