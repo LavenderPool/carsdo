@@ -1,4 +1,14 @@
 <section>
+    @php
+        \Illuminate\Support\Facades\Log::debug('footer.brands.view', [
+            'path' => request()->path(),
+            'hide_footer_brands' => $hideFooterBrands ?? false,
+            'footer_active_total' => collect($footerBrandsActive ?? [])->count(),
+            'footer_left_total' => collect($footerBrandsLeft ?? [])->count(),
+            'footer_active_slugs' => collect($footerBrandsActive ?? [])->pluck('slug')->take(10)->values()->all(),
+            'footer_left_slugs' => collect($footerBrandsLeft ?? [])->pluck('slug')->take(10)->values()->all(),
+        ]);
+    @endphp
     @unless ($hideFooterBrands ?? false)
         <div id="minsk">
             <div class="menu-bottom-text">Новые <a href="/new-cars-{{ $catalogYear }}/">автомобили {{ $catalogYear }}</a> и будущие новинки автопрома в России</div>

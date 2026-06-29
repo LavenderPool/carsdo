@@ -6,12 +6,39 @@ use App\Models\Brand;
 use App\Models\Car;
 use App\Models\CarConfiguration;
 use App\Models\CarConfigurationGroup;
+use App\Providers\AppServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class HomePageTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_home_page_renders_footer_brand_lists_when_brands_exist(): void
+    {
+        Brand::create([
+            'name' => 'Footer Active Brand',
+            'slug' => 'footer-active-brand',
+            'leave_from_russian' => false,
+        ]);
+
+        Brand::create([
+            'name' => 'Footer Left Brand',
+            'slug' => 'footer-left-brand',
+            'leave_from_russian' => true,
+        ]);
+
+        (new AppServiceProvider($this->app))->boot();
+
+        $response = $this->get(route('home'));
+
+        $response
+            ->assertOk()
+            ->assertSee('/footer-active-brand/', false)
+            ->assertSee('Footer Active Brand')
+            ->assertSee('/footer-left-brand/', false)
+            ->assertSee('Footer Left Brand');
+    }
 
     public function test_home_page_renders_popular_models_filter_accordion_that_submits_to_search(): void
     {

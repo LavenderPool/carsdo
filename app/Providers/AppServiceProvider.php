@@ -9,6 +9,7 @@ use App\Support\Assets\CssAssetService;
 use App\Support\Cache\SiteCache;
 use App\Support\Seo\AdminSeoFields;
 use App\Support\Seo\PageSeoFactory;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Vite;
@@ -89,6 +90,8 @@ class AppServiceProvider extends ServiceProvider
             : '/favicon.ico';
         $currentYear = now()->year;
         $cssAssetService = app(CssAssetService::class);
+        $footerBrandsActive = $brands->where('leave_from_russian', false)->values();
+        $footerBrandsLeft = $brands->where('leave_from_russian', true)->values();
         $footerStaticPages = collect($footerStaticPages)
             ->map(static function (mixed $page): ?array {
                 $slug = match (true) {
@@ -114,6 +117,17 @@ class AppServiceProvider extends ServiceProvider
             })
             ->filter();
 
+        if (! app()->runningInConsole()) {
+            Log::debug('footer.brands.shared', [
+                'path' => request()->path(),
+                'brands_total' => $brands->count(),
+                'brands_active_total' => $footerBrandsActive->count(),
+                'brands_left_total' => $footerBrandsLeft->count(),
+                'brands_active_slugs' => $footerBrandsActive->pluck('slug')->take(10)->values()->all(),
+                'brands_left_slugs' => $footerBrandsLeft->pluck('slug')->take(10)->values()->all(),
+            ]);
+        }
+
         config([
             'seo.site_name' => $siteBrandName,
             'seo.sitemap' => '/sitemap.xml',
@@ -133,8 +147,8 @@ class AppServiceProvider extends ServiceProvider
             'siteFontsStylesUrl' => $cssAssetService->versionedUrl('assets/fonts/site-fonts.css'),
             'siteGlobalStylesUrl' => $cssAssetService->versionedUrl('assets/global-styles.css'),
             'siteNewCssUrl' => $cssAssetService->versionedUrl('new.css'),
-            'footerBrandsActive' => $brands->where('leave_from_russian', false)->values(),
-            'footerBrandsLeft' => $brands->where('leave_from_russian', true)->values(),
+            'footerBrandsActive' => $footerBrandsActive,
+            'footerBrandsLeft' => $footerBrandsLeft,
             'headerPopularBrands' => $headerBrands,
             'footerStaticPages' => $footerStaticPages->mapWithKeys(fn (array $page): array => [
                 $page['slug'] => [
