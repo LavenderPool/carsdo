@@ -61,7 +61,7 @@ class ImportTest extends TestCase
     {
         $validator = Validator::make(
             ['file' => $this->jsonFile($this->payload(), 'models_detailed.json', 'application/octet-stream')],
-            ['file' => ['required', 'file', 'extensions:json', 'max:102400']],
+            ['file' => ['required', 'file', 'extensions:json', 'max:307200']],
         );
 
         $this->assertTrue($validator->passes(), json_encode($validator->errors()->all(), JSON_UNESCAPED_UNICODE));

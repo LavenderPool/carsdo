@@ -71,6 +71,7 @@ class EnginePageCacheTest extends TestCase
             'displacement_cc' => '1498',
             'max_horsepower' => '320',
             'engine_notes' => 'Original cached note.',
+            'page_text' => '<p><strong>Original</strong> cached html.</p>',
         ]);
 
         $url = route('engine.show', [
@@ -81,16 +82,19 @@ class EnginePageCacheTest extends TestCase
         $this->get($url)
             ->assertOk()
             ->assertSee('Alpha Drive')
-            ->assertSee('Original cached note.');
+            ->assertSee('Original cached note.')
+            ->assertSee('<strong>Original</strong> cached html.', false);
 
         $engine->update([
             'name' => 'Beta Drive',
             'engine_notes' => 'Updated database note.',
+            'page_text' => '<p><em>Updated</em> database html.</p>',
         ]);
 
         $this->get($url)
             ->assertOk()
             ->assertSee('Beta Drive')
-            ->assertSee('Updated database note.');
+            ->assertSee('Updated database note.')
+            ->assertSee('<em>Updated</em> database html.', false);
     }
 }

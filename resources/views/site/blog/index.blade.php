@@ -90,7 +90,7 @@
                                     <span class="crash-test-card__content">
                                         <span class="crash-test-card__title">{{ $article->title }}</span>
                                         <span class="crash-test-card__meta">
-                                            {{ optional($article->published_at)->translatedFormat('d F Y') }}
+                                            {{ optional($article->published_at)?->locale('ru')->translatedFormat('d F Y') }}
                                         </span>
                                     </span>
                                 </span>

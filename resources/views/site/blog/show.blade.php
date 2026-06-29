@@ -10,7 +10,7 @@
 
         <div class="p_test_drive">
             @if ($article->published_at)
-                {{ $article->published_at->translatedFormat('d F Y') }}
+                {{ $article->published_at->locale('ru')->translatedFormat('d F Y') }}
             @endif
             @if (filled($article->excerpt))
                 @if ($article->published_at)

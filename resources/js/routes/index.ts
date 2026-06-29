@@ -123,7 +123,7 @@ logout.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
 /**
 * @see \App\Http\Controllers\Site\HomeController::__invoke
-* @see app/Http/Controllers/Site/HomeController.php:14
+* @see app/Http/Controllers/Site/HomeController.php:19
 * @route '/'
 */
 export const home = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -138,7 +138,7 @@ home.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\HomeController::__invoke
-* @see app/Http/Controllers/Site/HomeController.php:14
+* @see app/Http/Controllers/Site/HomeController.php:19
 * @route '/'
 */
 home.url = (options?: RouteQueryOptions) => {
@@ -147,7 +147,7 @@ home.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Site\HomeController::__invoke
-* @see app/Http/Controllers/Site/HomeController.php:14
+* @see app/Http/Controllers/Site/HomeController.php:19
 * @route '/'
 */
 home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -157,7 +157,7 @@ home.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Site\HomeController::__invoke
-* @see app/Http/Controllers/Site/HomeController.php:14
+* @see app/Http/Controllers/Site/HomeController.php:19
 * @route '/'
 */
 home.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({

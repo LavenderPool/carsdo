@@ -18,7 +18,7 @@ class ImportUploadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'file' => ['required', 'file', 'extensions:json', 'max:102400'],
+            'file' => ['required', 'file', 'extensions:json', 'max:307200'],
         ];
     }
 
@@ -31,7 +31,7 @@ class ImportUploadRequest extends FormRequest
             'file.required' => 'Выберите JSON-файл для импорта.',
             'file.file' => 'Переданный файл некорректен.',
             'file.extensions' => 'Допустимы только JSON-файлы.',
-            'file.max' => 'Размер JSON-файла не должен превышать 100 МБ.',
+            'file.max' => 'Размер JSON-файла не должен превышать 300 МБ.',
         ];
     }
 }

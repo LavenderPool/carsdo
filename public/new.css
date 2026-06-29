@@ -77,7 +77,6 @@ a {
 
 p {
     color: var(--muted);
-    max-width: 70ch;
     text-wrap: pretty;
 }
 
@@ -2914,7 +2913,6 @@ input:focus-visible {
 .block_moscow p {
     padding: 0;
     margin: var(--space-3) 0 var(--space-5);
-    max-width: 70ch;
     color: var(--muted);
     font-size: var(--step-0);
     line-height: 1.6;

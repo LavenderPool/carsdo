@@ -51,7 +51,7 @@ class EngineImportTest extends TestCase
         $this->assertSame('1498', $engine->displacement_cc);
         $this->assertSame('450', $engine->max_horsepower);
         $this->assertTrue($engine->has_start_stop_system);
-        $this->assertSame('Подробное описание двигателя', $engine->page_text);
+        $this->assertSame('<p>Подробное <strong>описание</strong> двигателя</p>', $engine->page_text);
     }
 
     public function test_engine_import_skips_records_for_missing_brand(): void
@@ -233,7 +233,7 @@ class EngineImportTest extends TestCase
                     'Максимальная мощность, л.с.' => '450',
                     'Система старт-стоп' => 'Да',
                     'Дополнительная информация о двигателе' => 'Батарейный блок с высоким КПД',
-                    'text' => 'Подробное описание двигателя',
+                    'text' => '<p>Подробное <strong>описание</strong> двигателя</p>',
                 ],
             ],
         ];

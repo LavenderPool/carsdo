@@ -5,7 +5,7 @@ import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 
-const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024;
+const MAX_FILE_SIZE_BYTES = 300 * 1024 * 1024;
 const POLL_INTERVAL_MS = 2000;
 
 type ImportStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
@@ -293,7 +293,7 @@ const applyRun = (importRun: ImportRun) => {
 
 const validateSelectedFile = (file: File) => {
     if (file.size > MAX_FILE_SIZE_BYTES) {
-        throw new Error('Размер JSON-файла не должен превышать 100 МБ.');
+        throw new Error('Размер JSON-файла не должен превышать 300 МБ.');
     }
 };
 
@@ -364,7 +364,7 @@ onMounted(() => {
                         Импорт моделей
                     </h2>
                     <p class="mt-1 text-sm text-gray-500">
-                        Загрузите один JSON-файл до 100 МБ. Импорт выполнится в фоне на сервере.
+                        Загрузите один JSON-файл до 300 МБ. Импорт выполнится в фоне на сервере.
                     </p>
                 </div>
 
@@ -392,7 +392,7 @@ onMounted(() => {
                                 @change="onFileChange"
                             />
                             <p class="text-sm text-gray-500">
-                                Поддерживается один JSON-файл до 100 МБ. После загрузки сервер поставит импорт в очередь и начнет обработку в фоне.
+                                Поддерживается один JSON-файл до 300 МБ. После загрузки сервер поставит импорт в очередь и начнет обработку в фоне.
                             </p>
                             <p v-if="selectedFileName" class="text-sm text-gray-600">
                                 Выбран файл: {{ selectedFileName }}
