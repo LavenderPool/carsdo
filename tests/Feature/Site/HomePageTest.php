@@ -14,20 +14,36 @@ class HomePageTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_home_page_renders_footer_brand_lists_when_brands_exist(): void
+    public function test_home_page_renders_footer_brand_lists_only_for_brands_with_cars(): void
     {
-        Brand::create([
+        $activeBrand = Brand::create([
             'name' => 'Footer Active Brand',
             'slug' => 'footer-active-brand',
             'leave_from_russian' => false,
         ]);
 
-        Brand::create([
+        $leftBrand = Brand::create([
             'name' => 'Footer Left Brand',
             'slug' => 'footer-left-brand',
             'leave_from_russian' => true,
         ]);
 
+        Brand::create([
+            'name' => 'Footer Empty Brand',
+            'slug' => 'footer-empty-brand',
+            'leave_from_russian' => false,
+        ]);
+
+        $this->createCarWithConfiguration($activeBrand, [
+            'name' => 'Active Model',
+            'slug' => 'active-model',
+        ]);
+        $this->createCarWithConfiguration($leftBrand, [
+            'name' => 'Left Model',
+            'slug' => 'left-model',
+        ]);
+
+        (new AppServiceProvider($this->app))->boot();
         (new AppServiceProvider($this->app))->boot();
 
         $response = $this->get(route('home'));
@@ -37,7 +53,9 @@ class HomePageTest extends TestCase
             ->assertSee('/footer-active-brand/', false)
             ->assertSee('Footer Active Brand')
             ->assertSee('/footer-left-brand/', false)
-            ->assertSee('Footer Left Brand');
+            ->assertSee('Footer Left Brand')
+            ->assertDontSee('/footer-empty-brand/', false)
+            ->assertDontSee('Footer Empty Brand');
     }
 
     public function test_home_page_renders_popular_models_filter_accordion_that_submits_to_search(): void

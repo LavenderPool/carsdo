@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import HtmlCodeEditor from '@/Components/Admin/HtmlCodeEditor.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -295,11 +296,13 @@ const emit = defineEmits<{
 
                 <div>
                     <InputLabel for="page_text" value="Текст страницы" />
-                    <textarea
+                    <p class="mt-1 text-sm text-gray-500">
+                        HTML-код страницы двигателя.
+                    </p>
+                    <HtmlCodeEditor
                         id="page_text"
                         v-model="form.page_text"
-                        rows="10"
-                        class="mt-1 block w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        :disabled="form.processing"
                     />
                     <InputError class="mt-2" :message="form.errors.page_text" />
                 </div>

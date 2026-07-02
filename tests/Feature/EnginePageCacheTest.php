@@ -71,7 +71,6 @@ class EnginePageCacheTest extends TestCase
             'displacement_cc' => '1498',
             'max_horsepower' => '320',
             'engine_notes' => 'Original cached note.',
-            'page_text' => '<p><strong>Original</strong> cached html.</p>',
         ]);
 
         $url = route('engine.show', [
@@ -79,22 +78,68 @@ class EnginePageCacheTest extends TestCase
             'engine_slug' => $engine->slug,
         ]);
 
-        $this->get($url)
+        $response = $this->get($url);
+
+        $response
             ->assertOk()
             ->assertSee('Alpha Drive')
-            ->assertSee('Original cached note.')
-            ->assertSee('<strong>Original</strong> cached html.', false);
+            ->assertSee('Original cached note.');
+
+        $this->assertMatchesRegularExpression('/>\s*1\s+просмотров\s*</u', $response->getContent());
 
         $engine->update([
             'name' => 'Beta Drive',
             'engine_notes' => 'Updated database note.',
-            'page_text' => '<p><em>Updated</em> database html.</p>',
         ]);
 
-        $this->get($url)
+        $response = $this->get($url);
+
+        $response
             ->assertOk()
             ->assertSee('Beta Drive')
             ->assertSee('Updated database note.')
-            ->assertSee('<em>Updated</em> database html.', false);
+            ->assertDontSee('Original cached note.');
+
+        $this->assertMatchesRegularExpression('/>\s*2\s+просмотров\s*</u', $response->getContent());
+    }
+
+    public function test_engine_page_updates_views_count_label_when_cached_html_is_reused(): void
+    {
+        $brand = Brand::query()->create([
+            'name' => 'Tesla',
+            'slug' => 'tesla',
+            'leave_from_russian' => false,
+        ]);
+
+        $engine = Engine::query()->create([
+            'brand_id' => $brand->id,
+            'name' => 'Alpha Drive',
+            'slug' => 'alpha-drive',
+            'engine_type' => 'electric',
+            'displacement_cc' => '1498',
+            'max_horsepower' => '320',
+            'engine_notes' => 'Original cached note.',
+        ]);
+
+        $url = route('engine.show', [
+            'brand' => $brand,
+            'engine_slug' => $engine->slug,
+        ]);
+
+        $response = $this->get($url);
+
+        $response->assertOk();
+
+        $this->assertMatchesRegularExpression('/>\s*1\s+просмотров\s*</u', $response->getContent());
+
+        $response = $this->get($url);
+
+        $response
+            ->assertOk()
+            ->assertDontSee('__ENGINE_VIEWS_COUNT__');
+
+        $this->assertMatchesRegularExpression('/>\s*2\s+просмотров\s*</u', $response->getContent());
+
+        $this->assertSame(2, $engine->fresh()->views_count);
     }
 }

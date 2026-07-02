@@ -23,6 +23,9 @@
         "vue-tsc": "^2.0.24"
     },
     "dependencies": {
+        "@codemirror/lang-html": "^6.4.11",
+        "@codemirror/state": "^6.7.0",
+        "@codemirror/view": "^6.43.4",
         "@tiptap/extension-drag-handle": "^3.27.1",
         "@tiptap/extension-drag-handle-vue-3": "^3.27.1",
         "@tiptap/extension-link": "^3.27.1",
@@ -33,6 +36,7 @@
         "@tiptap/markdown": "^3.27.1",
         "@tiptap/starter-kit": "^3.27.1",
         "@tiptap/vue-3": "^3.27.1",
+        "codemirror": "^6.0.2",
         "floating-vue": "^5.2.2",
         "marked": "^18.0.5"
     }

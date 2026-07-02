@@ -6,7 +6,6 @@
     'engineType' => null,
     'displacementCc' => null,
     'maxHorsepower' => null,
-    'configurationsCount' => null,
 ])
 
 @php
@@ -23,10 +22,6 @@
         filled($engineType) ? (string) $engineType : null,
         $displacementLabel,
         filled($maxHorsepower) ? trim((string) $maxHorsepower) . ' л.с.' : null,
-    ])->filter()->values();
-
-    $stats = collect([
-        filled($configurationsCount) ? ['label' => 'Конфигураций', 'value' => (int) $configurationsCount] : null,
     ])->filter()->values();
 @endphp
 
@@ -56,15 +51,5 @@
             </span>
         @endif
 
-        @if ($stats->isNotEmpty())
-            <span class="engine-card__stats">
-                @foreach ($stats as $stat)
-                    <span class="engine-card__stat">
-                        <strong>{{ number_format($stat['value'], 0, ',', ' ') }}</strong>
-                        {{ $stat['label'] }}
-                    </span>
-                @endforeach
-            </span>
-        @endif
     </a>
 </li>

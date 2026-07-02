@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([PublicContentObserver::class])]
 #[Fillable([
@@ -19,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'engine_url',
     'engine_type',
     'displacement_cc',
+    'air_charger',
+    'cooling_system_capacity_l',
     'max_horsepower',
     'max_power_output_at_rpm',
     'max_torque_at_rpm',
@@ -26,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'compression_ratio',
     'cylinder_bore_mm',
     'piston_stroke_mm',
+    'specific_power_kg_per_hp',
     'valvetrain',
     'recommended_fuel_type',
     'fuel_consumption_l_per_100_km',
@@ -52,10 +54,5 @@ class Engine extends Model
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);
-    }
-
-    public function configurations(): HasMany
-    {
-        return $this->hasMany(CarConfiguration::class);
     }
 }

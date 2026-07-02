@@ -625,28 +625,24 @@ class PageSeoFactory
 
     private function forEngineShow(Brand $brand, Engine $engine): ResolvedPageSeo
     {
-        $relatedCars = $this->relatedCarsFromEngine($engine);
         $defaultTitle = "{$brand->name} {$engine->name}: характеристики двигателя, мощность и расход";
         $defaultDescription = $this->limitDescription(
-            "{$brand->name} {$engine->name}: характеристики двигателя, объем, мощность, расход топлива и связанные конфигурации. "
-            ."На странице {$relatedCars->count()} моделей и {$this->toCollection($engine->configurations)->count()} конфигураций."
+            "{$brand->name} {$engine->name}: характеристики двигателя, объем, мощность и расход топлива."
         );
 
         return $this->buildResolvedSeo(
             defaults: [
                 'title' => $defaultTitle,
                 'description' => $defaultDescription,
-                'image' => $this->firstCarImage($relatedCars) ?? $this->fallbackImage(),
+                'image' => $this->fallbackImage(),
                 'h1' => "{$brand->name} {$engine->name}",
             ],
             overrides: [],
             context: array_merge($this->baseContext(), [
                 'brand' => $brand->name,
                 'engine' => $engine->name,
-                'related_cars_count' => $relatedCars->count(),
-                'configurations_count' => $this->toCollection($engine->configurations)->count(),
             ]),
-            modifiedTime: $this->latestUpdatedAt([$brand, $engine, $engine->configurations]),
+            modifiedTime: $this->latestUpdatedAt([$brand, $engine]),
             schema: $this->makeSchema(
                 [
                     ['name' => 'Главная', 'url' => $this->homeUrl()],
@@ -654,12 +650,6 @@ class PageSeoFactory
                     ['name' => $brand->name, 'url' => $this->engineBrandUrl($brand)],
                     ['name' => $engine->name, 'url' => $this->engineUrl($brand, $engine)],
                 ],
-                array_filter([
-                    $this->itemListSchema(
-                        "Автомобили с двигателем {$brand->name} {$engine->name}",
-                        $relatedCars->map(fn (Car $car): array => $this->carListItem($car))->all(),
-                    ),
-                ]),
             ),
         );
     }
@@ -1799,15 +1789,6 @@ class PageSeoFactory
         return $cars
             ->first(fn ($car) => $car instanceof Car && filled($car->coverUrl()))
             ?->coverUrl();
-    }
-
-    private function relatedCarsFromEngine(Engine $engine): Collection
-    {
-        return $this->toCollection($engine->configurations)
-            ->map(fn ($configuration) => $configuration->car)
-            ->filter(fn ($car): bool => $car instanceof Car && $car->brand !== null)
-            ->unique('id')
-            ->values();
     }
 
     private function firstCrashTestImage(Collection $crashTests): ?string

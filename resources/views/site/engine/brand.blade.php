@@ -34,7 +34,6 @@
                         :engine-type="$engine->engine_type"
                         :displacement-cc="$engine->displacement_cc"
                         :max-horsepower="$engine->max_horsepower"
-                        :configurations-count="$engine->configurations_count"
                     />
                 @endforeach
             </ul>

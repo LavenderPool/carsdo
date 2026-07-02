@@ -49,12 +49,15 @@ class EngineImportTest extends TestCase
         $this->assertSame('Long Range', $engine->name);
         $this->assertSame('electric', $engine->engine_type);
         $this->assertSame('1498', $engine->displacement_cc);
+        $this->assertSame('Турбонаддув', $engine->air_charger);
+        $this->assertSame('8.5', $engine->cooling_system_capacity_l);
         $this->assertSame('450', $engine->max_horsepower);
+        $this->assertSame('3.3', $engine->specific_power_kg_per_hp);
         $this->assertTrue($engine->has_start_stop_system);
         $this->assertSame('<p>Подробное <strong>описание</strong> двигателя</p>', $engine->page_text);
     }
 
-    public function test_engine_import_skips_records_for_missing_brand(): void
+    public function test_engine_import_creates_missing_brand_automatically(): void
     {
         Storage::fake('local');
         config(['queue.default' => 'sync']);
@@ -69,14 +72,25 @@ class EngineImportTest extends TestCase
         $response
             ->assertAccepted()
             ->assertJsonPath('run.status', 'succeeded')
-            ->assertJsonPath('run.stats.new', 0)
+            ->assertJsonPath('run.stats.new', 1)
             ->assertJsonPath('run.stats.updated', 0)
             ->assertJsonPath('run.stats.unchanged', 0)
-            ->assertJsonPath('run.stats.processed', 0)
+            ->assertJsonPath('run.stats.processed', 1)
             ->assertJsonPath('run.processed_engines', 1)
             ->assertJsonPath('run.total_engines', 1);
 
-        $this->assertDatabaseCount('engines', 0);
+        $this->assertDatabaseCount('brands', 1);
+
+        /** @var Brand $brand */
+        $brand = Brand::query()->where('slug', 'tesla')->firstOrFail();
+
+        $this->assertSame('Tesla', $brand->name);
+        $this->assertFalse($brand->leave_from_russian);
+
+        $engine = Engine::query()->firstOrFail();
+
+        $this->assertSame($brand->id, $engine->brand_id);
+        $this->assertSame('model-y-long-range', $engine->slug);
     }
 
     public function test_engine_import_updates_existing_engine_without_duplicates(): void
@@ -230,7 +244,10 @@ class EngineImportTest extends TestCase
                     'engine_url' => 'https://example.com/engines/model-y-long-range',
                     'Тип двигателя' => 'electric',
                     'Объем двигателя, куб.см' => 1498,
+                    'Нагнетатель воздуха' => 'Турбонаддув',
+                    'Объём системы охлаждения, л' => 8.5,
                     'Максимальная мощность, л.с.' => '450',
+                    'Удельная мощность, кг на л.с.' => 3.3,
                     'Система старт-стоп' => 'Да',
                     'Дополнительная информация о двигателе' => 'Батарейный блок с высоким КПД',
                     'text' => '<p>Подробное <strong>описание</strong> двигателя</p>',

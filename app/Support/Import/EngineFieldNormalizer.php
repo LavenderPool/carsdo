@@ -48,8 +48,10 @@ class EngineFieldNormalizer
         'engine_name' => 'engine_name',
         'engine_url' => 'engine_url',
         'Тип двигателя' => 'engine_type',
+        'Нагнетатель воздуха' => 'air_charger',
         'Объем двигателя, куб.см' => 'displacement_cc',
         'Объем двигателя, см3' => 'displacement_cc',
+        'Объём системы охлаждения, л' => 'cooling_system_capacity_l',
         'Максимальная мощность, л.с.' => 'max_horsepower',
         'Максимальная мощность, л.с. (кВт) при об./мин.' => 'max_power_output_at_rpm',
         'Максимальный крутящий момент, Нм (кгм) при об./мин.' => 'max_torque_at_rpm',
@@ -63,6 +65,7 @@ class EngineFieldNormalizer
         'Выброс CO2, г/км' => 'co2_emissions_g_per_km',
         'Система старт-стоп' => 'has_start_stop_system',
         'Дополнительная информация о двигателе' => 'engine_notes',
+        'Удельная мощность, кг на л.с.' => 'specific_power_kg_per_hp',
         'text' => 'page_text',
     ];
 
@@ -89,6 +92,9 @@ class EngineFieldNormalizer
         'fuel_consumption_l_per_100_km',
         'co2_emissions_g_per_km',
         'has_start_stop_system',
+        'air_charger',
+        'cooling_system_capacity_l',
+        'specific_power_kg_per_hp',
         'engine_notes',
         'page_text',
     ];
@@ -111,6 +117,9 @@ class EngineFieldNormalizer
         'recommended_fuel_type' => 255,
         'fuel_consumption_l_per_100_km' => 255,
         'co2_emissions_g_per_km' => 255,
+        'air_charger' => 255,
+        'cooling_system_capacity_l' => 255,
+        'specific_power_kg_per_hp' => 255,
     ];
 
     /**

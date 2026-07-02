@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             ['brand_name' => 'carsDo'],
         );
 
-        $this->call(BrandsSeeder::class);
+        // $this->call(BrandsSeeder::class);
 
         User::query()->updateOrCreate([
             'email' => 'test@example.com',

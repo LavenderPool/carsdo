@@ -5,6 +5,7 @@ import { Head, Link } from '@inertiajs/vue3';
 defineProps<{
     brandsCount: number;
     carsCount: number;
+    enginesCount: number;
     topBrands: Array<{
         id: number;
         name: string;
@@ -17,6 +18,12 @@ defineProps<{
         slug: string;
         brand: string | null;
         brand_slug: string | null;
+        views_count: number;
+    }>;
+    topEngines: Array<{
+        id: number;
+        name: string;
+        slug: string;
         views_count: number;
     }>;
 }>();
@@ -38,7 +45,7 @@ defineProps<{
                     <div class="space-y-4 p-6 text-gray-900">
                         <p>Вы вошли в административную часть проекта.</p>
 
-                        <div class="grid gap-4 md:grid-cols-2">
+                        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
                                 <div>
                                     <p class="text-sm text-slate-500">Количество брендов</p>
@@ -61,9 +68,20 @@ defineProps<{
                                     К автомобилям
                                 </Link>
                             </div>
+                            <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-5 shadow-sm">
+                                <div>
+                                    <p class="text-sm text-slate-500">Количество двигателей</p>
+                                    <p class="text-3xl font-bold tracking-tight text-slate-900">
+                                        {{ enginesCount }}
+                                    </p>
+                                </div>
+                                <Link :href="route('admin.engines.index')" class="inline-flex items-center rounded-md bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-gray-700">
+                                    К двигателям
+                                </Link>
+                            </div>
                         </div>
 
-                        <div class="grid gap-4 xl:grid-cols-2">
+                        <div class="grid gap-4 xl:grid-cols-3">
                             <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                                 <div class="mb-3 flex items-center justify-between">
                                     <h3 class="text-sm font-semibold text-slate-900">Топ брендов по просмотрам</h3>
@@ -107,6 +125,30 @@ defineProps<{
                                             {{ car.name }}
                                         </div>
                                         <div class="font-semibold text-slate-900">{{ car.views_count }}</div>
+                                    </div>
+                                </div>
+                                <p v-else class="text-sm text-slate-500">Данных о просмотрах пока нет.</p>
+                            </div>
+
+                            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                                <div class="mb-3 flex items-center justify-between">
+                                    <h3 class="text-sm font-semibold text-slate-900">Топ двигателей по просмотрам</h3>
+                                    <Link :href="route('admin.engines.index')" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">
+                                        Все двигатели
+                                    </Link>
+                                </div>
+
+                                <div v-if="topEngines.length > 0" class="space-y-2">
+                                    <div
+                                        v-for="(engine, index) in topEngines"
+                                        :key="engine.id"
+                                        class="flex items-center justify-between rounded-md border border-slate-100 px-3 py-2 text-sm"
+                                    >
+                                        <div class="truncate text-slate-700">
+                                            <span class="mr-2 font-medium text-slate-400">#{{ index + 1 }}</span>
+                                            {{ engine.name }}
+                                        </div>
+                                        <div class="font-semibold text-slate-900">{{ engine.views_count }}</div>
                                     </div>
                                 </div>
                                 <p v-else class="text-sm text-slate-500">Данных о просмотрах пока нет.</p>

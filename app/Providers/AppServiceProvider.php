@@ -49,8 +49,9 @@ class AppServiceProvider extends ServiceProvider
                 )
                 : $setting;
             $brands = $hasBrandsTable
-                ? SiteCache::remember('footer:brands', static fn () => Brand::query()
-                    ->select(['name', 'slug', 'leave_from_russian'])
+                ? SiteCache::remember('footer:brands:with-cars:v2', static fn () => Brand::query()
+                    ->select(['id', 'name', 'slug', 'leave_from_russian'])
+                    ->whereHas('cars')
                     ->orderBy('name')
                     ->get())
                 : $brands;

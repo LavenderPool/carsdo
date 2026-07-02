@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Site\EngineController::index
-* @see app/Http/Controllers/Site/EngineController.php:14
+* @see app/Http/Controllers/Site/EngineController.php:16
 * @route '/engine'
 */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::index
-* @see app/Http/Controllers/Site/EngineController.php:14
+* @see app/Http/Controllers/Site/EngineController.php:16
 * @route '/engine'
 */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::index
-* @see app/Http/Controllers/Site/EngineController.php:14
+* @see app/Http/Controllers/Site/EngineController.php:16
 * @route '/engine'
 */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -35,7 +35,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::index
-* @see app/Http/Controllers/Site/EngineController.php:14
+* @see app/Http/Controllers/Site/EngineController.php:16
 * @route '/engine'
 */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -45,7 +45,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::brand
-* @see app/Http/Controllers/Site/EngineController.php:38
+* @see app/Http/Controllers/Site/EngineController.php:40
 * @route '/engine/{brand}'
 */
 export const brand = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -60,7 +60,7 @@ brand.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::brand
-* @see app/Http/Controllers/Site/EngineController.php:38
+* @see app/Http/Controllers/Site/EngineController.php:40
 * @route '/engine/{brand}'
 */
 brand.url = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions) => {
@@ -93,7 +93,7 @@ brand.url = (args: { brand: string | { slug: string } } | [brand: string | { slu
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::brand
-* @see app/Http/Controllers/Site/EngineController.php:38
+* @see app/Http/Controllers/Site/EngineController.php:40
 * @route '/engine/{brand}'
 */
 brand.get = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -103,7 +103,7 @@ brand.get = (args: { brand: string | { slug: string } } | [brand: string | { slu
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::brand
-* @see app/Http/Controllers/Site/EngineController.php:38
+* @see app/Http/Controllers/Site/EngineController.php:40
 * @route '/engine/{brand}'
 */
 brand.head = (args: { brand: string | { slug: string } } | [brand: string | { slug: string } ] | string | { slug: string }, options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -113,7 +113,7 @@ brand.head = (args: { brand: string | { slug: string } } | [brand: string | { sl
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::show
-* @see app/Http/Controllers/Site/EngineController.php:64
+* @see app/Http/Controllers/Site/EngineController.php:65
 * @route '/engine/{brand}/{engine_slug}'
 */
 export const show = (args: { brand: string | { slug: string }, engine_slug: string | number } | [brand: string | { slug: string }, engine_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -128,7 +128,7 @@ show.definition = {
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::show
-* @see app/Http/Controllers/Site/EngineController.php:64
+* @see app/Http/Controllers/Site/EngineController.php:65
 * @route '/engine/{brand}/{engine_slug}'
 */
 show.url = (args: { brand: string | { slug: string }, engine_slug: string | number } | [brand: string | { slug: string }, engine_slug: string | number ], options?: RouteQueryOptions) => {
@@ -156,7 +156,7 @@ show.url = (args: { brand: string | { slug: string }, engine_slug: string | numb
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::show
-* @see app/Http/Controllers/Site/EngineController.php:64
+* @see app/Http/Controllers/Site/EngineController.php:65
 * @route '/engine/{brand}/{engine_slug}'
 */
 show.get = (args: { brand: string | { slug: string }, engine_slug: string | number } | [brand: string | { slug: string }, engine_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -166,7 +166,7 @@ show.get = (args: { brand: string | { slug: string }, engine_slug: string | numb
 
 /**
 * @see \App\Http\Controllers\Site\EngineController::show
-* @see app/Http/Controllers/Site/EngineController.php:64
+* @see app/Http/Controllers/Site/EngineController.php:65
 * @route '/engine/{brand}/{engine_slug}'
 */
 show.head = (args: { brand: string | { slug: string }, engine_slug: string | number } | [brand: string | { slug: string }, engine_slug: string | number ], options?: RouteQueryOptions): RouteDefinition<'head'> => ({

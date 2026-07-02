@@ -17,6 +17,8 @@ class EngineImportService
         'engine_url',
         'engine_type',
         'displacement_cc',
+        'air_charger',
+        'cooling_system_capacity_l',
         'max_horsepower',
         'max_power_output_at_rpm',
         'max_torque_at_rpm',
@@ -24,6 +26,7 @@ class EngineImportService
         'compression_ratio',
         'cylinder_bore_mm',
         'piston_stroke_mm',
+        'specific_power_kg_per_hp',
         'valvetrain',
         'recommended_fuel_type',
         'fuel_consumption_l_per_100_km',
@@ -85,11 +88,8 @@ class EngineImportService
             $brand = $brandsBySlug[$brandSlug] ?? null;
 
             if (!$brand instanceof Brand) {
-                if ($afterEngineProcessed !== null) {
-                    $afterEngineProcessed($stats);
-                }
-
-                continue;
+                $brand = $this->createBrand($brandSlug);
+                $brandsBySlug[$brandSlug] = $brand;
             }
 
             $engineAttributes = [
@@ -156,6 +156,31 @@ class EngineImportService
             ->get()
             ->keyBy('slug')
             ->all();
+    }
+
+    private function createBrand(string $slug): Brand
+    {
+        $brand = Brand::query()->firstOrCreate(
+            ['slug' => $slug],
+            ['name' => $this->humanizeSlug($slug), 'leave_from_russian' => false],
+        );
+
+        if ($brand->wasRecentlyCreated) {
+            Log::info('engine_import.brand_created', [
+                'slug' => $brand->slug,
+                'name' => $brand->name,
+            ]);
+        }
+
+        return $brand;
+    }
+
+    private function humanizeSlug(string $slug): string
+    {
+        $normalized = str_replace(['_', '-'], ' ', $slug);
+        $normalized = preg_replace('/\s+/', ' ', trim($normalized)) ?? $normalized;
+
+        return mb_convert_case($normalized, MB_CASE_TITLE, 'UTF-8');
     }
 
     /**

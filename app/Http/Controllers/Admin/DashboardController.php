@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Brand;
 use App\Models\Car;
+use App\Models\Engine;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -27,9 +28,15 @@ class DashboardController extends Controller
             ->limit(10)
             ->get(['id', 'brand_id', 'name', 'slug', 'views_count']);
 
+        $topEngines = Engine::query()
+            ->popular()
+            ->limit(10)
+            ->get(['id', 'name', 'slug', 'views_count']);
+
         return Inertia::render('Admin/Dashboard', [
             'brandsCount' => Brand::query()->count('*'),
             'carsCount' => Car::query()->count('*'),
+            'enginesCount' => Engine::query()->count('*'),
             'topBrands' => $topBrands->map(fn (Brand $brand) => [
                 'id' => $brand->id,
                 'name' => $brand->name,
@@ -43,6 +50,12 @@ class DashboardController extends Controller
                 'brand' => $car->brand?->name,
                 'brand_slug' => $car->brand?->slug,
                 'views_count' => $car->views_count,
+            ])->values(),
+            'topEngines' => $topEngines->map(fn (Engine $engine) => [
+                'id' => $engine->id,
+                'name' => $engine->name,
+                'slug' => $engine->slug,
+                'views_count' => $engine->views_count,
             ])->values(),
         ]);
     }

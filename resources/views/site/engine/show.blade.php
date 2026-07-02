@@ -29,39 +29,7 @@
         'Выбросы CO2' => filled($engine->co2_emissions_g_per_km) ? $engine->co2_emissions_g_per_km . ' г / км' : null,
         'Start / Stop' => $engine->has_start_stop_system === null ? null : ($engine->has_start_stop_system ? 'Есть' : 'Нет'),
     ])->filter(fn ($value) => filled($value));
-    $configurations = $engine->configurations
-        ->filter(fn ($configuration) => $configuration->car !== null && $configuration->car->brand !== null)
-        ->sortBy([
-            ['car.name', 'asc'],
-            ['price', 'asc'],
-            ['id', 'asc'],
-        ])
-        ->values();
-    $relatedCars = $configurations
-        ->map->car
-        ->unique('id')
-        ->values();
-    $formatPriceValue = static fn (?int $price): string => filled($price) ? number_format((int) $price, 0, ',', ' ') : '';
-    $formatPriceRange = static function ($car) use ($formatPriceValue): string {
-        $startPrice = $car->start_price;
-        $endPrice = $car->end_price;
-
-        if (filled($startPrice) && filled($endPrice)) {
-            return (int) $startPrice === (int) $endPrice
-                ? $formatPriceValue((int) $startPrice)
-                : $formatPriceValue((int) $startPrice) . ' - ' . $formatPriceValue((int) $endPrice);
-        }
-
-        if (filled($startPrice)) {
-            return $formatPriceValue((int) $startPrice);
-        }
-
-        if (filled($endPrice)) {
-            return $formatPriceValue((int) $endPrice);
-        }
-
-        return 'не объявлена';
-    };
+    $viewsCountLabel = $viewsCountLabel ?? ($formatCount($engine->views_count) . ' просмотров');
 @endphp
 
 @section('title', $brand->name . ' ' . $engine->name)
@@ -87,9 +55,7 @@
                 </div>
 
                 <div class="engine-hero__meta">
-                    <span>{{ $formatCount($engine->views_count) }} просмотров</span>
-                    <span>{{ $formatCount($engine->configurations_count) }} конфигураций</span>
-                    <span>{{ $formatCount($relatedCars->count()) }} моделей</span>
+                    <span>{{ $viewsCountLabel }}</span>
                 </div>
             </div>
 
@@ -136,7 +102,7 @@
             </div>
         @endif
 
-        @if (filled($engine->page_text))
+        {{-- @if (filled($engine->page_text))
             <div class="engine-page__section">
                 <div class="engine-page__section-head">
                     <h2>Подробности</h2>
@@ -146,63 +112,7 @@
                     {!! $engine->page_text !!}
                 </div>
             </div>
-        @endif
-
-        @if ($relatedCars->isNotEmpty())
-            <div class="engine-page__section">
-                <div class="engine-page__section-head">
-                    <h2>Автомобили с этим двигателем</h2>
-                    <span>{{ $relatedCars->count() }}</span>
-                </div>
-
-                <ul class="modeli">
-                    @foreach ($relatedCars as $car)
-                        <x-site.car-card
-                            :href="'/' . $car->brand->slug . '/' . $car->slug . '/'"
-                            :name="$car->name"
-                            :image="$car->coverUrl()"
-                            :price-text="$formatPriceRange($car)"
-                            :price-currency="$car->resolvedPriceCurrency()"
-                            :is-new="$car->is_soon"
-                            :year="$car->year"
-                            :is-electric="$car->is_electric_car"
-                        />
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
-        @if ($configurations->isNotEmpty())
-            <div class="engine-page__section">
-                <div class="engine-page__section-head">
-                    <h2>Конфигурации</h2>
-                    <span>{{ $configurations->count() }}</span>
-                </div>
-
-                <div class="engine-configurations">
-                    @foreach ($configurations as $configuration)
-                        @php
-                            $car = $configuration->car;
-                            $carBrand = $car?->brand;
-                            $configurationUrl = filled($configuration->local_id)
-                                ? '/' . $carBrand->slug . '/' . $car->slug . '/equipment-' . $configuration->local_id . '/'
-                                : '/' . $carBrand->slug . '/' . $car->slug . '/';
-                        @endphp
-                        <a class="engine-configurations__item" href="{{ $configurationUrl }}">
-                            <span class="engine-configurations__model">{{ $carBrand->name }} {{ $car->name }}</span>
-                            <span class="engine-configurations__group">{{ $configuration->group?->name ?: 'Конфигурация' }}</span>
-                            <span class="engine-configurations__meta">
-                                @if (filled($configuration->price))
-                                    {{ number_format((int) $configuration->price, 0, ',', ' ') }} {{ $configuration->currency ?: 'руб.' }}
-                                @else
-                                    Цена не объявлена
-                                @endif
-                            </span>
-                        </a>
-                    @endforeach
-                </div>
-            </div>
-        @endif
+        @endif --}}
 
     </section>
 @endsection
