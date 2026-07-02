@@ -8,19 +8,43 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('car_configurations', function (Blueprint $table): void {
-            $table->dropConstrainedForeignId('engine_id');
-        });
+        if (! Schema::hasColumn('car_configurations', 'engine_id')) {
+            return;
+        }
+
+        try {
+            Schema::table('car_configurations', function (Blueprint $table): void {
+                $table->dropConstrainedForeignId('engine_id');
+            });
+        } catch (\Throwable) {
+            if (! Schema::hasColumn('car_configurations', 'engine_id')) {
+                return;
+            }
+
+            try {
+                Schema::table('car_configurations', function (Blueprint $table): void {
+                    $table->dropColumn('engine_id');
+                });
+            } catch (\Throwable) {
+            }
+        }
     }
 
     public function down(): void
     {
-        Schema::table('car_configurations', function (Blueprint $table): void {
-            $table->foreignId('engine_id')
-                ->nullable()
-                ->after('engine_type')
-                ->constrained('engines')
-                ->nullOnDelete();
-        });
+        if (Schema::hasColumn('car_configurations', 'engine_id')) {
+            return;
+        }
+
+        try {
+            Schema::table('car_configurations', function (Blueprint $table): void {
+                $table->foreignId('engine_id')
+                    ->nullable()
+                    ->after('engine_type')
+                    ->constrained('engines')
+                    ->nullOnDelete();
+            });
+        } catch (\Throwable) {
+        }
     }
 };
