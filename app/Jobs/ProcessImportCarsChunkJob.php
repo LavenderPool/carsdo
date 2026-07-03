@@ -6,8 +6,10 @@ use App\Models\ImportRun;
 use App\Services\Import\CarImportService;
 use App\Support\Import\ImportPayloadRules;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Database\DetectsLostConnections;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -16,6 +18,7 @@ use Throwable;
 
 class ProcessImportCarsChunkJob implements ShouldQueue
 {
+    use DetectsLostConnections;
     use Queueable;
 
     private const CAR_VALIDATION_CHUNK_SIZE = 100;
@@ -315,6 +318,20 @@ class ProcessImportCarsChunkJob implements ShouldQueue
 
             $this->dispatchNextChunk($importRun, $nextChunkIndex, $importService);
         } catch (Throwable $exception) {
+            if ($this->causedByLostConnection($exception)) {
+                $this->logWarning($importRun, 'import.retrying_lost_connection', [
+                    'stage' => $failureStage,
+                    'chunk_index' => $this->chunkIndex,
+                    'attempt' => $this->attempts(),
+                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                    'exception_message' => $exception->getMessage(),
+                ]);
+
+                DB::disconnect();
+
+                throw $exception;
+            }
+
             report($exception);
 
             $this->cleanupChunkFiles($importRun);
