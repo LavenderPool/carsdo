@@ -38,6 +38,8 @@ class ProcessImportCarsChunkJob implements ShouldQueue
 
     public int $tries = 0;
 
+    private bool $jobFinished = false;
+
     public function __construct(
         public ImportRun $importRun,
         public int $chunkIndex,
@@ -57,6 +59,19 @@ class ProcessImportCarsChunkJob implements ShouldQueue
         if ($importRun === null || in_array($importRun->status, ['succeeded', 'failed', 'cancelled'], true)) {
             return;
         }
+
+        $this->registerShutdownWatchdog($importRun);
+
+        $this->logInfo($importRun, 'import.chunk_job_started', [
+            'stage' => 'chunk_bootstrap',
+            'chunk_index' => $this->chunkIndex,
+            'attempt' => $this->attempts(),
+            'pid' => getmypid(),
+            'memory_mb' => $this->memoryUsageMb(),
+            'peak_memory_mb' => $this->peakMemoryUsageMb(),
+            'php_memory_limit' => (string) ini_get('memory_limit'),
+            'php_max_execution_time' => (string) ini_get('max_execution_time'),
+        ]);
 
         $totalCars = (int) ($importRun->total_cars ?? 0);
         $chunksTotal = (int) ($importRun->chunks_total ?? 0);
@@ -170,6 +185,15 @@ class ProcessImportCarsChunkJob implements ShouldQueue
                         "Обрабатывается чанк {$this->chunkIndex} из {$chunksTotal}. Импортировано {$updatedStats['processed_cars']} из {$totalCars} машин.",
                         $jobStartedAt,
                     );
+
+                    $this->logInfo($importRun, 'import.heartbeat', [
+                        'stage' => 'chunk_persist',
+                        'chunk_index' => $this->chunkIndex,
+                        'processed_cars' => $updatedStats['processed_cars'],
+                        'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                        'memory_mb' => $this->memoryUsageMb(),
+                        'peak_memory_mb' => $this->peakMemoryUsageMb(),
+                    ]);
                 },
                 function () use (&$stopState): bool {
                     if ($stopState['stop_requested']) {
@@ -310,7 +334,10 @@ class ProcessImportCarsChunkJob implements ShouldQueue
                 'elapsed_ms' => $this->elapsedMs($jobStartedAt),
                 'exception_class' => $exception::class,
                 'exception_message' => $exception->getMessage(),
+                'exception_trace' => $exception->getTraceAsString(),
             ]);
+        } finally {
+            $this->jobFinished = true;
         }
     }
 
@@ -337,7 +364,40 @@ class ProcessImportCarsChunkJob implements ShouldQueue
             'chunk_index' => $this->chunkIndex,
             'exception_class' => $exception::class,
             'exception_message' => $exception->getMessage(),
+            'exception_trace' => $exception->getTraceAsString(),
+            'pid' => getmypid(),
+            'memory_mb' => $this->memoryUsageMb(),
+            'peak_memory_mb' => $this->peakMemoryUsageMb(),
         ]);
+    }
+
+    private function registerShutdownWatchdog(ImportRun $importRun): void
+    {
+        register_shutdown_function(function () use ($importRun): void {
+            if ($this->jobFinished) {
+                return;
+            }
+
+            Log::error('import.worker_shutdown_mid_job', [
+                'import_run_id' => $importRun->id,
+                'correlation_id' => (string) $importRun->id,
+                'chunk_index' => $this->chunkIndex,
+                'pid' => getmypid(),
+                'memory_mb' => $this->memoryUsageMb(),
+                'peak_memory_mb' => $this->peakMemoryUsageMb(),
+                'last_error' => error_get_last(),
+            ]);
+        });
+    }
+
+    private function memoryUsageMb(): float
+    {
+        return round(memory_get_usage(true) / 1048576, 1);
+    }
+
+    private function peakMemoryUsageMb(): float
+    {
+        return round(memory_get_peak_usage(true) / 1048576, 1);
     }
 
     /**

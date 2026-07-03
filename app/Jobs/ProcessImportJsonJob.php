@@ -28,6 +28,8 @@ class ProcessImportJsonJob implements ShouldQueue
 
     public int $tries = 0;
 
+    private bool $jobFinished = false;
+
     public function __construct(
         public ImportRun $importRun,
     ) {
@@ -46,6 +48,17 @@ class ProcessImportJsonJob implements ShouldQueue
         if ($importRun === null) {
             return;
         }
+
+        $this->registerShutdownWatchdog($importRun);
+
+        $this->logInfo($importRun, 'import.json_job_started', [
+            'stage' => 'job_started',
+            'attempt' => $this->attempts(),
+            'pid' => getmypid(),
+            'memory_mb' => $this->memoryUsageMb(),
+            'php_memory_limit' => (string) ini_get('memory_limit'),
+            'php_max_execution_time' => (string) ini_get('max_execution_time'),
+        ]);
 
         if ($this->isStopRequested($importRun)) {
             $this->markCancelled($importRun, 'Импорт остановлен до начала обработки.', $jobStartedAt);
@@ -210,7 +223,10 @@ class ProcessImportJsonJob implements ShouldQueue
                 'elapsed_ms' => $this->elapsedMs($jobStartedAt),
                 'exception_class' => $exception::class,
                 'exception_message' => $exception->getMessage(),
+                'exception_trace' => $exception->getTraceAsString(),
             ]);
+        } finally {
+            $this->jobFinished = true;
         }
     }
 
@@ -234,7 +250,40 @@ class ProcessImportJsonJob implements ShouldQueue
             'stage' => 'queue_failed',
             'exception_class' => $exception::class,
             'exception_message' => $exception->getMessage(),
+            'exception_trace' => $exception->getTraceAsString(),
+            'pid' => getmypid(),
+            'memory_mb' => $this->memoryUsageMb(),
+            'peak_memory_mb' => $this->peakMemoryUsageMb(),
         ]);
+    }
+
+    private function registerShutdownWatchdog(ImportRun $importRun): void
+    {
+        register_shutdown_function(function () use ($importRun): void {
+            if ($this->jobFinished) {
+                return;
+            }
+
+            Log::error('import.worker_shutdown_mid_job', [
+                'import_run_id' => $importRun->id,
+                'correlation_id' => (string) $importRun->id,
+                'stage' => 'json_job',
+                'pid' => getmypid(),
+                'memory_mb' => $this->memoryUsageMb(),
+                'peak_memory_mb' => $this->peakMemoryUsageMb(),
+                'last_error' => error_get_last(),
+            ]);
+        });
+    }
+
+    private function memoryUsageMb(): float
+    {
+        return round(memory_get_usage(true) / 1048576, 1);
+    }
+
+    private function peakMemoryUsageMb(): float
+    {
+        return round(memory_get_peak_usage(true) / 1048576, 1);
     }
 
     /**
@@ -329,6 +378,17 @@ class ProcessImportJsonJob implements ShouldQueue
             $chunksTotal++;
             $this->writeChunkFile($importRun, $chunksTotal, $carsChunk);
             $carsChunk = [];
+
+            if ($chunksTotal % 10 === 0) {
+                $this->logInfo($importRun, 'import.heartbeat', [
+                    'stage' => 'prepare_chunks',
+                    'chunks_written' => $chunksTotal,
+                    'cars_count' => $carsCount,
+                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                    'memory_mb' => $this->memoryUsageMb(),
+                    'peak_memory_mb' => $this->peakMemoryUsageMb(),
+                ]);
+            }
         }
 
         if ($carsChunk !== []) {
