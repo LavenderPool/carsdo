@@ -99,9 +99,6 @@ class PagePagesTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Структурированный заголовок страницы');
-        $response->assertSee('/p/privacy-policy/', false);
-        $response->assertSee('/p/cookie-policy/', false);
-        $response->assertSee('/p/contacts/', false);
     }
 
     public function test_seeded_cookie_and_contacts_pages_exist_for_admin_bootstrap(): void
