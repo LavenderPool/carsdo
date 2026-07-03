@@ -27,13 +27,6 @@ use RuntimeException;
 class CarImportService
 {
     /**
-     * Сколько машин коммитим в рамках одной транзакции.
-     * Снижает накладные расходы на BEGIN/COMMIT, сохраняя частичный прогресс
-     * на границе пакета и реакцию на остановку перед каждой машиной.
-     */
-    private const CAR_PERSIST_BATCH_SIZE = 25;
-
-    /**
      * @param  array{
      *     cities?: array<int, array<string, mixed>>,
      *     brands?: array<int, array<string, mixed>>,
@@ -100,158 +93,95 @@ class CarImportService
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $carsPayload
+     * Обрабатывает машины по одной: каждая машина читается, гидрируется и
+     * коммитится отдельно, чтобы пиковое потребление памяти не зависело от
+     * размера чанка.
+     *
+     * @param  iterable<int, array<string, mixed>>  $carsPayload
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      * @param  null|callable(array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}): void  $afterCarProcessed
      * @param  null|callable(): bool  $shouldStop
      * @return array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}
      */
     public function importCarsChunk(
-        array $carsPayload,
+        iterable $carsPayload,
         array $stats,
         ?callable $afterCarProcessed = null,
         ?callable $shouldStop = null,
     ): array {
-        $chunkContext = $this->buildChunkContext($carsPayload);
+        $chunkContext = $this->freshChunkContext();
 
-        $totalCars = count($carsPayload);
-        $offset = 0;
-
-        while ($offset < $totalCars) {
-            $batch = array_slice($carsPayload, $offset, self::CAR_PERSIST_BATCH_SIZE);
-            $offset += count($batch);
-            $stopped = false;
-
-            DB::transaction(function () use (
-                $batch,
-                &$stats,
-                &$chunkContext,
-                &$stopped,
-                $afterCarProcessed,
-                $shouldStop,
-            ): void {
-                foreach ($batch as $carPayload) {
-                    if ($shouldStop !== null && $shouldStop()) {
-                        $stopped = true;
-
-                        return;
-                    }
-
-                    $this->upsertCar($carPayload, $stats, $chunkContext);
-                    $stats['processed_cars']++;
-
-                    if ($afterCarProcessed !== null) {
-                        $afterCarProcessed($stats);
-                    }
-                }
-            });
-
-            if ($stopped) {
+        foreach ($carsPayload as $carPayload) {
+            if ($shouldStop !== null && $shouldStop()) {
                 break;
             }
+
+            DB::transaction(function () use ($carPayload, &$stats, &$chunkContext): void {
+                $this->upsertCar($carPayload, $stats, $chunkContext);
+                $stats['processed_cars']++;
+            });
+
+            if ($afterCarProcessed !== null) {
+                $afterCarProcessed($stats);
+            }
+
+            unset($carPayload);
+            gc_collect_cycles();
         }
 
         return $stats;
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $carsPayload
      * @return array{
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
-     *     dealersByName: array<string, Dealer>,
-     *     carsByKey: array<string, Car>
+     *     dealersByName: array<string, Dealer>
      * }
      */
-    private function buildChunkContext(array $carsPayload): array
+    private function freshChunkContext(): array
     {
-        $brandSlugs = [];
-        $citySlugs = [];
-        $dealerNames = [];
-        $carSlugs = [];
+        return [
+            'brandsBySlug' => [],
+            'citiesBySlug' => [],
+            'dealersByName' => [],
+        ];
+    }
 
-        foreach ($carsPayload as $carPayload) {
-            $brandSlug = $this->normalizeString($carPayload['brand_slug'] ?? null);
-            $carSlug = $this->normalizeString($carPayload['slug'] ?? null);
+    private function resolveBrand(string $brandSlug, array &$chunkContext): ?Brand
+    {
+        $cachedBrand = $chunkContext['brandsBySlug'][$brandSlug] ?? null;
 
-            if ($brandSlug !== null) {
-                $brandSlugs[] = $brandSlug;
-            }
-
-            if ($carSlug !== null) {
-                $carSlugs[] = $carSlug;
-            }
-
-            foreach (($carPayload['dealers'] ?? []) as $dealerPayload) {
-                if (!is_array($dealerPayload)) {
-                    continue;
-                }
-
-                $citySlug = $this->normalizeString($dealerPayload['city_slug'] ?? null);
-                $dealerName = $this->normalizeString($dealerPayload['name'] ?? null);
-
-                if ($citySlug !== null) {
-                    $citySlugs[] = $citySlug;
-                }
-
-                if ($dealerName !== null) {
-                    $dealerNames[] = $dealerName;
-                }
-            }
+        if ($cachedBrand instanceof Brand) {
+            return $cachedBrand;
         }
 
-        $brandsBySlug = Brand::query()
-            ->whereIn('slug', array_values(array_unique($brandSlugs)), 'and', false)
-            ->get()
-            ->keyBy('slug')
-            ->all();
+        /** @var Brand|null $brand */
+        $brand = Brand::query()->where('slug', $brandSlug)->first();
 
-        $citiesBySlug = City::query()
-            ->whereIn('slug', array_values(array_unique($citySlugs)), 'and', false)
-            ->get()
-            ->keyBy('slug')
-            ->all();
+        if ($brand instanceof Brand) {
+            $chunkContext['brandsBySlug'][$brandSlug] = $brand;
+        }
 
-        $dealersByName = Dealer::query()
-            ->whereIn('name', array_values(array_unique($dealerNames)), 'and', false)
-            ->get()
-            ->keyBy('name')
-            ->all();
+        return $brand;
+    }
 
-        /** @var array<string, Car> $carsByKey */
-        $carsByKey = Car::query()
-            ->whereIn('slug', array_values(array_unique($carSlugs)), 'and', false)
-            ->with($this->carImportRelations())
-            ->get()
-            ->mapWithKeys(function (Car $car): array {
-                $this->initializeCarRelations($car);
+    private function resolveCity(string $citySlug, array &$chunkContext): ?City
+    {
+        $cachedCity = $chunkContext['citiesBySlug'][$citySlug] ?? null;
 
-                foreach ($car->configurationGroups as $group) {
-                    $this->initializeConfigurationGroupRelations($group);
+        if ($cachedCity instanceof City) {
+            return $cachedCity;
+        }
 
-                    foreach ($group->configurations as $configuration) {
-                        $this->initializeConfigurationRelations($configuration);
+        /** @var City|null $city */
+        $city = City::query()->where('slug', $citySlug)->first();
 
-                        foreach ($configuration->equipmentCategories as $category) {
-                            $this->initializeEquipmentCategoryRelations($category);
-                        }
-                    }
-                }
+        if ($city instanceof City) {
+            $chunkContext['citiesBySlug'][$citySlug] = $city;
+        }
 
-                foreach ($car->photoGroups as $group) {
-                    $this->initializePhotoGroupRelations($group);
-                }
-
-                return [$this->carKey($car->brand_id, $car->slug) => $car];
-            })
-            ->all();
-
-        return [
-            'brandsBySlug' => $brandsBySlug,
-            'citiesBySlug' => $citiesBySlug,
-            'dealersByName' => $dealersByName,
-            'carsByKey' => $carsByKey,
-        ];
+        return $city;
     }
 
     /**
@@ -349,8 +279,7 @@ class CarImportService
             throw new RuntimeException('Не указан slug у импортируемой машины.');
         }
 
-        /** @var Brand|null $brand */
-        $brand = $chunkContext['brandsBySlug'][$brandSlug] ?? null;
+        $brand = $this->resolveBrand($brandSlug, $chunkContext);
 
         if ($brand === null) {
             Log::error('import.car_failed', [
@@ -375,16 +304,12 @@ class CarImportService
             'cover_path' => $this->normalizeMediaPath($payload['cover_path'] ?? null),
         ];
 
-        $carKey = $this->carKey($brand->id, $slug);
-
-        /** @var Car|null $car */
-        $car = $chunkContext['carsByKey'][$carKey] ?? null;
+        $car = $this->findCarByBrandAndSlug($brand->id, $slug);
 
         /** @var Car $car */
         $car = $this->syncImportedCar($car, $brand->id, $slug, $attributes, $stats);
         $this->syncCoverAlias($car);
         $this->initializeCarRelations($car);
-        $this->cacheCar($chunkContext, $car);
 
         $this->syncCrashTest($car, $payload['crash_test'] ?? null, $stats);
         $this->syncTestDrives($car, $payload['test_drives'] ?? [], $stats);
@@ -569,8 +494,7 @@ class CarImportService
                 throw new RuntimeException("Не указан city_slug у дилера \"{$dealerName}\".");
             }
 
-            /** @var City|null $city */
-            $city = $chunkContext['citiesBySlug'][$citySlug] ?? null;
+            $city = $this->resolveCity($citySlug, $chunkContext);
 
             if ($city === null) {
                 throw new RuntimeException("Город со slug \"{$citySlug}\" не найден для дилера \"{$dealerName}\".");
@@ -822,11 +746,6 @@ class CarImportService
         ];
     }
 
-    private function carKey(int $brandId, string $slug): string
-    {
-        return $brandId.'|'.mb_strtolower($slug);
-    }
-
     /**
      * @param  array<string, mixed>  $attributes
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
@@ -897,8 +816,7 @@ class CarImportService
      * @param  array{
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
-     *     dealersByName: array<string, Dealer>,
-     *     carsByKey: array<string, Car>
+     *     dealersByName: array<string, Dealer>
      * }  $chunkContext
      * @param  array{new: int, updated: int, unchanged: int, processed: int, processed_cars: int}  $stats
      */
@@ -953,27 +871,13 @@ class CarImportService
      * @param  array{
      *     brandsBySlug: array<string, Brand>,
      *     citiesBySlug: array<string, City>,
-     *     dealersByName: array<string, Dealer>,
-     *     carsByKey: array<string, Car>
+     *     dealersByName: array<string, Dealer>
      * }  $chunkContext
      */
     private function cacheDealer(array &$chunkContext, string $lookupName, Dealer $dealer): void
     {
         $chunkContext['dealersByName'][$lookupName] = $dealer;
         $chunkContext['dealersByName'][$dealer->name] = $dealer;
-    }
-
-    /**
-     * @param  array{
-     *     brandsBySlug: array<string, Brand>,
-     *     citiesBySlug: array<string, City>,
-     *     dealersByName: array<string, Dealer>,
-     *     carsByKey: array<string, Car>
-     * }  $chunkContext
-     */
-    private function cacheCar(array &$chunkContext, Car $car): void
-    {
-        $chunkContext['carsByKey'][$this->carKey($car->brand_id, $car->slug)] = $car;
     }
 
     private function findCarByBrandAndSlug(int $brandId, string $slug): ?Car
