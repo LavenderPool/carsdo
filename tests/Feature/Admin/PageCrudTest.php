@@ -75,7 +75,7 @@ class PageCrudTest extends TestCase
                 'seo_description' => 'SEO description',
                 'seo_h1' => 'SEO H1',
                 'seo_og_image' => '/images/page.jpg',
-                'seo_canonical_url' => '/pages/custom/',
+                'seo_canonical_url' => '/p/custom/',
                 'seo_robots' => 'index, follow',
             ])
             ->assertRedirect(route('admin.pages.index'));
@@ -106,7 +106,7 @@ class PageCrudTest extends TestCase
                 'seo_description' => 'Updated SEO',
                 'seo_h1' => 'Updated H1',
                 'seo_og_image' => '/images/updated.jpg',
-                'seo_canonical_url' => '/pages/updated/',
+                'seo_canonical_url' => '/p/updated/',
                 'seo_robots' => 'noindex, nofollow',
             ])
             ->assertRedirect(route('admin.pages.index'));

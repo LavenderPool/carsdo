@@ -149,9 +149,6 @@ Route::get('/electric-cars/', ElectricCarController::class)->name('electric-cars
 Route::get('/popular-cars/', PopularCarController::class)->name('popular-cars');
 Route::get('/blog/', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{article:slug}/', [BlogController::class, 'show'])->name('blog.show');
-Route::get('/privacy-policy/', [SitePageController::class, 'privacy'])->name('pages.privacy');
-Route::get('/cookie-policy/', [SitePageController::class, 'cookie'])->name('pages.cookie');
-Route::get('/contacts/', [SitePageController::class, 'contacts'])->name('pages.contacts');
 
 Route::get('/cars-photo/', [CarPhotoGalleryController::class, 'index'])->name('cars-photo.index');
 Route::get('/cars-photo/{brand:slug}/', [CarPhotoGalleryController::class, 'brand'])->name('cars-photo.brand');
@@ -165,7 +162,7 @@ Route::get('/search/', [SearchController::class, 'index'])->name('search');
 Route::get('/search/suggest/', [SearchController::class, 'suggest'])->name('search.suggest');
 Route::get('/catalogs/{catalog:slug}/', SiteCatalogController::class)->name('catalog.show');
 
-Route::get('/{slug}/', [SitePageController::class, 'show'])->name('pages.show');
+Route::get('/p/{slug}/', [SitePageController::class, 'show'])->name('pages.show');
 
 Route::get('/{brand:slug}', [SiteBrandController::class, 'show'])->name('brand.show');
 

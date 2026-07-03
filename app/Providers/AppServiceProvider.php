@@ -195,11 +195,6 @@ class AppServiceProvider extends ServiceProvider
 
     private function staticPageUrl(string $slug): string
     {
-        return match ($slug) {
-            'privacy-policy' => '/privacy-policy/',
-            'cookie-policy' => '/cookie-policy/',
-            'contacts' => '/contacts/',
-            default => "/pages/{$slug}/",
-        };
+        return "/p/{$slug}/";
     }
 }

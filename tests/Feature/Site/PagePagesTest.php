@@ -95,7 +95,7 @@ class PagePagesTest extends TestCase
             'published_at' => now()->subMinute(),
         ]);
 
-        $response = $this->get(route('pages.privacy'));
+        $response = $this->get(route('pages.show', ['slug' => $page->slug]));
 
         $response->assertOk();
         $response->assertSee('Структурированный заголовок страницы');

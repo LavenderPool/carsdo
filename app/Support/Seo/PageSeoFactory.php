@@ -1534,12 +1534,7 @@ class PageSeoFactory
 
     private function pageUrl(Page $page): string
     {
-        return match ($page->slug) {
-            'privacy-policy' => $this->absoluteUrl('/privacy-policy/'),
-            'cookie-policy' => $this->absoluteUrl('/cookie-policy/'),
-            'contacts' => $this->absoluteUrl('/contacts/'),
-            default => $this->absoluteUrl("/pages/{$page->slug}/"),
-        };
+        return $this->absoluteUrl("/p/{$page->slug}/");
     }
 
     private function carPath(Brand $brand, Car $car): string
