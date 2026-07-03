@@ -65,14 +65,8 @@ class AppServiceProvider extends ServiceProvider
                     ->get())
                 : $headerBrands;
             $footerStaticPages = $hasPagesTable
-                ? SiteCache::remember('footer:static-pages:v2', static fn () => Page::query()
-                    ->published()
-                    ->where(function ($query): void {
-                        $query
-                            ->where('slug', 'privacy-policy')
-                            ->orWhere('slug', 'cookie-policy')
-                            ->orWhere('slug', 'contacts');
-                    })
+                ? SiteCache::remember('footer:static-pages:v3', static fn () => Page::query()
+                    ->whereIn('slug', Page::SYSTEM_SLUGS)
                     ->orderBy('sort_order')
                     ->get(['title', 'slug'])
                     ->map(static fn (Page $page): array => [

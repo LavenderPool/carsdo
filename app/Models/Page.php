@@ -31,6 +31,12 @@ class Page extends Model
 {
     use HasFactory, SoftDeletes;
 
+    public const SYSTEM_SLUGS = [
+        'privacy-policy',
+        'cookie-policy',
+        'contacts',
+    ];
+
     /**
      * @var array<string, string>
      */
@@ -47,5 +53,10 @@ class Page extends Model
             ->where('is_published', true)
             ->whereNotNull('published_at')
             ->where('published_at', '<=', now());
+    }
+
+    public static function isSystemSlug(string $slug): bool
+    {
+        return in_array($slug, self::SYSTEM_SLUGS, true);
     }
 }

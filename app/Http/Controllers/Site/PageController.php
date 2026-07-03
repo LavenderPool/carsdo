@@ -32,10 +32,15 @@ class PageController extends Controller
 
     private function renderPage(string $slug, ArticleBodyRenderer $articleBodyRenderer): View
     {
-        $page = SiteCache::remember("pages:published:{$slug}", static fn () => Page::query()
-            ->published()
-            ->where('slug', $slug)
-            ->first());
+        $page = SiteCache::remember($this->cacheKey($slug), static function () use ($slug) {
+            $query = Page::query()->where('slug', $slug);
+
+            if (! Page::isSystemSlug($slug)) {
+                $query->published();
+            }
+
+            return $query->first();
+        });
 
         abort_if(! $page instanceof Page, 404);
 
@@ -45,5 +50,12 @@ class PageController extends Controller
                 ? $articleBodyRenderer->render($page->body_json)
                 : (string) $page->body,
         ]);
+    }
+
+    private function cacheKey(string $slug): string
+    {
+        return Page::isSystemSlug($slug)
+            ? "pages:system:{$slug}:v2"
+            : "pages:published:{$slug}";
     }
 }

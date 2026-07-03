@@ -84,21 +84,24 @@ class PagePagesTest extends TestCase
             ->assertNotFound();
     }
 
-    public function test_seeded_privacy_page_is_reachable_when_published(): void
+    public function test_seeded_privacy_page_is_reachable_even_when_unpublished(): void
     {
         $page = Page::query()->where('slug', 'privacy-policy')->firstOrFail();
 
         $page->update([
             'body' => '<p>Политика конфиденциальности</p>',
             'body_json' => $this->pageDocument(),
-            'is_published' => true,
-            'published_at' => now()->subMinute(),
+            'is_published' => false,
+            'published_at' => null,
         ]);
 
         $response = $this->get(route('pages.show', ['slug' => $page->slug]));
 
         $response->assertOk();
         $response->assertSee('Структурированный заголовок страницы');
+        $response->assertSee('/p/privacy-policy/', false);
+        $response->assertSee('/p/cookie-policy/', false);
+        $response->assertSee('/p/contacts/', false);
     }
 
     public function test_seeded_cookie_and_contacts_pages_exist_for_admin_bootstrap(): void
