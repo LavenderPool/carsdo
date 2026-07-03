@@ -7,6 +7,7 @@ use App\Services\Import\CarImportService;
 use App\Support\Import\ImportPayloadRules;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -35,10 +36,17 @@ class ProcessImportCarsChunkJob implements ShouldQueue
 
     public int $timeout = 0;
 
+    public int $tries = 0;
+
     public function __construct(
         public ImportRun $importRun,
         public int $chunkIndex,
     ) {
+    }
+
+    public function backoff(): int
+    {
+        return 15;
     }
 
     public function handle(CarImportService $importService): void
@@ -108,6 +116,23 @@ class ProcessImportCarsChunkJob implements ShouldQueue
             $failureStage = 'chunk_persist';
             $initialStats = $this->statsFromImportRun($importRun);
 
+            $chunkStartOffset = ($this->chunkIndex - 1) * self::CAR_VALIDATION_CHUNK_SIZE;
+            $alreadyProcessedInChunk = min(
+                count($validatedCarsChunk),
+                max(0, $initialStats['processed_cars'] - $chunkStartOffset),
+            );
+            $carsToProcess = array_slice($validatedCarsChunk, $alreadyProcessedInChunk);
+
+            if ($alreadyProcessedInChunk > 0) {
+                $this->logInfo($importRun, 'import.stage.chunk_resumed', [
+                    'stage' => 'chunk_persist',
+                    'chunk_index' => $this->chunkIndex,
+                    'skipped_cars' => $alreadyProcessedInChunk,
+                    'remaining_cars' => count($carsToProcess),
+                    'elapsed_ms' => $this->elapsedMs($jobStartedAt),
+                ]);
+            }
+
             $progressState = [
                 'cars_since_persist' => 0,
                 'last_persist_at' => microtime(true),
@@ -118,7 +143,7 @@ class ProcessImportCarsChunkJob implements ShouldQueue
             ];
 
             $stats = $importService->importCarsChunk(
-                $validatedCarsChunk,
+                $carsToProcess,
                 $initialStats,
                 function (array $updatedStats) use (&$importRun, &$progressState, $totalCars, $chunksTotal, $jobStartedAt): void {
                     $progressState['cars_since_persist']++;
@@ -167,8 +192,7 @@ class ProcessImportCarsChunkJob implements ShouldQueue
                 },
             );
 
-            $chunkProcessedCars = $stats['processed_cars'] - $initialStats['processed_cars'];
-            $chunkCompleted = $chunkProcessedCars === count($validatedCarsChunk);
+            $chunkCompleted = $stats['processed_cars'] >= $chunkStartOffset + count($validatedCarsChunk);
             $chunksProcessed = $chunkCompleted
                 ? $this->chunkIndex
                 : max((int) $importRun->chunks_processed, $this->chunkIndex - 1);
@@ -251,6 +275,8 @@ class ProcessImportCarsChunkJob implements ShouldQueue
                     'total_cars' => $totalCars,
                     'stats' => $this->compactStats($stats),
                 ]);
+
+                $this->dispatchWebpBackfill($importRun);
 
                 return;
             }
@@ -352,6 +378,19 @@ class ProcessImportCarsChunkJob implements ShouldQueue
     private function cleanupChunkFiles(ImportRun $importRun): void
     {
         Storage::disk('local')->deleteDirectory($this->chunksDirectory($importRun));
+    }
+
+    private function dispatchWebpBackfill(ImportRun $importRun): void
+    {
+        if (!Cache::add(DispatchCarWebpBackfillJob::RUNNING_CACHE_KEY, true, now()->addHour())) {
+            return;
+        }
+
+        DispatchCarWebpBackfillJob::dispatch();
+
+        $this->logInfo($importRun, 'import.webp_backfill_dispatched', [
+            'stage' => 'webp_backfill',
+        ]);
     }
 
     private function dispatchNextChunk(ImportRun $importRun, int $chunkIndex, CarImportService $importService): void

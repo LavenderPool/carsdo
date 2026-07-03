@@ -26,9 +26,16 @@ class ProcessImportJsonJob implements ShouldQueue
 
     public int $timeout = 0;
 
+    public int $tries = 0;
+
     public function __construct(
         public ImportRun $importRun,
     ) {
+    }
+
+    public function backoff(): int
+    {
+        return 15;
     }
 
     public function handle(CarImportService $importService): void

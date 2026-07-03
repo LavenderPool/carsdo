@@ -16,7 +16,6 @@ use App\Models\CarReview;
 use App\Models\CarTestDrive;
 use App\Models\City;
 use App\Models\Dealer;
-use App\Support\Media\MediaPath;
 use App\Support\Media\MediaVariantService;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
@@ -1151,12 +1150,10 @@ class CarImportService
 
     private function syncCoverAlias(Car $car): void
     {
-        app(MediaVariantService::class)->deleteVariantsForOwner(Car::class, $car->id);
-
-        if (!is_string($car->cover_path) || $car->cover_path === '' || MediaPath::isExternal($car->cover_path)) {
+        if ($car->wasRecentlyCreated || !$car->wasChanged('cover_path')) {
             return;
         }
 
-        app(MediaVariantService::class)->ensureWebpVariant($car->cover_path, Car::class, $car->id);
+        app(MediaVariantService::class)->deleteVariantsForOwner(Car::class, $car->id);
     }
 }
